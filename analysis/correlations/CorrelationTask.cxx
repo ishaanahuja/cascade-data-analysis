@@ -152,11 +152,23 @@ void CorrelationTask::UserCreateOutputObjects()
 //_____________________________________________________________________________
 void CorrelationTask::UserExec(Option_t *)
 {
-
     fAOD = dynamic_cast<AliAODEvent *>(InputEvent());
     if (!fAOD)
         return;
     Double_t PtAssocMin = 1;
+
+    Double_t lCent = 0.0;
+    AliCentrality *centralityObj = 0;
+    centralityObj = ((AliVAODHeader *)fAOD->GetHeader())->GetCentralityP();
+    lCent = centralityObj->GetCentralityPercentile("V0M");
+    if (lCent!= -1.0)
+    {
+        Printf("Centrality lCent=%f\n", lCent);
+    }
+    else
+        return;
+  
+
     Int_t nTracks = fAOD->GetNumberOfTracks();
 
     TObjArray *selectedTracks = new TObjArray;
@@ -167,7 +179,6 @@ void CorrelationTask::UserExec(Option_t *)
 
     TObjArray *selectedChargedTriggers = new TObjArray;
     selectedChargedTriggers->SetOwner(kTRUE);
-
     for (Int_t i = 0; i < nTracks; i++)
     {
         AliAODTrack *tr = dynamic_cast<AliAODTrack *>(fAOD->GetTrack(i));
@@ -233,25 +244,33 @@ void CorrelationTask::UserExec(Option_t *)
     AliAODVertex *myPrimVertex = fAOD->GetPrimaryVertex();
     if (!myPrimVertex)
     {
-        Printf("AliAODVertex myPrimVertex not found. Skipping..."); ///////////////
+        // Printf("AliAODVertex myPrimVertex not found. Skipping...\n"); ///////////////
         return;
     }
     if ((TMath::Abs(myPrimVertex->GetZ())) >= cutPrimVertex)
         return;
+    // Printf("PV GetZ>primary vertex cut\n"); //////////////////////
+
     Double_t lPVx = myPrimVertex->GetX();
     Double_t lPVy = myPrimVertex->GetY();
     Double_t lPVz = myPrimVertex->GetZ();
 
     if (TMath::Abs(lPVx) < 10e-5 && TMath::Abs(lPVy) < 10e-5 && TMath::Abs(lPVz) < 10e-5)
         return;
-
+    // Printf("PV out of bounds!!\n");/////////////////////
     // Centrality definition
-    Double_t lCent = 0.0;
-    AliCentrality *centralityObj = 0;
-    centralityObj = ((AliVAODHeader *)fAOD->GetHeader())->GetCentralityP();
-    lCent = centralityObj->GetCentralityPercentile("V0M");
-    if ((lCent < 0.) || (lCent > 90.))
-        return;
+    // Double_t lCent = 0.0;
+    // AliCentrality *centralityObj = 0;
+    // centralityObj = ((AliVAODHeader *)fAOD->GetHeader())->GetCentralityP();
+    // lCent = centralityObj->GetCentralityPercentile("V0M");
+    // if ((lCent < 0.) || (lCent > 90.))
+    // {
+    //     Printf("Centrality out of bounds!!\n lCent=%f\n", lCent);
+    //     return;
+    // }
+
+    Printf("TEST before mixing\n");
+
     // Mixing ==============================================
 
     fHistdPhidEtaMix->Sumw2();
@@ -259,11 +278,18 @@ void CorrelationTask::UserExec(Option_t *)
     if (!pool)
         AliFatal(Form("No pool found for centrality = %f, zVtx = %f", lCent, lPVz));
     //pool->SetDebug(1);
+    Printf("test1\n");
+    pool->PrintInfo();
     if (pool->IsReady() || pool->NTracksInPool() > fMixingTracks / 10 || pool->GetCurrentNEvents() >= 5)
     {
+
         Int_t nMix = pool->GetCurrentNEvents();
+        Printf("test2\n nMix=%d", nMix);
+
         for (Int_t jMix = 0; jMix < nMix; jMix++)
         { // loop through mixing events
+            Printf("test3\n");
+
             TObjArray *bgTracks = pool->GetEvent(jMix);
             for (Int_t i = 0; i < selectedChargedTriggers->GetEntriesFast(); i++)    ///instead of selected V0
             {                                                                        // loop through selected charged trigger particles
@@ -287,7 +313,7 @@ void CorrelationTask::UserExec(Option_t *)
 
                     Double_t spMix[6] = {dPhiMix, dEtaMix, chTrigPt, assoc->Pt(), lCent, lPVz};
                     fHistdPhidEtaMix->Fill(spMix);
-                    Printf("%f\n", spMix[0]);
+                    Printf("test4\n %f\n", spMix[0]);
                 } // end of mixing track loop
             }     // end of loop through selected charged trigger particles
         }         // end of loop of mixing events
