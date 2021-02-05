@@ -83,16 +83,16 @@ void CorrelationTask::UserCreateOutputObjects()
 
     fHistdEtadPhi = new TH2F("fHistdEtadPhi", "dEta vs. dPhi; dEta; dPhi", 100, -2, 2, 72, -1.57, 4.71);
 
-    // Int_t nCentralityBins = 9;
-    // Double_t centBins[] = {0., 10., 20., 30., 40., 50., 60., 70., 80., 90.};
-    Int_t nCentralityBins = 1;
-    Double_t centBins[] = {0., 90.};
+    Int_t nCentralityBins = 9;
+    Double_t centBins[] = {0., 10., 20., 30., 40., 50., 60., 70., 80., 90.};
+    // Int_t nCentralityBins = 1;
+    // Double_t centBins[] = {0., 90.};
     const Double_t *centralityBins = centBins;
     // defining bins for Z vertex
-    // Int_t nZvtxBins = 7;
-    // Double_t vertexBins[] = {-7., -5., -3., -1., 1., 3., 5., 7.};
-    Int_t nZvtxBins = 1;
-    Double_t vertexBins[] = {-10., 10.};
+    Int_t nZvtxBins = 7;
+    Double_t vertexBins[] = {-7., -5., -3., -1., 1., 3., 5., 7.};
+    // Int_t nZvtxBins = 1;
+    // Double_t vertexBins[] = {-10., 10.};
     const Double_t *zvtxBins = vertexBins;
     // pt bins of associated particles for the analysis
     Int_t nPtBins = 7;
@@ -128,6 +128,12 @@ void CorrelationTask::UserCreateOutputObjects()
     const Double_t corMax[6] = {PhiBins[72], EtaBins[40], PtBinsCh[11], PtBins[7], centralityBins[1], zvtxBins[1]};
 
     fHistdPhidEtaMix = new THnSparseF("fHistdPhidEtaMix", "dPhi vs. dEta mixed", 6, corBins, corMin, corMax);
+    fHistdPhidEtaMix->GetAxis(0)->SetTitle("dPhiMix");
+    fHistdPhidEtaMix->GetAxis(1)->SetTitle("dEtaMix");
+    fHistdPhidEtaMix->GetAxis(2)->SetTitle("chTrigPt");
+    fHistdPhidEtaMix->GetAxis(3)->SetTitle("assocPt");
+    fHistdPhidEtaMix->GetAxis(4)->SetTitle("lCent");
+    fHistdPhidEtaMix->GetAxis(5)->SetTitle("lPVz");
 
     // Settings for event mixing
     Int_t trackDepth = fMixingTracks;
@@ -156,18 +162,6 @@ void CorrelationTask::UserExec(Option_t *)
     if (!fAOD)
         return;
     Double_t PtAssocMin = 1;
-
-    Double_t lCent = 0.0;
-    AliCentrality *centralityObj = 0;
-    centralityObj = ((AliVAODHeader *)fAOD->GetHeader())->GetCentralityP();
-    lCent = centralityObj->GetCentralityPercentile("V0M");
-    if (lCent!= -1.0)
-    {
-        Printf("Centrality lCent=%f\n", lCent);
-    }
-    else
-        return;
-  
 
     Int_t nTracks = fAOD->GetNumberOfTracks();
 
@@ -259,17 +253,17 @@ void CorrelationTask::UserExec(Option_t *)
         return;
     // Printf("PV out of bounds!!\n");/////////////////////
     // Centrality definition
-    // Double_t lCent = 0.0;
-    // AliCentrality *centralityObj = 0;
-    // centralityObj = ((AliVAODHeader *)fAOD->GetHeader())->GetCentralityP();
-    // lCent = centralityObj->GetCentralityPercentile("V0M");
-    // if ((lCent < 0.) || (lCent > 90.))
-    // {
-    //     Printf("Centrality out of bounds!!\n lCent=%f\n", lCent);
-    //     return;
-    // }
+    Double_t lCent = 0.0;
+    AliCentrality *centralityObj = 0;
+    centralityObj = ((AliVAODHeader *)fAOD->GetHeader())->GetCentralityP();
+    lCent = centralityObj->GetCentralityPercentile("V0M");
+    if ((lCent < 0.) || (lCent > 90.))
+    {
+        // Printf("Centrality out of bounds!!\n lCent=%f\n", lCent);
+        return;
+    }
 
-    Printf("TEST before mixing\n");
+    // Printf("TEST before mixing\n");
 
     // Mixing ==============================================
 
@@ -278,17 +272,17 @@ void CorrelationTask::UserExec(Option_t *)
     if (!pool)
         AliFatal(Form("No pool found for centrality = %f, zVtx = %f", lCent, lPVz));
     //pool->SetDebug(1);
-    Printf("test1\n");
-    pool->PrintInfo();
+    // Printf("test1\n");
+    // pool->PrintInfo();
     if (pool->IsReady() || pool->NTracksInPool() > fMixingTracks / 10 || pool->GetCurrentNEvents() >= 5)
     {
 
         Int_t nMix = pool->GetCurrentNEvents();
-        Printf("test2\n nMix=%d", nMix);
+        // Printf("test2\n nMix=%d", nMix);
 
         for (Int_t jMix = 0; jMix < nMix; jMix++)
         { // loop through mixing events
-            Printf("test3\n");
+            // Printf("test3\n");
 
             TObjArray *bgTracks = pool->GetEvent(jMix);
             for (Int_t i = 0; i < selectedChargedTriggers->GetEntriesFast(); i++)    ///instead of selected V0
@@ -313,7 +307,7 @@ void CorrelationTask::UserExec(Option_t *)
 
                     Double_t spMix[6] = {dPhiMix, dEtaMix, chTrigPt, assoc->Pt(), lCent, lPVz};
                     fHistdPhidEtaMix->Fill(spMix);
-                    Printf("test4\n %f\n", spMix[0]);
+                    // Printf("test4\n %f\n", spMix[0]);
                 } // end of mixing track loop
             }     // end of loop through selected charged trigger particles
         }         // end of loop of mixing events

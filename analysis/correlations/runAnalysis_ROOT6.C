@@ -24,10 +24,16 @@ void runAnalysis_ROOT6()
         // if you want to run locally, we need to define some input
         TChain* chain = new TChain("aodTree");
         // add a few files to the chain (change this so that your local files are added)
-        chain->Add("/var/home/ishaan/Work/old/CERN/data_AOD/001/ppLHC15f/001/AliAOD.root");
-        chain->Add("/var/home/ishaan/Work/old/CERN/data_AOD/002/ppLHC15f/002/AliAOD.root");
-        chain->Add("/var/home/ishaan/Work/old/CERN/data_AOD/003/ppLHC15f/003/AliAOD.root");
-        chain->Add("/var/home/ishaan/Work/old/CERN/data_AOD/004/ppLHC15f/004/AliAOD.root");
+
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0001/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0002/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0003/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0004/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0005/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0006/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0007/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0008/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0009/AliAOD.root");
         
 
         // start the analysis locally, reading the events from the tchain
