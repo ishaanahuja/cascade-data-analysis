@@ -2,7 +2,7 @@
 #include "TH1D.h"
 #include "TList.h"
 #include "TMath.h"
-#include "TH2F.h"
+#include "TH2D.h"
 #include "AliAnalysisTask.h"
 #include "AliAnalysisManager.h"
 #include "AliAODEvent.h"
@@ -45,11 +45,12 @@ ClassImp(CorrelationTask)
       fHistdPhi(0),
       fHistPhiTrig(0),
       fHistPhiAssoc(0),
-      fHistdEtadPhi(0),
+      fHistdPhidEta(0),
       fFillMixed(kTRUE),
-      fMixingTracks(50000),
+      fMixingTracks(500),
       fPoolMgr(0x0),
-      fHistdPhidEtaMix(0)
+      fHistMixC1(0),
+      fHistMixC2(0)
 
 {
     // constructor
@@ -73,31 +74,18 @@ void CorrelationTask::UserCreateOutputObjects()
     fOutputList = new TList();
     fOutputList->SetOwner(kTRUE);
 
-    fHistdEta = new TH1D("fHistdEta", "dEta (triggers-associated); dEta; n", 200, -2, 2);
-    fHistEtaTrig = new TH1D("fHistEtaTrig", "Eta (Triggers); Eta; n", 100, -1, 1);
-    fHistEtaAssoc = new TH1D("fHistEtaAssoc", "Eta (Associated); Eta; n", 100, -1, 1);
-
-    fHistdPhi = new TH1D("fHistdPhi", "dPhi (triggers-associated); dPhi; n", 144, -1.57, 4.71);
-    fHistPhiTrig = new TH1D("fHistPhiTrig", "Phi (Triggers); Phi; n", 144, -1.57, 4.71);
-    fHistPhiAssoc = new TH1D("fHistPhiAssoc", "Phi (Associated); Phi; n", 144, -1.57, 4.71);
-
-    fHistdEtadPhi = new TH2F("fHistdEtadPhi", "dEta vs. dPhi; dEta; dPhi", 100, -2, 2, 72, -1.57, 4.71);
-
     Int_t nCentralityBins = 9;
     Double_t centBins[] = {0., 10., 20., 30., 40., 50., 60., 70., 80., 90.};
-    // Int_t nCentralityBins = 1;
-    // Double_t centBins[] = {0., 90.};
+    // Double_t centBins[2] = {0., 100.};
     const Double_t *centralityBins = centBins;
     // defining bins for Z vertex
     Int_t nZvtxBins = 7;
     Double_t vertexBins[] = {-7., -5., -3., -1., 1., 3., 5., 7.};
-    // Int_t nZvtxBins = 1;
-    // Double_t vertexBins[] = {-10., 10.};
+    // Double_t vertexBins[2] = {-7., 7.};
     const Double_t *zvtxBins = vertexBins;
     // pt bins of associated particles for the analysis
     Int_t nPtBins = 7;
     const Double_t PtBins[8] = {2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0};
-    //const Double_t PtBins[2] = {3.0,15.0};
     // pt bins of trigger particles for the analysis
     Int_t nPtBinsCh = 11;
     const Double_t PtBinsCh[12] = {4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0};
@@ -114,8 +102,8 @@ void CorrelationTask::UserCreateOutputObjects()
 
     // defining bins for dEta distributions
     const Int_t nbEtaBins = 40;
-    Double_t EtaMin = -2.0;
-    Double_t EtaMax = 2.0;
+    Double_t EtaMin = -1.6;
+    Double_t EtaMax = 1.6;
     Double_t EtaBins[nbEtaBins + 1] = {0.};
     EtaBins[0] = EtaMin;
     for (Int_t i = 0; i < nbEtaBins; i++)
@@ -123,24 +111,35 @@ void CorrelationTask::UserCreateOutputObjects()
         EtaBins[i + 1] = EtaBins[i] + (EtaMax - EtaMin) / nbEtaBins;
     }
 
+    fHistdEta = new TH1D("fHistdEta", "dEta (triggers-associated); dEta; n", nbEtaBins, EtaMin, EtaMax);
+    fHistEtaTrig = new TH1D("fHistEtaTrig", "Eta (Triggers); Eta; n", nbEtaBins, EtaMin, EtaMax);
+    fHistEtaAssoc = new TH1D("fHistEtaAssoc", "Eta (Associated); Eta; n", nbEtaBins, EtaMin, EtaMax);
+
+    fHistdPhi = new TH1D("fHistdPhi", "dPhi (triggers-associated); dPhi; n", nbPhiBins, PhiMin, PhiMax);
+    fHistPhiTrig = new TH1D("fHistPhiTrig", "Phi (Triggers); Phi; n", nbPhiBins, PhiMin, PhiMax);
+    fHistPhiAssoc = new TH1D("fHistPhiAssoc", "Phi (Associated); Phi; n", nbPhiBins, PhiMin, PhiMax);
+
+    fHistdPhidEta = new TH2D("fHistdPhidEta", "dPhi vs. dEta; dPhi; dEta", nbPhiBins, PhiMin, PhiMax, nbEtaBins, EtaMin, EtaMax);
     const Int_t corBins[6] = {nbPhiBins, nbEtaBins, nPtBinsCh, nPtBins, nCentralityBins, nZvtxBins};
     const Double_t corMin[6] = {PhiBins[0], EtaBins[0], PtBinsCh[0], PtBins[0], centralityBins[0], zvtxBins[0]};
-    const Double_t corMax[6] = {PhiBins[72], EtaBins[40], PtBinsCh[11], PtBins[7], centralityBins[1], zvtxBins[1]};
+    const Double_t corMax[6] = {PhiBins[nbPhiBins], EtaBins[nbEtaBins], PtBinsCh[nPtBinsCh], PtBins[nPtBins], centralityBins[nCentralityBins], zvtxBins[nZvtxBins]};
 
-    fHistdPhidEtaMix = new THnSparseF("fHistdPhidEtaMix", "dPhi vs. dEta mixed", 6, corBins, corMin, corMax);
-    fHistdPhidEtaMix->GetAxis(0)->SetTitle("dPhiMix");
-    fHistdPhidEtaMix->GetAxis(1)->SetTitle("dEtaMix");
-    fHistdPhidEtaMix->GetAxis(2)->SetTitle("chTrigPt");
-    fHistdPhidEtaMix->GetAxis(3)->SetTitle("assocPt");
-    fHistdPhidEtaMix->GetAxis(4)->SetTitle("lCent");
-    fHistdPhidEtaMix->GetAxis(5)->SetTitle("lPVz");
+    fHistMixC1 = new THnSparseD("fHistMixC1", "dPhi vs. dEta mixed", 6, corBins, corMin, corMax);
+    fHistMixC1->GetAxis(0)->SetTitle("dPhiMix");
+    fHistMixC1->GetAxis(1)->SetTitle("dEtaMix");
+    fHistMixC1->GetAxis(2)->SetTitle("chTrigPt");
+    fHistMixC1->GetAxis(3)->SetTitle("assocPt");
+    fHistMixC1->GetAxis(4)->SetTitle("lCent");
+    fHistMixC1->GetAxis(5)->SetTitle("lPVz");
+
+    fHistMixC2 = (THnSparseD *)fHistMixC1->Clone("fHistMixC2");
 
     // Settings for event mixing
     Int_t trackDepth = fMixingTracks;
+    // Int_t trackDepth = 5;
     Int_t poolSize = 200; // Maximum number of events, ignored in the present implemented of AliEventPoolManager
-
+    // Int_t poolSize = 100;
     fPoolMgr = new AliEventPoolManager(poolSize, trackDepth, nCentralityBins, centBins, nZvtxBins, vertexBins);
-    // ncentralitybins=1, centbins[2]=0..90,nZvtxBins=1, vertexBins=[-10,10]
 
     fOutputList->Add(fHistdEta);
     fOutputList->Add(fHistEtaTrig);
@@ -150,8 +149,10 @@ void CorrelationTask::UserCreateOutputObjects()
     fOutputList->Add(fHistPhiTrig);
     fOutputList->Add(fHistPhiAssoc);
 
-    fOutputList->Add(fHistdEtadPhi);
-    fOutputList->Add(fHistdPhidEtaMix);
+    fOutputList->Add(fHistdPhidEta);
+
+    fOutputList->Add(fHistMixC1);
+    fOutputList->Add(fHistMixC2);
 
     PostData(1, fOutputList);
 }
@@ -161,7 +162,7 @@ void CorrelationTask::UserExec(Option_t *)
     fAOD = dynamic_cast<AliAODEvent *>(InputEvent());
     if (!fAOD)
         return;
-    Double_t PtAssocMin = 1;
+    Double_t PtAssocMin = 3;
 
     Int_t nTracks = fAOD->GetNumberOfTracks();
 
@@ -191,10 +192,10 @@ void CorrelationTask::UserExec(Option_t *)
         selectedTracks->Add(tr);
 
         /// saving associated tracks/particles
-        if (tr->Pt() < 2.)
+        if (tr->Pt() < 8.)
             selectedChargedAssoc->Add(tr);
         /// saving the Charged trigger particles
-        if ((tr->Pt() >= 2.) && (tr->Pt() < 15.))
+        if ((tr->Pt() >= 8.) && (tr->Pt() < 15.))
         {
             selectedChargedTriggers->Add(tr);
         }
@@ -207,7 +208,6 @@ void CorrelationTask::UserExec(Option_t *)
 
     for (Int_t j = 0; j < nSelectedChargedTriggers; j++)
     {
-        // instead of AliAODTrack try TParticle, maybe it will work
         AliAODTrack *chTrig = (AliAODTrack *)selectedChargedTriggers->At(j);
         fHistEtaTrig->Fill(chTrig->Eta());
         fHistPhiTrig->Fill(calcPhi(chTrig->Phi()));
@@ -221,7 +221,7 @@ void CorrelationTask::UserExec(Option_t *)
 
             fHistdEta->Fill(dEta);
             fHistdPhi->Fill(dPhi);
-            fHistdEtadPhi->Fill(dEta, dPhi);
+            fHistdPhidEta->Fill(dPhi, dEta);
             if (atrCount < nselectedChargedAssoc)
             {
                 fHistEtaAssoc->Fill(atr->Eta());
@@ -231,19 +231,17 @@ void CorrelationTask::UserExec(Option_t *)
         }
     }
 
-    // ________________Mixing stuff_______________________
+    // ________________Mixing_______________________
 
     // Vertex cut
     Double_t cutPrimVertex = 7.0;
     AliAODVertex *myPrimVertex = fAOD->GetPrimaryVertex();
     if (!myPrimVertex)
     {
-        // Printf("AliAODVertex myPrimVertex not found. Skipping...\n"); ///////////////
         return;
     }
     if ((TMath::Abs(myPrimVertex->GetZ())) >= cutPrimVertex)
         return;
-    // Printf("PV GetZ>primary vertex cut\n"); //////////////////////
 
     Double_t lPVx = myPrimVertex->GetX();
     Double_t lPVy = myPrimVertex->GetY();
@@ -251,84 +249,75 @@ void CorrelationTask::UserExec(Option_t *)
 
     if (TMath::Abs(lPVx) < 10e-5 && TMath::Abs(lPVy) < 10e-5 && TMath::Abs(lPVz) < 10e-5)
         return;
-    // Printf("PV out of bounds!!\n");/////////////////////
     // Centrality definition
     Double_t lCent = 0.0;
     AliCentrality *centralityObj = 0;
     centralityObj = ((AliVAODHeader *)fAOD->GetHeader())->GetCentralityP();
     lCent = centralityObj->GetCentralityPercentile("V0M");
-    if ((lCent < 0.) || (lCent > 90.))
-    {
-        // Printf("Centrality out of bounds!!\n lCent=%f\n", lCent);
+    if ((lCent < 0.) || (lCent > 90.)) /// Centrality ranges for strangeness
         return;
-    }
+    if ((lCent > 10.) && (lCent < 60.)) /// Centrality range for this particular case - ignore for (10 < lCent < 60)
+        return;
 
-    // Printf("TEST before mixing\n");
-
-    // Mixing ==============================================
-
-    fHistdPhidEtaMix->Sumw2();
+    fHistMixC1->Sumw2();
+    fHistMixC2->Sumw2();
     AliEventPool *pool = fPoolMgr->GetEventPool(lCent, lPVz);
     if (!pool)
         AliFatal(Form("No pool found for centrality = %f, zVtx = %f", lCent, lPVz));
-    //pool->SetDebug(1);
-    // Printf("test1\n");
-    // pool->PrintInfo();
+    // Int_t tracks = 0; ///////////////////
+
     if (pool->IsReady() || pool->NTracksInPool() > fMixingTracks / 10 || pool->GetCurrentNEvents() >= 5)
     {
 
         Int_t nMix = pool->GetCurrentNEvents();
-        // Printf("test2\n nMix=%d", nMix);
-
         for (Int_t jMix = 0; jMix < nMix; jMix++)
         { // loop through mixing events
-            // Printf("test3\n");
 
             TObjArray *bgTracks = pool->GetEvent(jMix);
-            for (Int_t i = 0; i < selectedChargedTriggers->GetEntriesFast(); i++)    ///instead of selected V0
-            {                                                                        // loop through selected charged trigger particles
+            for (Int_t i = 0; i < selectedChargedTriggers->GetEntriesFast(); i++)    /// instead of selected V0
+            {                                                                        /// loop through selected charged trigger particles
                 AliAODTrack *chTrig = (AliAODTrack *)selectedChargedTriggers->At(i); /// instead of AliV0ChBasicParticle
-                Double_t chTrigPhi = chTrig->Phi();
-                Double_t chTrigEta = chTrig->Eta();
-                Double_t chTrigPt = chTrig->Pt();
-                // Short_t trigC = trig->WhichCandidate();
                 for (Int_t j = 0; j < bgTracks->GetEntriesFast(); j++)
                 { // mixing tracks loop
                     AliVParticle *assoc = (AliVParticle *)bgTracks->At(j);
                     // be careful tracks may have bigger pt than v0s.
-                    if (((assoc->Pt()) >= chTrigPt) || ((assoc->Pt()) < PtAssocMin))
+                    if (((assoc->Pt()) >= chTrig->Pt()) || ((assoc->Pt()) < PtAssocMin))
                         continue;
-                    Double_t dEtaMix = assoc->Eta() - chTrigEta;
-                    Double_t dPhiMix = assoc->Phi() - chTrigPhi;
+                    Double_t dEtaMix = assoc->Eta() - chTrig->Eta();
+                    Double_t dPhiMix = assoc->Phi() - chTrig->Phi();
                     if (dPhiMix > (1.5 * kPI))
                         dPhiMix -= 2.0 * kPI;
                     if (dPhiMix < (-0.5 * kPI))
                         dPhiMix += 2.0 * kPI;
-
-                    Double_t spMix[6] = {dPhiMix, dEtaMix, chTrigPt, assoc->Pt(), lCent, lPVz};
-                    fHistdPhidEtaMix->Fill(spMix);
-                    // Printf("test4\n %f\n", spMix[0]);
-                } // end of mixing track loop
-            }     // end of loop through selected charged trigger particles
-        }         // end of loop of mixing events
+                    Double_t spMix[6] = {dPhiMix, dEtaMix, chTrig->Pt(), assoc->Pt(), lCent, lPVz};
+                    if (lCent < 10.)
+                        fHistMixC1->Fill(spMix); /// fill for centrality range (0-10)
+                    else
+                        fHistMixC2->Fill(spMix); /// fill for remaining centrality ranges (60-90)
+                }                                // end of mixing track loop
+            }                                    // end of loop through selected charged trigger particles
+        }                                        // end of loop of mixing events
     }
 
+    // if (pool->NTracksInPool() != 0)
+    // {
+    //     tracks = tracks + pool->NTracksInPool();
+    //     Printf("n tracks=%d", tracks); ///////////////
+    //     // pool->PrintInfo();
+    // }
     TObjArray *tracksClone = (TObjArray *)selectedTracks->Clone();
     tracksClone->SetOwner(kTRUE);
     pool->UpdatePool(tracksClone);
-
     /// Set custom histogram drawing options
-    // fHistEtaTrig->SetLineColor(kRED);
-    fHistEtaTrig->SetOption("CP*");
-    fHistEtaAssoc->SetOption("CP*");
-    fHistdEta->SetOption("CP*");
+    fHistEtaTrig->SetOption("EP");
+    fHistEtaAssoc->SetOption("EP");
+    fHistdEta->SetOption("EP");
 
-    // fHistPhiTrig->SetLineColor(kRED);
-    fHistPhiTrig->SetOption("CP*");
-    fHistPhiAssoc->SetOption("CP*");
-    fHistdPhi->SetOption("CP*");
+    fHistPhiTrig->SetOption("EP");
+    fHistPhiAssoc->SetOption("EP");
+    fHistdPhi->SetOption("EP");
 
-    fHistdEtadPhi->SetOption("SURF1");
+    fHistdPhidEta->SetOption("SURF1");
 
     /// Write objects to output list
     PostData(1, fOutputList);

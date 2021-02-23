@@ -38,8 +38,8 @@ private:
 
     TH1D *fHistdEta, *fHistEtaTrig, *fHistEtaAssoc;
     TH1D *fHistdPhi, *fHistPhiTrig, *fHistPhiAssoc;
-    TH2F *fHistdEtadPhi;
-    THnSparseF *fHistdPhidEtaMix;                        // dPhi vs. dEta, mixed events
+    TH2D *fHistdPhidEta;
+    THnSparseD *fHistMixC1, *fHistMixC2;                              // dPhi vs. dEta, mixed events
     CorrelationTask(const CorrelationTask &);            // not implemented
     CorrelationTask &operator=(const CorrelationTask &); // not implemented
 
