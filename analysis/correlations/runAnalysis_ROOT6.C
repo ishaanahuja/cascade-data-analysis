@@ -6,7 +6,7 @@ void runAnalysis_ROOT6()
     Bool_t local = kTRUE;
     // if you run on grid, specify test mode (kTRUE) or full grid model (kFALSE)
     Bool_t gridTest = kFALSE;
-       
+       TFile::SetCacheFileDir(gSystem->HomeDirectory(), 1, 1);
     // create the analysis manager
     AliAnalysisManager *mgr = new AliAnalysisManager("AnalysisTaskExample");
     AliAODInputHandler *aodH = new AliAODInputHandler();
