@@ -1,4 +1,4 @@
-int CorrelationProjections(TString input = "CorrelationTaskTP.root", TString output = "CorrelationProjections.root", TString sparseMix = "fHistMixC1", TString listName = "MyOutputContainer")
+int CorrelationProjections(TString input = "CorrelationTask.root", TString output = "CorrelationProjections.root", TString sparseMix = "fHistMixC1", TString listName = "MyOutputContainer")
 {
         TH1::AddDirectory(0);
         TFile *f = TFile::Open(input);
@@ -57,20 +57,20 @@ int CorrelationProjections(TString input = "CorrelationTaskTP.root", TString out
                 return 6;
         }
         histMixProj->SetOption("SURF1");
-        histdPhidEta->SetOption("SURF1");
+        // histdPhidEta->SetOption("SURF1");
         histRatio->SetOption("SURF1");
         histRatiodPhi->SetOption("EP");
         histRatiodEta->SetOption("EP");
 
         Printf("Saving output to '%s' ...", output.Data());
         histMixProj->Write();
-        histdPhidEta->Write();
+        // histdPhidEta->Write();
         histRatio->Write();
         histRatiodPhi->Write();
         histRatiodEta->Write();
         out->Close();
         f->Close();
-        delete out;
+        delete out, histMixProj, histdPhidEta, histRatio, histRatiodPhi, histRatiodEta, histMix, histPhiTrig, list, f;
 
         return 0;
 }
