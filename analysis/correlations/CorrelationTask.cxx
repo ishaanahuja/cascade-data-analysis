@@ -14,7 +14,8 @@
 #include <AliMultiInputEventHandler.h>
 #include <AliMixInputEventHandler.h>
 
-#include "AliCentrality.h"
+// #include "AliCentrality.h" /// enable for AODs < 2015
+#include "AliMultSelection.h"
 
 class CorrelationTask;
 
@@ -32,6 +33,7 @@ Double_t calcPhi(Double_t phi)
 using namespace std;
 
 ClassImp(CorrelationTask)
+    ClassImp(AliMixBasicParticle)
 
     //_____________________________________________________________________________
     CorrelationTask::CorrelationTask(const char *name)
@@ -46,8 +48,8 @@ ClassImp(CorrelationTask)
       fHistPhiTrig(0),
       fHistPhiAssoc(0),
       fHistdPhidEta(0),
-      fFillMixed(kTRUE),
-      fMixingTracks(500),
+      fEventMixing(kTRUE),
+      fMixingTracks(50000),
       fPoolMgr(0x0),
       fHistMixC1(0),
       fHistMixC2(0)
@@ -125,21 +127,20 @@ void CorrelationTask::UserCreateOutputObjects()
     const Double_t corMax[6] = {PhiBins[nbPhiBins], EtaBins[nbEtaBins], PtBinsCh[nPtBinsCh], PtBins[nPtBins], centralityBins[nCentralityBins], zvtxBins[nZvtxBins]};
 
     fHistMixC1 = new THnSparseD("fHistMixC1", "dPhi vs. dEta mixed", 6, corBins, corMin, corMax);
-    fHistMixC1->GetAxis(0)->SetTitle("dPhiMix");
-    fHistMixC1->GetAxis(1)->SetTitle("dEtaMix");
-    fHistMixC1->GetAxis(2)->SetTitle("chTrigPt");
-    fHistMixC1->GetAxis(3)->SetTitle("assocPt");
-    fHistMixC1->GetAxis(4)->SetTitle("lCent");
-    fHistMixC1->GetAxis(5)->SetTitle("lPVz");
+    fHistMixC1->GetAxis(0)->SetNameTitle("dPhiMix", "dPhiMix");
+    fHistMixC1->GetAxis(1)->SetNameTitle("dEtaMix", "dEtaMix");
+    fHistMixC1->GetAxis(2)->SetNameTitle("chTrigPt", "chTrigPt");
+    fHistMixC1->GetAxis(3)->SetNameTitle("assocPt", "assocPt");
+    fHistMixC1->GetAxis(4)->SetNameTitle("lCent", "lCent");
+    fHistMixC1->GetAxis(5)->SetNameTitle("lPVz", "lPVz");
 
     fHistMixC2 = (THnSparseD *)fHistMixC1->Clone("fHistMixC2");
 
     // Settings for event mixing
     Int_t trackDepth = fMixingTracks;
-    // Int_t trackDepth = 5;
     Int_t poolSize = 200; // Maximum number of events, ignored in the present implemented of AliEventPoolManager
-    // Int_t poolSize = 100;
     fPoolMgr = new AliEventPoolManager(poolSize, trackDepth, nCentralityBins, centBins, nZvtxBins, vertexBins);
+    fPoolMgr->SetDebug(1);
 
     fOutputList->Add(fHistdEta);
     fOutputList->Add(fHistEtaTrig);
@@ -153,6 +154,17 @@ void CorrelationTask::UserCreateOutputObjects()
 
     fOutputList->Add(fHistMixC1);
     fOutputList->Add(fHistMixC2);
+
+    /// Set custom histogram drawing options
+    fHistEtaTrig->SetOption("EP");
+    fHistEtaAssoc->SetOption("EP");
+    fHistdEta->SetOption("EP");
+
+    fHistPhiTrig->SetOption("EP");
+    fHistPhiAssoc->SetOption("EP");
+    fHistdPhi->SetOption("EP");
+
+    fHistdPhidEta->SetOption("SURF1");
 
     PostData(1, fOutputList);
 }
@@ -193,11 +205,11 @@ void CorrelationTask::UserExec(Option_t *)
 
         /// saving associated tracks/particles
         if (tr->Pt() < 8.)
-            selectedChargedAssoc->Add(tr);
+            selectedChargedAssoc->Add(new AliMixBasicParticle(tr->Eta(), tr->Phi(), tr->Pt()));
         /// saving the Charged trigger particles
         if ((tr->Pt() >= 8.) && (tr->Pt() < 15.))
         {
-            selectedChargedTriggers->Add(tr);
+            selectedChargedTriggers->Add(new AliMixBasicParticle(tr->Eta(), tr->Phi(), tr->Pt()));
         }
     }
 
@@ -230,95 +242,95 @@ void CorrelationTask::UserExec(Option_t *)
             }
         }
     }
-
+    /// TODO: Ch-ch sibling
     // ________________Mixing_______________________
-
-    // Vertex cut
-    Double_t cutPrimVertex = 7.0;
-    AliAODVertex *myPrimVertex = fAOD->GetPrimaryVertex();
-    if (!myPrimVertex)
+    if (GetEventMixing())
     {
-        return;
+        Double_t dEtaMix = 0.;
+        Double_t dPhiMix = 0.;
+
+        // Vertex cut
+        Double_t cutPrimVertex = 7.0;
+        AliAODVertex *myPrimVertex = fAOD->GetPrimaryVertex();
+        if (!myPrimVertex)
+        {
+            return;
+        }
+        if ((TMath::Abs(myPrimVertex->GetZ())) >= cutPrimVertex)
+            return;
+        Double_t lPVx = myPrimVertex->GetX();
+        Double_t lPVy = myPrimVertex->GetY();
+        Double_t lPVz = myPrimVertex->GetZ();
+
+        if (TMath::Abs(lPVx) < 10e-5 && TMath::Abs(lPVy) < 10e-5 && TMath::Abs(lPVz) < 10e-5)
+            return;
+
+        // Centrality method for AODs before 2015
+        // Double_t lCent = 0.0;
+        // AliCentrality *centralityObj = 0;
+        // centralityObj = ((AliVAODHeader *)fAOD->GetHeader())->GetCentralityP();
+        // lCent = centralityObj->GetCentralityPercentile("V0M");
+
+        Float_t lCent = 300;
+        AliMultSelection *MultSelection = 0x0;
+        MultSelection = (AliMultSelection *)fAOD->FindListObject("MultSelection");
+        if (!MultSelection)
+        {
+            // If you get this warning (and lCent is 300) please check that the AliMultSelectionTask actually ran (before your task)
+            AliWarning("AliMultSelection object not found!");
+        }
+        else
+        {
+            lCent = MultSelection->GetMultiplicityPercentile("V0M");
+        }
+
+        if ((lCent < 0.) || (lCent > 90.)) /// Centrality ranges for strangeness
+            return;
+        if ((lCent > 10.) && (lCent < 60.)) /// Centrality range for this particular case - ignore for (10 < lCent < 60)
+            return;
+
+        fHistMixC1->Sumw2();
+        fHistMixC2->Sumw2();
+        AliEventPool *pool = fPoolMgr->GetEventPool(lCent, lPVz);
+        if (!pool)
+            AliFatal(Form("No pool found for centrality = %f, zVtx = %f", lCent, lPVz));
+
+        if (pool->IsReady() || pool->NTracksInPool() > fMixingTracks / 10 || pool->GetCurrentNEvents() >= 5)
+        {
+            Int_t nMix = pool->GetCurrentNEvents();
+            for (Int_t jMix = 0; jMix < nMix; jMix++)
+            { // loop through mixing events
+
+                TObjArray *bgTracks = pool->GetEvent(jMix);
+                for (Int_t i = 0; i < selectedChargedTriggers->GetEntriesFast(); i++)                    /// instead of selected V0
+                {                                                                                        /// loop through selected charged trigger particles
+                    AliMixBasicParticle *chTrig = (AliMixBasicParticle *)selectedChargedTriggers->At(i); 
+                    for (Int_t j = 0; j < bgTracks->GetEntriesFast(); j++)
+                    { // mixing tracks loop
+                        AliVParticle *assoc = (AliVParticle *)bgTracks->At(j);
+                        // be careful tracks may have bigger pt than triggers.
+                        if (((assoc->Pt()) >= chTrig->Pt()) || ((assoc->Pt()) < PtAssocMin))
+                            continue;
+                        dEtaMix = assoc->Eta() - chTrig->Eta();
+                        dPhiMix = assoc->Phi() - chTrig->Phi();
+                        if (dPhiMix > (1.5 * kPI))
+                            dPhiMix -= 2.0 * kPI;
+                        if (dPhiMix < (-0.5 * kPI))
+                            dPhiMix += 2.0 * kPI;
+                        Double_t spMix[6] = {dPhiMix, dEtaMix, chTrig->Pt(), assoc->Pt(), lCent, lPVz};
+                        if (lCent < 10.)
+                            fHistMixC1->Fill(spMix); /// fill for centrality range (0-10)
+                        else
+                            fHistMixC2->Fill(spMix); /// fill for remaining centrality ranges (60-90)
+                    }                                
+                }                                    
+            }                                        
+        }
+
+        TObjArray *tracksClone = (TObjArray *)selectedTracks->Clone();
+        tracksClone->SetOwner(kTRUE);
+        pool->UpdatePool(tracksClone);
     }
-    if ((TMath::Abs(myPrimVertex->GetZ())) >= cutPrimVertex)
-        return;
-
-    Double_t lPVx = myPrimVertex->GetX();
-    Double_t lPVy = myPrimVertex->GetY();
-    Double_t lPVz = myPrimVertex->GetZ();
-
-    if (TMath::Abs(lPVx) < 10e-5 && TMath::Abs(lPVy) < 10e-5 && TMath::Abs(lPVz) < 10e-5)
-        return;
-    // Centrality definition
-    Double_t lCent = 0.0;
-    AliCentrality *centralityObj = 0;
-    centralityObj = ((AliVAODHeader *)fAOD->GetHeader())->GetCentralityP();
-    lCent = centralityObj->GetCentralityPercentile("V0M");
-    if ((lCent < 0.) || (lCent > 90.)) /// Centrality ranges for strangeness
-        return;
-    if ((lCent > 10.) && (lCent < 60.)) /// Centrality range for this particular case - ignore for (10 < lCent < 60)
-        return;
-
-    fHistMixC1->Sumw2();
-    fHistMixC2->Sumw2();
-    AliEventPool *pool = fPoolMgr->GetEventPool(lCent, lPVz);
-    if (!pool)
-        AliFatal(Form("No pool found for centrality = %f, zVtx = %f", lCent, lPVz));
-    // Int_t tracks = 0; ///////////////////
-
-    if (pool->IsReady() || pool->NTracksInPool() > fMixingTracks / 10 || pool->GetCurrentNEvents() >= 5)
-    {
-
-        Int_t nMix = pool->GetCurrentNEvents();
-        for (Int_t jMix = 0; jMix < nMix; jMix++)
-        { // loop through mixing events
-
-            TObjArray *bgTracks = pool->GetEvent(jMix);
-            for (Int_t i = 0; i < selectedChargedTriggers->GetEntriesFast(); i++)    /// instead of selected V0
-            {                                                                        /// loop through selected charged trigger particles
-                AliAODTrack *chTrig = (AliAODTrack *)selectedChargedTriggers->At(i); /// instead of AliV0ChBasicParticle
-                for (Int_t j = 0; j < bgTracks->GetEntriesFast(); j++)
-                { // mixing tracks loop
-                    AliVParticle *assoc = (AliVParticle *)bgTracks->At(j);
-                    // be careful tracks may have bigger pt than v0s.
-                    if (((assoc->Pt()) >= chTrig->Pt()) || ((assoc->Pt()) < PtAssocMin))
-                        continue;
-                    Double_t dEtaMix = assoc->Eta() - chTrig->Eta();
-                    Double_t dPhiMix = assoc->Phi() - chTrig->Phi();
-                    if (dPhiMix > (1.5 * kPI))
-                        dPhiMix -= 2.0 * kPI;
-                    if (dPhiMix < (-0.5 * kPI))
-                        dPhiMix += 2.0 * kPI;
-                    Double_t spMix[6] = {dPhiMix, dEtaMix, chTrig->Pt(), assoc->Pt(), lCent, lPVz};
-                    if (lCent < 10.)
-                        fHistMixC1->Fill(spMix); /// fill for centrality range (0-10)
-                    else
-                        fHistMixC2->Fill(spMix); /// fill for remaining centrality ranges (60-90)
-                }                                // end of mixing track loop
-            }                                    // end of loop through selected charged trigger particles
-        }                                        // end of loop of mixing events
-    }
-
-    // if (pool->NTracksInPool() != 0)
-    // {
-    //     tracks = tracks + pool->NTracksInPool();
-    //     Printf("n tracks=%d", tracks); ///////////////
-    //     // pool->PrintInfo();
-    // }
-    TObjArray *tracksClone = (TObjArray *)selectedTracks->Clone();
-    tracksClone->SetOwner(kTRUE);
-    pool->UpdatePool(tracksClone);
-    /// Set custom histogram drawing options
-    fHistEtaTrig->SetOption("EP");
-    fHistEtaAssoc->SetOption("EP");
-    fHistdEta->SetOption("EP");
-
-    fHistPhiTrig->SetOption("EP");
-    fHistPhiAssoc->SetOption("EP");
-    fHistdPhi->SetOption("EP");
-
-    fHistdPhidEta->SetOption("SURF1");
-
     /// Write objects to output list
     PostData(1, fOutputList);
 }

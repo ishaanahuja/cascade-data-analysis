@@ -7,13 +7,15 @@ void runAnalysis_ROOT6()
     // if you run on grid, specify test mode (kTRUE) or full grid model (kFALSE)
     Bool_t gridTest = kFALSE;
     // Set Cache
-    TFile::SetCacheFileDir(gSystem->HomeDirectory(), 1, 1);
+    // if (local)
+    //     TFile::SetCacheFileDir(gSystem->HomeDirectory(), 1, 1);
     // create the analysis manager
     AliAnalysisManager *mgr = new AliAnalysisManager("AnalysisTaskExample");
     AliAODInputHandler *aodH = new AliAODInputHandler();
     mgr->SetInputEventHandler(aodH);
 
     gInterpreter->LoadMacro("CorrelationTask.cxx++g");
+
     CorrelationTask *task = reinterpret_cast<CorrelationTask *>(gInterpreter->ExecuteMacro("AddMyTask.C"));
 
     if (!mgr->InitAnalysis())
@@ -27,16 +29,27 @@ void runAnalysis_ROOT6()
         // if you want to run locally, we need to define some input
         TChain *chain = new TChain("aodTree");
         // add a few files to the chain (change this so that your local files are added)
-
-        chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0001/AliAOD.root");
-        chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0002/AliAOD.root");
-        chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0003/AliAOD.root");
-        chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0004/AliAOD.root");
-        chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0005/AliAOD.root");
-        chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0006/AliAOD.root");
-        chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0007/AliAOD.root");
-        chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0008/AliAOD.root");
-        chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0009/AliAOD.root");
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC15o_pass5/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC18q/296621/AOD252/001/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC18q/296621/AOD252/002/AliAOD.root");
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0001/AliAOD.root");
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0002/AliAOD.root");
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0003/AliAOD.root");
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0004/AliAOD.root");
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0005/AliAOD.root");
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0006/AliAOD.root");
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0007/AliAOD.root");
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0008/AliAOD.root");
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC11h/0009/AliAOD.root");
+        // chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0001/AliAOD.root");
+        // chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0002/AliAOD.root");
+        // chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0003/AliAOD.root");
+        // chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0004/AliAOD.root");
+        // chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0005/AliAOD.root");
+        // chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0006/AliAOD.root");
+        // chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0007/AliAOD.root");
+        // chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0008/AliAOD.root");
+        // chain->Add("root://eos.ndmspc.io//eos/ndmspc/scratch/ishaan-ahuja/data_AOD/PbPbLHC11h/0009/AliAOD.root");
 
         // start the analysis locally, reading the events from the tchain
         mgr->StartAnalysis("local", chain);
@@ -48,20 +61,25 @@ void runAnalysis_ROOT6()
         // also specify the include (header) paths on grid
         alienHandler->AddIncludePath("-I. -I$ROOTSYS/include -I$ALICE_ROOT -I$ALICE_ROOT/include -I$ALICE_PHYSICS/include");
         // make sure your source files get copied to grid
-        alienHandler->SetAdditionalLibs("CorrelationTask.cxx CorrelationTask.h");
+        alienHandler->SetAdditionalLibs("CorrelationTask.h CorrelationTask.cxx");
         alienHandler->SetAnalysisSource("CorrelationTask.cxx");
         // select the aliphysics version. all other packages
         // are LOADED AUTOMATICALLY!
-        alienHandler->SetAliPhysicsVersion("vAN-20201025_ROOT6-1");
-        // set the Alien API version
+        alienHandler->SetAliPhysicsVersion("vAN-20210224_ROOT6-1");
+
         alienHandler->SetAPIVersion("V1.1x");
-        // select the input data /alice/data/2018/LHC18h/000288804/pass1/AOD234/0030/
-        alienHandler->SetGridDataDir("/alice/data/2011/LHC11h_2");
-        alienHandler->SetDataPattern("*ESDs/pass2/AOD145/*AOD.root");
+
+        // alienHandler->SetGridDataDir("/alice/data/2011/LHC11h_2");
+        alienHandler->SetGridDataDir("/alice/data/2018/LHC18q");
+
+        // alienHandler->SetDataPattern("*ESDs/pass2/AOD145/*AOD.root");
+        alienHandler->SetDataPattern("*pass3/AOD252/*AOD.root");
         // MC has no prefix, data has prefix 000
         alienHandler->SetRunPrefix("000");
         // runnumber
-        alienHandler->AddRunNumber(167813);
+        alienHandler->AddRunNumber(296623);
+        alienHandler->AddRunNumber(296622);
+        alienHandler->AddRunNumber(296621);
         // number of files per subjob
         alienHandler->SetSplitMaxInputFileNumber(40);
         alienHandler->SetExecutable("myTask.sh");
@@ -86,7 +104,7 @@ void runAnalysis_ROOT6()
             // specify on how many files you want to run
             alienHandler->SetNtestFiles(1);
             // and launch the analysis
-            alienHandler->SetRunMode("test");
+            alienHandler->SetRunMode("full");
             mgr->StartAnalysis("grid");
         }
         else
