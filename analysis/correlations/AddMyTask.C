@@ -15,7 +15,7 @@ CorrelationTask* AddMyTask(TString name = "CorrelationTask")
         return 0x0;
     }
     // by default, a file is open for writing. here, we get the filename
-    TString fileName = "CorrelationTaskTP.root";
+    TString fileName = "CorrelationTask.root";
     fileName += ":dEta_dPhi";      // create a subfolder in the file
     // now we create an instance of your task
     CorrelationTask* task = new CorrelationTask(name.Data());   

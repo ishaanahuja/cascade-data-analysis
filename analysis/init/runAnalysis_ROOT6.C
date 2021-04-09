@@ -3,7 +3,7 @@
 void runAnalysis_ROOT6()
 {
     // set if you want to run the analysis locally (kTRUE), or on grid (kFALSE)
-    Bool_t local = kFALSE;
+    Bool_t local = kTRUE;
     // if you run on grid, specify test mode (kTRUE) or full grid model (kFALSE)
     Bool_t gridTest = kFALSE;
        
@@ -24,8 +24,8 @@ void runAnalysis_ROOT6()
         // if you want to run locally, we need to define some input
         TChain* chain = new TChain("aodTree");
         // add a few files to the chain (change this so that your local files are added)
-        chain->Add("/var/home/abdessamad/Downloads/PbPbLHC11h/168115/AOD115/0001/AliAOD.root");
-        //chain->Add("/var/home/abdessamad/Downloads/PbPbLHC11h/168115/AOD115/0002/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/old/CERN/data_AOD/001/ppLHC15f/001/AliAOD.root");
+        chain->Add("/var/home/ishaan/Work/old/CERN/data_AOD/002/ppLHC15f/002/AliAOD.root");
         //chain->Add("/var/home/abdessamad/Downloads/PbPbLHC11h/168115/AOD115/0003/AliAOD.root");
         //chain->Add("/var/home/abdessamad/Downloads/PbPbLHC11h/168115/AOD115/0004/AliAOD.root");
         //chain->Add("/var/home/abdessamad/Downloads/PbPbLHC11h/168115/AOD115/0005/AliAOD.root");
