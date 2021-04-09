@@ -174,7 +174,9 @@ void CorrelationTask::UserExec(Option_t *)
     fAOD = dynamic_cast<AliAODEvent *>(InputEvent());
     if (!fAOD)
         return;
-    Double_t PtAssocMin = 3;
+    Double_t PtAssocMin = 3.;
+    Double_t PtChTrigMin = 8.;
+    Double_t PtChTrigMax = 15.;
 
     Int_t nTracks = fAOD->GetNumberOfTracks();
 
@@ -204,10 +206,10 @@ void CorrelationTask::UserExec(Option_t *)
         selectedTracks->Add(tr);
 
         /// saving associated tracks/particles
-        if (tr->Pt() < 8.)
+        if (tr->Pt() < PtChTrigMin)
             selectedChargedAssoc->Add(new AliMixBasicParticle(tr->Eta(), tr->Phi(), tr->Pt()));
         /// saving the Charged trigger particles
-        if ((tr->Pt() >= 8.) && (tr->Pt() < 15.))
+        if ((tr->Pt() >= PtChTrigMin) && (tr->Pt() < PtChTrigMax))
         {
             selectedChargedTriggers->Add(new AliMixBasicParticle(tr->Eta(), tr->Phi(), tr->Pt()));
         }
@@ -302,14 +304,13 @@ void CorrelationTask::UserExec(Option_t *)
             { // loop through mixing events
 
                 TObjArray *bgTracks = pool->GetEvent(jMix);
-                for (Int_t i = 0; i < selectedChargedTriggers->GetEntriesFast(); i++)                    /// instead of selected V0
-                {                                                                                        /// loop through selected charged trigger particles
-                    AliMixBasicParticle *chTrig = (AliMixBasicParticle *)selectedChargedTriggers->At(i); 
+                for (Int_t i = 0; i < selectedChargedTriggers->GetEntriesFast(); i++) /// instead of selected V0
+                {                                                                     /// loop through selected charged trigger particles
+                    AliMixBasicParticle *chTrig = (AliMixBasicParticle *)selectedChargedTriggers->At(i);    /// see header file for documentation
                     for (Int_t j = 0; j < bgTracks->GetEntriesFast(); j++)
                     { // mixing tracks loop
                         AliVParticle *assoc = (AliVParticle *)bgTracks->At(j);
-                        // be careful tracks may have bigger pt than triggers.
-                        if (((assoc->Pt()) >= chTrig->Pt()) || ((assoc->Pt()) < PtAssocMin))
+                        if (((assoc->Pt()) >= PtChTrigMin) || ((assoc->Pt()) < PtAssocMin))
                             continue;
                         dEtaMix = assoc->Eta() - chTrig->Eta();
                         dPhiMix = assoc->Phi() - chTrig->Phi();
@@ -322,9 +323,9 @@ void CorrelationTask::UserExec(Option_t *)
                             fHistMixC1->Fill(spMix); /// fill for centrality range (0-10)
                         else
                             fHistMixC2->Fill(spMix); /// fill for remaining centrality ranges (60-90)
-                    }                                
-                }                                    
-            }                                        
+                    }
+                }
+            }
         }
 
         TObjArray *tracksClone = (TObjArray *)selectedTracks->Clone();

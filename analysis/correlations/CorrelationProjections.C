@@ -39,6 +39,9 @@ int CorrelationProjections(TString input = "CorrelationTask.root", TString outpu
         // Normalizing histogram
         histRatio->Scale(1 / (histPhiTrig->GetEntries()));
 
+        /// TODO: normalize mixing 2D hist with highest bin (average)- dEta should be 1 at max
+        /// You'll get (sort of) pair efficiency (2-particle)
+
         TH1D *histRatiodPhi = histRatio->ProjectionX();
         histRatiodPhi->SetNameTitle("histRatiodPhi", "dPhi : Sibling/Mixing");
         TH1D *histRatiodEta = histRatio->ProjectionY();
