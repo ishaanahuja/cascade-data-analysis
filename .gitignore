@@ -1,0 +1,17 @@
+.vscode
+*.root
+*.pcm
+*.d
+*.so
+*.xml
+analysis/correlations/myAnalysis.C
+analysis/correlations/myTask_merge_final.jdl
+analysis/correlations/myTask_merge.C
+analysis/correlations/myTask_merge.jdl
+analysis/correlations/myTask_merge.sh
+analysis/correlations/myTask_validation.sh
+analysis/correlations/myTask_validation_merge.sh
+analysis/correlations/myTask.jdl
+analysis/correlations/myTask.sh
+analysis/correlations/stderr
+analysis/correlations/stdout
