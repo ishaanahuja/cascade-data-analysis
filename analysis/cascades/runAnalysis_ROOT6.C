@@ -3,9 +3,9 @@
 void runAnalysis_ROOT6()
 {
     // set if you want to run the analysis locally (kTRUE), or on grid (kFALSE)
-    Bool_t local = kFALSE;
+    Bool_t local = kTRUE;
     // if you run on grid, specify test mode (kTRUE) or full grid model (kFALSE)
-    Bool_t gridTest = kTRUE;
+    Bool_t gridTest = kFALSE;
     // Set Cache
     // if (local)
     //     TFile::SetCacheFileDir(gSystem->HomeDirectory(), 1, 1);

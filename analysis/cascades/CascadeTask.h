@@ -2,11 +2,18 @@
 #define CascadeTask_H
 
 class TH1D;
-
+class AliPIDResponse;
+class THnSparse;
+// class TopologicalCuts;
 
 #ifndef ALIANALYSISTASKSE_H
 #include "AliAnalysisTaskSE.h"
 #endif
+
+#include "THnSparse.h"
+// #include "TopologicalCuts.h"
+// #include "TopologicalCuts.cxx"
+
 
 class CascadeTask : public AliAnalysisTaskSE
 
@@ -22,16 +29,16 @@ public:
 
     virtual void Terminate(Option_t *option);
 
-  
 private:
-  
     AliAODEvent *fAOD; //! input event
 
     TList *fOutputList; //! output list
-
+    TH1D *fCuts;
     TH1D *fHistXiPt3, *fHistXiPt4, *fHistXiPt5, *fHistXiPt6, *fHistXiPt7;
     TH1D *fHistOmegaPt3, *fHistOmegaPt4, *fHistOmegaPt5, *fHistOmegaPt6, *fHistOmegaPt7;
     TH1D *fHistEtaXi, *fHistEtaOmega;
+    THnSparse *test;
+    AliPIDResponse *fPIDResponse; //! pid response object
 
     CascadeTask(const CascadeTask &);            // not implemented
     CascadeTask &operator=(const CascadeTask &); // not implemented
