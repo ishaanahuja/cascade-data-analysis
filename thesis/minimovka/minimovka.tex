@@ -1,0 +1,76 @@
+\documentclass[thesismargins, english, thesislinespacing, twoside, openright, upjsfrontpage]{rnthesis}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+\usepackage{float}
+\usepackage{multicol}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[super, square, sort, comma]{natbib}
+\usepackage{gensymb}
+\usepackage{amsmath}
+\usepackage[hyphens]{url}
+\usepackage[colorlinks,citecolor=black,urlcolor=blue,linkcolor=black]{hyperref}
+\captionsetup{width=0.8\linewidth}
+
+
+\usepackage{rnt-pic}
+\usepackage{rnt-thm}
+
+\usepackage{pdfpages} %vkladanie pdf stran do prace
+\raggedbottom
+
+
+\title{Multi-strange particle production in p-Pb collisions at $\sqrt{s_{NN}}$ = 8.16TeV}
+\author{Ishaan Ahuja}
+\inytypprace{Written Thesis for the Dissertation Examination}
+\rok{2022}
+\miesto{Košice}
+\podakovanie{
+  I would like to express my sincere gratitude to RNDr. Marek Bombara, PhD. for his encouragement, valuable guidance and unfailing support 
+  in the supervision of this work.
+  I would also like to thank my colleagues from the ALICE collaboration and from the Department of Nuclear and Subnuclear Physics at 
+  Pavol Jozef Šafarik University in Košice and for their thoughtful advice and comments to refine and improve this work.
+  } 
+\veduci{doc. RNDr. Marek Bombara, PhD.}
+% \konzultant{doc. RNDr. Marek Bombara, PhD.}
+\pracovisko{Institute of Physics}
+\pdfzadanie{sections/vzorove-zadanie-z-ais.pdf}
+
+\abstract{
+Donec dolor arcu, posuere at, vehicula vitae, accumsan ut,
+lacus. Nulla tristique eros eu diam. Vivamus nec tortor vel
+ligula elementum lacinia. Curabitur euismod eros adipiscing
+ipsum. Donec sed quam at felis suscipit egestas. Morbi faucibus
+libero sit amet libero.
+}
+
+\keywords{lorem ipsum, dolor, sit amet}
+
+\abstrakt{
+Abstrakt obsahuje informáciu o cieľoch práce, jej stručnom obsahu,
+výsledkoch a význame celej práce. Súčasťou abstraktu je 3--5 kľúčových 
+slov. Abstrakt sa píše súvisle ako jeden odsek a jeho rozsah je 
+spravidla 100 až 500 slov.
+}
+
+\klucoveslova{lorem ipsum, dolor, sit amet}
+
+\begin{document}
+\maketitle
+\newpage
+\tableofcontents
+\listoffigures
+\listoftables
+
+\input{sections/01-introduction.tex}
+% \input{sections/02-alice.tex}
+% \input{sections/03-analysis.tex}
+% \input{sections/04-results.tex}
+% \input{sections/05-conclusions.tex}
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+\end{document}
