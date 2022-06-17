@@ -1,0 +1,10 @@
+stages:
+  - build
+compile_pdf:
+  image: aergus/latex
+  script:
+    - cd thesis/minimovka && latexmk -pdf minimovka.tex
+  stage: build
+  artifacts:
+    paths:
+      - "thesis/minimovka/minimovka.pdf"
