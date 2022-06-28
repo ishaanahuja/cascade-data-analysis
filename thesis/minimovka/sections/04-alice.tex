@@ -8,7 +8,8 @@ CERN accelerator complex, serving a diverse array of experiments.
 
 The Accelerator Complex at CERN (Fig. \ref{fig:Cern-accelerator-complex}) is a collection of particle accelerators that work in tandem to boost the
 energy of a beam of particles in order to accelerate them close to the speed of light. This is achieved through several accelerators in sequence,
-with LHC being the final accelerator currently boasting energies up to 6.5 TeV per beam.
+with LHC being the final accelerator currently boasting energies up to 6.8 TeV per beam for Run 3. The analysis presented in this work uses data 
+from LHC's Run 2, where the beams were accelerated up to 6.5 TeV.
 
 \begin{figure}[H]
     \centering
@@ -32,9 +33,9 @@ Particle collisions in the LHC are used in several experiments to study diverse 
 Particle acceleration in the LHC's circular particle synchrotron design is achieved through acceleration and bending the beamline across its 27 km
 long circumference with an array of superconducting magnets cooled down to temperatures in the vicinity of 1.9 K by the use of liquid Helium. Two
 simultaneous anti-parallel proton or ion beams, made up of particle 'bunches', are accelerated up to appropriate energies and circulated while collisions
-occur at four chosen intersection points. The collisions can amount to as much as 13 TeV centre-of-mass energy and peak luminosity values of
-$2\times10^{34}cm^{-2}s^{-1}$\cite{LhcReport:2018}. These collisions are studied by several experimental stations situated throughout the beamline.
-Four main experiments in the LHC complex, employing massive detector assemblies, include:
+occur at four chosen intersection points. In LHC's Run 2 data taking period, the collisions could amount to as much as 13 TeV centre-of-mass energy and 
+peak luminosity values of $2\times10^{34}cm^{-2}s^{-1}$\cite{LhcReport:2018}. These collisions are studied by several experimental stations situated 
+throughout the beamline. Four main experiments in the LHC complex, employing massive detector assemblies, include:
 
 \begin{itemize}
     \item ATLAS (A Toroidal LHC Apparatus)
@@ -54,7 +55,7 @@ The ALICE detector (Fig. \ref{fig:ALICEdetector}) is a 10,000 tonne machine loca
 reconstructing particle tracks using subdetector modules at high particle densities. The main objectives for the ALICE experiment include studying
 strongly interacting matter at high energy densities. The subdetectors allow comprehensive data collection of particle parameters for hadrons,
 electrons, muons and photons produced in heavy-ion, lighter nuclei as well as proton-nuclear collisions at varying energy densities and multiplicity
-ranges. The data presented in this report is based on p-Pb collisions at centre-of-mass energy of 8.16 TeV observed at the ALICE detector.
+ranges. The data presented in this report are based on p-Pb collisions at centre-of-mass energy of 8.16 TeV observed at the ALICE detector.
 
 
 \begin{figure}[H]
@@ -159,8 +160,8 @@ are the Silicon Strip Detector (SSD). Some of the ITS' capabilities are$\colon$
 \begin{itemize}
     \item Primary vertex location with a resolution of $10^{-4}$ m.
     \item Secondary vertex reconstruction from hyperon and D and B meson decay.
-    \item Tracking and identification of particles with momentum < 100 MeV.
-    \item Momentum and angle resolution improvements for high $p_{\textnormal{T}}$ particles traversing through the TPC.
+    \item Tracking and identification of particles with momentum < 100 MeV$/c$.
+    \item Momentum and angle resolution improvements for high $p_{\textnormal{\sc t}}$ particles traversing through the TPC.
     \item Reconstruction (albeit with limited momentum resolution) of paths of particles passing through TPC's dead regions
 \end{itemize}
 
@@ -181,9 +182,12 @@ track length ($\frac{1}{3}$ of radial track length).
     \label{fig:tpc}
 \end{figure}
 
-Cylindrical in shape with an inner radius of 848 mm and an outer radius of 2466 mm, the TPC is filled with 90 m$^{3}$ of gaseous mixture of Ne-CO$_{2}$-N$_{2}$
+TPC's axis is 
+aligned with the LHC's beamline, and it operates in a 0.5 T solenoidal magnetic field parallel to the ALICE detector's magnetic field. Cylindrical in 
+shape with an inner radius of 848 mm and an outer radius of 2466 mm, the TPC is filled with almost 90 m$^{3}$ of a gaseous mixture of 
+Ne-CO$_{2}$-N$_{2}$
 as a counting gas, with the total length of 4.994 m of the hollow cylinder segregated into drift regions by the central high voltage electrode situated
-at $z = 0$. A drift field of 400 V/cm is generated pointing towards the central electrode, which is kept at a drift voltage of -100kV.
+at $z = 0$. A drift field of 400 V/cm is generated pointing towards the central electrode, which is kept at a drift voltage of -100kV. 
 
 Upon encountering charged particles, the TPC gas is ionized creating ions and free electrons, which are then separated in the drift field. The electrons
 drift towards the end plates which are supplied with 36 readout chambers each, organized in 18 sectors covering 20\degree{} in azimuth individually.
@@ -191,14 +195,6 @@ The ions drift about a 1000 times slower than the electrons. The two dimensional
 movement of electrons on the pad plane. The signal magnitude can be used to determine the strength of ionisation, and therefore the energy loss
 ($\frac{-\textnormal{d}E}{\textnormal{d}x}$). The drift time of the electrons is used to reconstruct the third spatial dimension ($z$ coordinate).
 
-The TPC is utilized to register the following observables$\colon$
-\begin{itemize}
-    \item Momentum resolution
-    \item $dE/dx$ resolution
-    \item Azimuthal coverage
-    \item Track matching
-    \item Two-track resolution
-\end{itemize}
 
 \subsection{Time-of-Flight Detector}
 
@@ -216,8 +212,9 @@ be used.
     \label{fig:tof}
 \end{figure}
 
-Similar to the TPC, TOF also follows a hollow cylinder design with full azimuthal coverage and $|{\eta}| < 0.9$. With an outer radius of 3.78 m, it 
-imitating the 18-fold segmentation of the TPC (and TRD). 
+Similar to the TPC, TOF also follows a hollow cylinder design with an outer radius of 3.78 m and 18-fold segmentation. Covering the full azimuthal range 
+and $|{\eta}| < 0.9$, TOF is able to provide an average time resolution better than 50 ps\cite{TOF:2019}, enabling pile-up corrections through separating 
+particles produced in interactions of different bunch crossings. 
 Specifically, at the $3\sigma$ level, TOF offers proton/kaon separation up to 2.5 GeV/$c$ and pion/kaon separation up to 4 GeV/$c$. Additionally, TOF 
 data is also used to enhance the identification of electrons and nuclei.
 
