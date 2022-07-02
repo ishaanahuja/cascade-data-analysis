@@ -19,3 +19,17 @@ analysis/p-Pb/cent.C
 analysis/cascades/TopologicalCuts.cxx
 analysis/cascades/adam.cxx
 analysis/cascades/TopologicalCuts.h
+
+# for latex compilation:
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.gz
+*.blg
+*.bbl
+*.out
+*.toc
+*.lot
+*.lof
+minimovka.pdf
