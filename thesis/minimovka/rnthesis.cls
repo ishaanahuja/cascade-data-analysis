@@ -1,7 +1,7 @@
 % Trieda pre diplomove prace. https://github.com/novotnyr/rnthesis
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{rnthesis}
-              [2017/07/13 v1.5
+              [2020/08/16 v1.6
  Robert Novotny 'Thesis' class]
 \newcommand\@ptsize{}
 \newif\if@restonecol
@@ -106,7 +106,7 @@
 \@lowpenalty   51
 \@medpenalty  151
 \@highpenalty 301
-\setcounter{topnumber}{2}
+\setcounter{topnumber}{9}
 \renewcommand\topfraction{.7}
 \setcounter{bottomnumber}{1}
 \renewcommand\bottomfraction{.3}
@@ -176,7 +176,7 @@
 \newcommand{\rok}[1]{\def\@rok{#1}}
 
 %odbor
-\def\@odbor{Physics}
+\def\@odbor{Nuclear and Subnuclear Physics}
 \newcommand{\odbor}[1]{\def\@odbor{#1}}
 
 % Conditional macros: see http://www.physics.wm.edu/~norman/latexhints/conditional_macros.html
@@ -192,9 +192,9 @@
 
 %vyhlasenie
 \long\def\@vyhlasenie{
-Vyhlasujem, \v{z}e som t\'uto diplomov\'u pr\'acu
+Vyhlasujem, \v{z}e som t\'uto rigor\'{o}znu pr\'acu
 vypracoval samostatne, na z\'aklade vedomost\'{\i}
-z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej literat\'ury.
+z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej lite-rat\'ury.
 } 
 \newcommand{\vyhlasenie}[1]{\long\def\@vyhlasenie{#1}}
 
@@ -234,13 +234,17 @@ z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej literat\'ury.
 }%
 \newcommand{\miesto}[1]{\def\@miesto{#1}}
 
-%veduci
+%veduci/skolitel
 \def\@veduci{%
 	\ClassError{rnthesis}%
-    {Neuvedeny veduci! Definujte cez \string\veduci}%
-    {Priklad: \string\veduci{doc. RNDr. Jozef Mak, DrSc.}}%
+    {Neuvedeny veduci, resp. skolitel! Definujte cez \string\veduci alebo \string\skolitel}%
+    {Priklad: \string\veduci{doc. RNDr. Jozef Mak, DrSc.} alebo \string\skolitel{doc. RNDr. Jozef Mak, DrSc.}}%
 }
 \newcommand{\veduci}[1]{\def\@veduci{#1}}
+\newcommand{\skolitel}[1]{%
+    \renewcommand\tutorname{\v{S}kolite\v{l}}
+    \def\@veduci{#1}
+}%
 
 %konzultant
 \let\@konzultant\relax
@@ -311,32 +315,106 @@ z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej literat\'ury.
 %-------------\custom maketitle
 \newcommand\m@ketitle{%
 \begin{titlepage}
+
+  %%%%%CUSTOM FIRSTPAGE
   \newpage
   \null  
   \begin{center}
-  {\sffamily \Large
+    \rule{13.6cm}{0.5pt} \\ 
+    { \fontfamily{LinuxLibertineDisplayT-TOsF}\selectfont 
+    \LARGE
+    \universityname\par
+    \sc \facultyname
+    \par\vskip3pt
+    }
+    % \par
+    \rule{13.6cm}{0.5pt}
+  
+    \vspace*{1.4cm}
+    \vfill  
+  
+    \begin{figure}[htbp!]
+      \begin{center}
+      \includegraphics[width=4.2cm]{images/pf_upjs_bw.jpg}
+      \end{center}
+    \end{figure}
+    \vspace*{1cm}
+    \vfill  
+  
+    {
+      \baselineskip=30pt
+      {\fontfamily{qag}\selectfont \huge \bfseries \@title}\par\bigskip
+    }  
+    \vspace*{1cm}
+
+    {\Large \it \fontfamily{LinuxLibertineT-TOsF}\selectfont 
+      \@ifundefined{@inytypprace}{% pouzime bezny \typprace
+        \@typprace\thesisname%
+      }{%
+        \@inytypprace%
+      }%
+    }\par
+    \vspace*{1.5cm}    
+    \vfill
+    \begin{flushleft}%
+    \par
+    \if@upjsfrontpage
+      \vspace*{2cm}
+      {\large \fontfamily{LinuxLibertineDisplayT-TOsF}\selectfont 
+      \@miesto\ \@rok\ \hspace{9cm} \@author }
+    \else
+      \vspace*{1cm}
+      {\@miesto\ \@rok \hfill \@author}    
+    \fi
+    \end{flushleft}
+    \end{center}
+    \null
+  %%%%%% END OF CUSTOM FIRSTPAGE
+
+
+
+  \newpage
+  \thispagestyle{empty}
+  \null  
+  \begin{center}
+  \rule{13.6cm}{0.5pt} \\ 
+  { \fontfamily{LinuxLibertineDisplayT-TOsF}\selectfont 
+  \LARGE
   \universityname\par
-  \facultyname\par\vskip6pt
+  \sc \facultyname
+  \par\vskip3pt
   }
-  \par
-  %\vspace*{8cm}
-  \vfill  
+  % \par
+  \rule{13.6cm}{0.5pt}
+
+  \vspace*{1.4cm}
+  % \vfill  
+
+  \begin{figure}[htbp!]
+    \begin{center}
+    \includegraphics[width=3.5cm]{images/pf_upjs_bw.jpg}
+    \end{center}
+  \end{figure}
+  \vspace*{1cm}
+  % \vfill  
+
   {
   	\baselineskip=30pt
-  	{\huge \sffamily \bfseries {\@title}}\par\bigskip
+  	{\fontfamily{qag}\selectfont \huge \bfseries \@title}\par\bigskip
   }  
-  {\large \sffamily  
+  \vspace*{0.6cm}
+  {\Large \it \fontfamily{LinuxLibertineT-TOsF}\selectfont 
     \@ifundefined{@inytypprace}{% pouzime bezny \typprace
-      {\@typprace} {\thesisname}%
+      \@typprace\thesisname%
     }{%
-      {\@inytypprace}%
+      \@inytypprace%
     }%
   }\par
   \vspace*{1.4cm}    
   \vfill
   \begin{flushleft}%
-  \sffamily
-  \bfseries
+  \fontfamily{cmss}\selectfont 
+  
   \begin{tabbing}
   	MMMMMMMMMMMMM\= \kill
   	\ifx\@studprog\relax
@@ -360,14 +438,15 @@ z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej literat\'ury.
   \end{tabbing}
   \par
   \if@upjsfrontpage
-    \vspace*{3cm}
-    {\@miesto\ \@rok \hfill\break \@author}
+    \vspace*{1.4cm}
+    {\fontfamily{LinuxLibertineDisplayT-TOsF}\selectfont \@miesto\ \@rok \hfill\break \@author}
   \else
     \vspace*{1cm}
     {\@miesto\ \@rok \hfill \@author}    
   \fi
   \end{flushleft}
   \end{center}
+  \null
 \end{titlepage} 
 \newpage
 % a dalsia strana ide pre vyhlasenie
@@ -411,6 +490,7 @@ z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej literat\'ury.
   \end{center}
   \vskip2cm
 \fi
+\newpage
 % dalsia strana pre zadanie, vypiseme boilerplate varovanie
 \if@disablespecwarning\relax
 \else 
@@ -423,7 +503,8 @@ z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej literat\'ury.
     \begin{center}
     \begin{minipage}{12cm}
     \flushleft
-    {\LARGE\bf Namiesto tejto strany vlo\v{z}te zadanie z informa\v{c}n\'{e}ho syst\'{e}mu podp\'{\i}san\'{e} ved\'{u}cim \'{u}stavu!}\end{minipage}
+    {\LARGE\bf Namiesto tejto strany vlo\v{z}te zadanie z informa\v{c}n\'{e}ho syst\'{e}mu podp\'{\i}san\'{e} ved\'{u}cim \'{u}stavu!}
+    \end{minipage}
     \end{center}
     \vfill
   \else%
@@ -497,15 +578,13 @@ z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej literat\'ury.
 	% Ak babel nie je naloadovany, \thesisbibname bude expanziou \bibname, ktora sa moze s loadovanim
 	% dalsich packagov menit.
 	\@ifpackageloaded{babel}{%
-		% \iflanguage{slovak}{%
-      % \let\thesisbibname\bibname\message{\thesisbibname}%
-      % \addto\captionsslovak{\renewcommand{\appendixname}{Pr\'iloha}}
-    % }
-    {\def\thesisbibname{\bibname}}
-
+		\iflanguage{slovak}{%
+      \let\thesisbibname\bibname\message{\thesisbibname}%
+      \addto\captionsslovak{\renewcommand{\appendixname}{Pr\'iloha}}
+    }{\def\thesisbibname{\bibname}}
 	}{%
 		%package slovak is deprecated, you are supposed to use babel.sty
-		% \@ifpackageloaded{slovak}{\let\thesisbibname\bibname}{\def\thesisbibname{\bibname}}
+		\@ifpackageloaded{slovak}{\let\thesisbibname\bibname}{\def\thesisbibname{\bibname}}
 	}
 }
 %
@@ -931,6 +1010,8 @@ z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej literat\'ury.
          \chapter*{\contentsname
              \@mkboth{%
                 \MakeUppercase\contentsname}{\MakeUppercase\contentsname}}%
+                \vspace{-1.2\baselineskip}
+
          \@starttoc{toc}%
          \if@restonecol\twocolumn\fi
          \thispagestyle{empty} %obsah nesmie mat cislovanie
@@ -1058,15 +1139,15 @@ z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej literat\'ury.
     \parindent 1em%
     \noindent
     \hb@xt@1.8em{\hss\@makefnmark}#1}
-\newcommand\contentsname{Obsah}
-\newcommand\listfigurename{Zoznam obr\'azkov}
-\newcommand\listtablename{Zoznam tabuliek}
-\newcommand\bibname{Zoznam pou\v{z}itej literat\'{u}ry} 
+\newcommand\contentsname{Contents}
+\newcommand\listfigurename{List of Figures}
+\newcommand\listtablename{List of Tables}
+\newcommand\bibname{Bibliography} 
 \newcommand\indexname{Index}
-\newcommand\figurename{Obr\'{a}zok} %XXX OVERIT
-\newcommand\tablename{Tabu\v{l}ka}
-\newcommand\partname{\v{C}as\v{t}}
-\newcommand\chaptername{Kapitola}
+\newcommand\figurename{Figure} %XXX OVERIT
+\newcommand\tablename{Table}
+\newcommand\partname{Section}
+\newcommand\chaptername{Chapter}
 \newcommand\appendicesname{Pr\'ilohy}
 \newcommand\appendixname{Pr\'iloha}
 \newcommand\universityname{Univerzita Pavla Jozefa \v{S}af\'arika v Ko\v{s}iciach}
@@ -1082,15 +1163,15 @@ z\'{\i}skan\'ych \v{s}t\'udiom a s pomocou uvedenej literat\'ury.
 \newcommand\introductionname{\'Uvod}
 \newcommand\conclusionname{Z\'aver}
 \if@thesisenglish
-	\renewcommand\universityname{P. J. Safarik University}
+	\renewcommand\universityname{Pavol Jozef \v{S}af\'arik University in Ko\v{s}ice}
 	\renewcommand\facultyname{Faculty of Science}
 	\renewcommand\thesisname{thesis}
 	\renewcommand\studyprogrammename{Study programme}
-	\renewcommand\fieldofstudyname{Field of Study}
+	\renewcommand\fieldofstudyname{Study programme}
 	\renewcommand\institutename{Institute}
-	\renewcommand\tutorname{Tutor}
+	\renewcommand\tutorname{Supervisor}
 	\renewcommand\counsellorname{Counsellor}
-	\renewcommand\thanksname{Acknowledgments}
+	\renewcommand\thanksname{Acknowledgements}
   \renewcommand\appendicesname{Appendices}
   \renewcommand\appendixname{Appendix}
   \renewcommand\introductionname{Introduction}

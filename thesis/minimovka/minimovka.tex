@@ -1,9 +1,11 @@
-\documentclass[thesismargins, english, thesislinespacing, twoside, openright, upjsfrontpage]{rnthesis}
-\usepackage[english]{babel}
+\documentclass[thesismargins, english, thesislinespacing, oneside, openright, upjsfrontpage,showhonesty]{rnthesis}
+% \usepackage[english]{babel}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
 
+
+\usepackage{tablefootnote}
 \usepackage{multirow}
 \usepackage{float}
 \usepackage{multicol}
@@ -24,45 +26,61 @@
 \raggedbottom
 
 
-\title{Multi-strange particle production in p-Pb collisions at $\sqrt{s_{\textnormal{\sc nn}}}$ = 8.16TeV}
-\author{Ishaan Ahuja}
-\inytypprace{Written Thesis for the Dissertation Examination}
+\title{Multi-strange particle production in p-Pb collisions at $\sqrt{s_{\textnormal{\sc nn}}}$ = 8.16 TeV}
+\author{MSc Ishaan Ahuja}
+% \typprace{rigorózna}
+\inytypprace{Rigorous Thesis}
 \rok{2022}
-\miesto{Košice}
+\miesto{Ko\v{s}ice}
 \podakovanie{
   I would like to express my sincere gratitude to RNDr. Marek Bombara, PhD. for his encouragement, valuable guidance and unfailing support 
   in the supervision of this work.
   I would also like to thank my colleagues from the ALICE collaboration and from the Department of Nuclear and Subnuclear Physics at 
-  Pavol Jozef Šafarik University in Košice and for their thoughtful advice and comments to refine and improve this work.
+  Pavol Jozef \v{s}afarik University in Ko\v{s}ice and for their thoughtful advice and comments to refine and improve this work.
   } 
 \veduci{doc. RNDr. Marek Bombara, PhD.}
 % \konzultant{doc. RNDr. Marek Bombara, PhD.}
-\pracovisko{Institute of Physics}
-\pdfzadanie{sections/vzorove-zadanie-z-ais.pdf}
+\pracovisko{Institute of Physics, PF UPJ\v{S} \\ \> Department of Nuclear and Subnuclear Physics}
+% \pdfzadanie{sections/vzorove-zadanie-z-ais.pdf}
+% \pdfzadanie{sections/ZadanieRP_formularIAhuja.pdf}
+\pdfzadanie{sections/zadanie.pdf}
+
 
 \abstract{
-Donec dolor arcu, posuere at, vehicula vitae, accumsan ut,
-lacus. Nulla tristique eros eu diam. Vivamus nec tortor vel
-ligula elementum lacinia. Curabitur euismod eros adipiscing
-ipsum. Donec sed quam at felis suscipit egestas. Morbi faucibus
-libero sit amet libero.
+Strongly interacting new state of matter called the Quark-Gluon Plasma (QGP) is theoreticised to be formed at high temperature, high energy density 
+environments such as those created in heavy-ion collisions at the LHC. The key results from Pb-Pb collisions point to QGP formation, however smaller 
+systems such as p-p and p-Pb are not expected to fulfil necessary requirements for the same. Meanwhile, results from recent high energy collisions 
+at LHC indicating the presence of radial flow in smaller systems make this claim dubitable. In this analysis, strangeness enhancement as a signature 
+of QGP formation is studied for multi-strange baryons ($\Xi^{-}$, $\Omega^{-}$ and their antiparticles, also called cascade particles), and their high 
+strangeness content makes them susceptible to changes in hadrochemistry of the collision systems. Transverse momentum distributions of charged cascades 
+as a function of event multiplicity are investigated for p-Pb collisions at $\sqrt{s_{\textnormal{\sc nn}}}$ = 8.16TeV at ALICE, LHC to verify increasing 
+strangeness enhancement with rise in event multiplicity, as suggested at other energies for the same collision environment.
 }
 
-\keywords{lorem ipsum, dolor, sit amet}
+\keywords{Multi-strange baryons, strangeness enhancement}
 
 \abstrakt{
-Abstrakt obsahuje informáciu o cieľoch práce, jej stručnom obsahu,
-výsledkoch a význame celej práce. Súčasťou abstraktu je 3--5 kľúčových 
-slov. Abstrakt sa píše súvisle ako jeden odsek a jeho rozsah je 
-spravidla 100 až 500 slov.
+  Silne interaguj\a'{u}ci nov\a'{y} stav hmoty naz\a'{y}van\a'{y} kvarkovo-glu\a'{o}nov\a'{a} plazma (QGP) sa pod\v{l}a te\a'{o}rie vytv\a'{a}ra v prostred\a'{i} s vysokou teplotou a hustotou energie, 
+  ak\a'{a} vznik\a'{a} pri zr\a'{a}\v{z}kach \v{t}a\v{z}k\a'{y}ch i\a'{o}nov na LHC. K\v{l}\a'{u}\v{c}ov\a'{e} v\a'{y}sledky zo zr\a'{a}\v{z}ok Pb-Pb poukazuj\a'{u} na vznik QGP, 
+  av\v{s}ak neo\v{c}ak\a'{a}va sa, \v{z}e v men\v{s}\a'{i}ch zr\a'{a}\v{z}kov\a'{y}ch 
+  syst\a'{e}moch, ako s\a'{u} p-p a p-Pb, by mohlo doch\a'{a}dza\v{t} k vzniku QGP. Najnov\v{s}ie v\a'{y}sledky zo zr\a'{a}\v{z}ok p-p a p-Pb s vysokou multiplicitou na LHC, nazna\v{c}uj\a'{u} 
+  pr\a'{i}tomnos\v{t} radi\a'{a}lneho toku, \v{c}o m\^{o}\v{z}e poukazova\v{t} na pr\a'{i}tomnos\v{t} QGP aj v tak\a'{y}chto mal\a'{y}ch syst\a'{e}moch. V tejto anal\a'{y}ze sa sk\a'{u}ma 
+  zv\a'{y}\v{s}enie podivnosti ako 
+  signatúra vzniku QGP pre multipodivn\a'{e} bary\a'{o}ny ($\Xi^{-}$, $\Omega^{-}$ a ich anti\v{c}astice, naz\a'{y}van\a'{e} aj kask\a'{a}dy), pri\v{c}om vysok\a'{y} obsah podivnosti 
+  ich rob\a'{i} citliv\a'{y}mi 
+  na zmeny v hadroch\a'{e}mii zr\a'{a}\v{z}kov\a'{y}ch syst\a'{e}mov. Rozdelenie prie\v{c}nych hybnost\a'{i} nabit\a'{y}ch kask\a'{a}d ako funkcia multiplicity sa sk\a'{u}ma pre zr\a'{a}\v{z}ky p-Pb pri 
+  $\sqrt{s_{\textnormal{\sc nn}}}$ = 8,16 TeV v ALICE na LHC, aby sa potvrdilo rast\a'{u}ce zv\a'{y}\v{s}enie podivnosti s n\a'{a}rastom multiplicity, ako bolo nameran\a'{e} pri in\a'{y}ch 
+  energi\a'{a}ch pre 
+  rovnak\a'{y} zr\a'{a}\v{z}kov\a'{y} syst\a'{e}m.
 }
 
-\klucoveslova{lorem ipsum, dolor, sit amet}
+\klucoveslova{multipodivn\a'{e} bary\a'{o}ny, zv\a'{y}\v{s}enie podivnosti}
 
 \begin{document}
+% \makefirst
 \maketitle
 \newpage
-\tableofcontents
+{\small\tableofcontents}
 \listoffigures
 \listoftables
 
