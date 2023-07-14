@@ -4,7 +4,7 @@ compile_pdf:
   image: aergus/latex
   script:
     - cd thesis/minimovka && latexmk -pdf minimovka.tex
-    - cd conference/proceedings/HardProbes2023/ && latexmk -pdf skeleton.tex
+    - cd ishaan-ahuja/conference/proceedings/HardProbes2023/ && latexmk -pdf skeleton.tex
 
   stage: build
   artifacts:
