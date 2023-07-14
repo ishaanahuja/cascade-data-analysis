@@ -3,11 +3,11 @@ stages:
 compile_pdf:
   image: aergus/latex
   script:
-    - cd jf/thesis/phd/2020/ishaan-ahuja/thesis/minimovka && latexmk -pdf minimovka.tex
+    # - cd jf/thesis/phd/2020/ishaan-ahuja/thesis/minimovka && latexmk -pdf minimovka.tex
     - cd jf/thesis/phd/2020/ishaan-ahuja/conference/proceedings/HardProbes2023/ && latexmk -pdf skeleton.tex
 
   stage: build
   artifacts:
     paths:
-      - "jf/thesis/phd/2020/ishaan-ahuja/thesis/minimovka/minimovka.pdf"
+      # - "jf/thesis/phd/2020/ishaan-ahuja/thesis/minimovka/minimovka.pdf"
       - "jf/thesis/phd/2020/ishaan-ahuja/conference/proceedings/HardProbes2023/proceedings.pdf"
