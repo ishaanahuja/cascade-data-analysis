@@ -456,7 +456,7 @@ FUNCTION {format.date.paren.nomonth}
 FUNCTION {format.collaboration}
 { collaboration empty$
     { "" }
-    { "{\scshape " collaboration * "} " * "collaboration" * }
+    { "{\scshape " collaboration * "} " * "Collaboration" * }
   if$
 }
 
