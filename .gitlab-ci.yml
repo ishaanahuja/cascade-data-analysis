@@ -4,7 +4,10 @@ compile_pdf:
   image: aergus/latex
   script:
     - cd thesis/minimovka && latexmk -pdf minimovka.tex
+    - cd conference/proceedings/HardProbes2023/ && latexmk -pdf skeleton.tex
+
   stage: build
   artifacts:
     paths:
       - "thesis/minimovka/minimovka.pdf"
+      - "conference/proceedings/HardProbes2023/proceedings.pdf"
