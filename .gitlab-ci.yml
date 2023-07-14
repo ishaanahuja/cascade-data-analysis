@@ -10,4 +10,4 @@ compile_pdf:
   artifacts:
     paths:
       # - "jf/thesis/phd/2020/ishaan-ahuja/thesis/minimovka/minimovka.pdf"
-      - "conference/proceedings/HardProbes2023/proceedings.pdf"
+      - "conference/proceedings/HardProbes2023/skeleton.pdf"
