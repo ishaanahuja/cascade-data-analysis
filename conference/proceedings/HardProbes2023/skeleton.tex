@@ -1,0 +1,66 @@
+% Please make sure you insert your
+% data according to the instructions in PoSauthmanual.pdf
+\documentclass[a4paper,11pt]{article}
+\usepackage{pos}
+\usepackage{amsmath}
+
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\newcommand{\pt}{$p_{\textnormal{\sc t}}$}
+\newcommand{\ks}{\mathrm{K_S^0}}
+
+\title{Looking for collective origin of strangeness enhancement in small collision systems with ALICE at the LHC}
+\ShortTitle{Collective origin of strangeness enhancement in small collision systems}
+
+\author*[a]{Ishaan Ahuja}
+\onbehalf{on behalf of the ALICE Collaboration}
+% \author[a,b]{Second Author}
+
+\affiliation[a]{Pavol Jozef Šafárik University,\\
+  Košice, Slovakia}
+
+% \affiliation[b]{Department, University,\\
+% Street number, City, Country}
+
+\emailAdd{ishaan.ahuja@cern.ch}
+% \emailAdd{s.author@univ.country}
+
+\abstract{The main goal of the ALICE experiment is to study the physics of strongly interacting matter, including the properties of the quark--gluon 
+plasma (QGP). The increase in relative production of strange hadrons with respect to non-strange hadrons is historically considered one of the 
+signatures of QGP formation during the evolution of the system created in heavy-ion collisions. Recent measurements performed in high-multiplicity 
+proton--proton (pp) and proton--lead (p--Pb) collisions have shown features that are reminiscent of those observed in lead--lead (Pb--Pb) collisions. The 
+microscopic origin of this phenomenon is still not fully understood: is it related to soft particle production or to hard scattering events, such as 
+jets? To separate strange hadrons produced in jets from those produced in soft processes, the angular correlation between high-\pt\:charged 
+particles and strange hadrons has been exploited. The near-side jet yield and the out-of-jet yield of $\mathrm{K^0_S}$,\:$\Xi$,\:$\Lambda$ and $\phi$ 
+have been studied as a function of the multiplicity of charged particles produced in pp collisions at $\sqrt{s}$ = 5.02 TeV and $\sqrt{s}$ = 13 TeV 
+and p-Pb collisions at $\sqrt{s_{\mathrm{NN}}} = 5.02$ TeV. New results suggest that out-of-jet processes are the dominant contributor to strange particle production.}
+
+\FullConference{Hard Probes 2023\\
+ 26-31 March 2023 \\
+ Aschaffenburg, Germany\\}
+
+%% \tableofcontents
+
+\begin{document}
+\maketitle
+
+
+% \section{...}
+\input{sections/01-intro.tex}
+\input{sections/02-alice.tex}
+\input{sections/03-correlations.tex}
+\input{sections/04-results.tex}
+\input{sections/05-conclusions.tex}
+
+\bibliographystyle{JHEP}
+\bibliography{references}
+
+% \begin{thebibliography}{99}
+% \bibitem{...}
+% % ....
+
+% \end{thebibliography}
+
+\end{document}
