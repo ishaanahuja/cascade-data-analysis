@@ -19,7 +19,10 @@ analysis/p-Pb/cent.C
 analysis/cascades/TopologicalCuts.cxx
 analysis/cascades/adam.cxx
 analysis/cascades/TopologicalCuts.h
-
+AN*
+data_AOD*
+Prep*
+pdf_final*
 # for latex compilation:
 *.aux
 *.fdb_latexmk
@@ -32,4 +35,10 @@ analysis/cascades/TopologicalCuts.h
 *.toc
 *.lot
 *.lof
-minimovka.pdf
+minimovka*.pdf
+
+skeleton.pdf
+PoSauth*
+PoStemplate*
+iahuja*
+*converted*
