@@ -927,7 +927,7 @@ bool AliCascadeAnalysis_Ishaan::ApplyCuts(int part)
     if ((part == komp || part == komm))
     {
         /// check candidate's rapidity (particle hypothesis' dependent)
-        if ((part == komp || part == komm) && fCasc_yOm < cutval_Casc[kCasc_y] && fCasc_yOm > 0.)
+        if (fCasc_yOm < cutval_Casc[kCasc_y] && fCasc_yOm > 0.)
             return kFALSE;
 
         /// check candidate's 2D decay distance from PV (if it is too small, then it's not a weak decay)
