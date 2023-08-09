@@ -23,27 +23,3 @@ AN*
 data_AOD*
 Prep*
 pdf_final*
-# for latex compilation:
-*.aux
-*.fdb_latexmk
-*.fls
-*.log
-*.gz
-*.blg
-*.bbl
-*.out
-*.toc
-*.lot
-*.lof
-minimovka*.pdf
-
-skeleton.pdf
-proceedings.pdf
-PoSauth*
-PoStemplate*
-iahuja*
-*converted*
-diff*
-v2*
-arxiv*
-tmp*
