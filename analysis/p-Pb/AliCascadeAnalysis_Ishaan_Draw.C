@@ -3,11 +3,28 @@
 
 void DrawAndSave(TH1 *peak, Double_t pPosition, Double_t pWidth, Bool_t saveImages, TString outputFolder);
 
-int AliCascadeAnalysis_Ishaan_Draw(std::string input = "AliCascadeAnalysis_Ishaan_Fitting.root", TString outputFilename = "AliCascadeAnalysis_Ishaan_Draw.root", TString outputFolder = ".", Bool_t saveImages = kFALSE, Bool_t saveStack = kFALSE)
+inline void SaveImage(TString imagePath, TString imageName)
+{
+    if (gSystem->AccessPathName(imagePath.Data())) /// returns true if folder path does NOT exist
+    {
+        gSystem->mkdir(imagePath.Data(), kTRUE); // makes the path if it doesn't exist
+        gSystem->Chmod(imagePath.Data(), 0755);
+    }
+    gPad->Print(Form("%s/%s.png", imagePath.Data(), imageName.Data()), "png");
+    gSystem->Chmod(Form("%s/%s.png", imagePath.Data(), imageName.Data()), 0755);
+}
+
+int AliCascadeAnalysis_Ishaan_Draw(std::string input = "AliCascadeAnalysis_Ishaan_Fitting.root", TString outputFilename = "AliCascadeAnalysis_Ishaan_Draw.root", TString outputFolder = ".", Bool_t saveImages = kTRUE, Bool_t saveStack = kTRUE)
 {
     // TDirectory::AddDirectory(0);
+    outputFolder = gSystem->ExpandPathName(outputFolder.Data());
+    if (gSystem->AccessPathName(outputFolder.Data())) /// returns true if folder path does NOT exist
+    {
+        gSystem->mkdir(outputFolder.Data(), kTRUE); // makes the path if it doesn't exist
+        gSystem->Chmod(outputFolder.Data(), 0755);
+    }
+
     gStyle->SetOptFit(1111);
-    // gSystem->Chmod(outputFolder, 0777);
     Double_t lMass_Xi = 1.32171;
     Double_t lMass_Om = 1.67245;
 
@@ -150,14 +167,14 @@ int AliCascadeAnalysis_Ishaan_Draw(std::string input = "AliCascadeAnalysis_Ishaa
         // redChi2_xip[multBinXi] = new TH1D(TString::Format(("redChi2_xip[%d]"), multBinXi), TString::Format(("Mult: %.0f-%.0f%%"), multbins_Xi[multBinXi ], multbins_Xi[multBinXi+1]), nptbins_Xi, ptbins_Xi);
         for (Int_t ptBinXi = 0; ptBinXi < nptbins_Xi; ptBinXi++)
         {
-            rawPt_xim[multBinXi]->SetBinContent(ptBinXi + 1, resultParams_xim[ptBinXi][multBinXi]->GetBinContent(1) / (rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xim[multBinXi]->SetBinError(ptBinXi + 1, resultParams_xim[ptBinXi][multBinXi]->GetBinError(1) / (rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+            rawPt_xim[multBinXi]->SetBinContent(ptBinXi + 1, resultParams_xim[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xim[multBinXi]->SetBinError(ptBinXi + 1, resultParams_xim[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
 
-            rawPt_xip[multBinXi]->SetBinContent(ptBinXi + 1, resultParams_xip[ptBinXi][multBinXi]->GetBinContent(1) / (rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xip[multBinXi]->SetBinError(ptBinXi + 1, resultParams_xip[ptBinXi][multBinXi]->GetBinError(1) / (rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+            rawPt_xip[multBinXi]->SetBinContent(ptBinXi + 1, resultParams_xip[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xip[multBinXi]->SetBinError(ptBinXi + 1, resultParams_xip[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
 
-            rawPt_xiC[multBinXi]->SetBinContent(ptBinXi + 1, resultParams_xiC[ptBinXi][multBinXi]->GetBinContent(1) / (rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xiC[multBinXi]->SetBinError(ptBinXi + 1, resultParams_xiC[ptBinXi][multBinXi]->GetBinError(1) / (rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+            rawPt_xiC[multBinXi]->SetBinContent(ptBinXi + 1, resultParams_xiC[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xiC[multBinXi]->SetBinError(ptBinXi + 1, resultParams_xiC[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
 
             // redChi2_xim[multBinXi]->SetBinContent(ptBinXi, resultParams_xim[ptBinXi][multBinXi]->GetBinContent(2) / (redChi2_xim[multBinXi]->GetBinWidth(ptBinXi) * multbinEntries_Xim[multBinXi])); //Bin 1 in resultparams is raw pt's bin counting
             // redChi2_xim[multBinXi]->SetBinError(ptBinXi, resultParams_xim[ptBinXi][multBinXi]->GetBinError(2) / (redChi2_xim[multBinXi]->GetBinWidth(ptBinXi) * multbinEntries_Xim[multBinXi]));
@@ -215,13 +232,13 @@ int AliCascadeAnalysis_Ishaan_Draw(std::string input = "AliCascadeAnalysis_Ishaa
 
         for (Int_t ptBinOm = 0; ptBinOm < nptbins_Om; ptBinOm++)
         {
-            rawPt_omm[multBinOm]->SetBinContent(ptBinOm + 1, resultParams_omm[ptBinOm][multBinOm]->GetBinContent(1) / (rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omm[multBinOm]->SetBinError(ptBinOm + 1, resultParams_omm[ptBinOm][multBinOm]->GetBinError(1) / (rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
-            rawPt_omp[multBinOm]->SetBinContent(ptBinOm + 1, resultParams_omp[ptBinOm][multBinOm]->GetBinContent(1) / (rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omp[multBinOm]->SetBinError(ptBinOm + 1, resultParams_omp[ptBinOm][multBinOm]->GetBinError(1) / (rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+            rawPt_omm[multBinOm]->SetBinContent(ptBinOm + 1, resultParams_omm[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omm[multBinOm]->SetBinError(ptBinOm + 1, resultParams_omm[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+            rawPt_omp[multBinOm]->SetBinContent(ptBinOm + 1, resultParams_omp[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omp[multBinOm]->SetBinError(ptBinOm + 1, resultParams_omp[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
 
-            rawPt_omC[multBinOm]->SetBinContent(ptBinOm + 1, resultParams_omC[ptBinOm][multBinOm]->GetBinContent(1) / (rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omC[multBinOm]->SetBinError(ptBinOm + 1, resultParams_omC[ptBinOm][multBinOm]->GetBinError(1) / (rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+            rawPt_omC[multBinOm]->SetBinContent(ptBinOm + 1, resultParams_omC[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omC[multBinOm]->SetBinError(ptBinOm + 1, resultParams_omC[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
 
             /// Scale for bin width: N->dN/dpt
             // rawPt_omm[multBinOm]->Scale(1, "width");
@@ -256,59 +273,100 @@ int AliCascadeAnalysis_Ishaan_Draw(std::string input = "AliCascadeAnalysis_Ishaa
         rawPt_omC[multBinOm]->Scale(pow(2, (nmultbins_Om - 1) - multBinOm));
         hs_omC->Add(rawPt_omC[multBinOm]);
     }
-    out->Close();
 
     gStyle->SetOptStat(0);
     gStyle->SetPalette(kVisibleSpectrum);
 
-    TCanvas *c = new TCanvas("c", "c", 2560, 1440);
-    c->Divide(2, 3);
+    TCanvas *c1 = new TCanvas("c1", "c1", 1920, 1080);
+    TCanvas *c2 = new TCanvas("c2", "c2", 1920, 1080);
+    TCanvas *c3 = new TCanvas("c3", "c3", 1920, 1080);
+    TCanvas *c4 = new TCanvas("c4", "c4", 1920, 1080);
+    TCanvas *c5 = new TCanvas("c5", "c5", 1920, 1080);
+    TCanvas *c6 = new TCanvas("c6", "c6", 1920, 1080);
 
-    c->cd(1);
+    // TCanvas *c = new TCanvas("c", "c", 2560, 1440);
+    // c->Divide(2, 3);
+
+    // c->cd(1);
+    c1->cd();
     hs_xip->Draw("plc pmc nostack");
     gPad->SetLogy();
     gPad->BuildLegend(0.8, 0.55, 0.99, 0.99, "");
+    hs_xip->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
+    hs_xip->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    c1->Modified();
+    c1->ForceUpdate();
+
     // if (saveStack)
     // {
     //     gPad->Print(Form("%s/images/rawPt/xipN.png", outputFolder.Data()), "png");
     // }
 
-    c->cd(2);
+    // c->cd(2);
+    c2->cd();
     hs_omp->Draw("plc pmc nostack");
     gPad->SetLogy();
     gPad->BuildLegend(0.8, 0.75, 0.99, 0.99, "");
+    hs_omp->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
+    hs_omp->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    c2->Modified();
+    c2->ForceUpdate();
     // if (saveStack)
     // {
     //     gPad->Print(Form("%s/images/rawPt/ompN.png", outputFolder.Data()), "png");
     // }
-    c->cd(3);
+
+    // c->cd(3);
+    c3->cd();
     hs_xim->Draw("plc pmc nostack");
     gPad->SetLogy();
     gPad->BuildLegend(0.8, 0.55, 0.99, 0.99, "");
+    hs_xim->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
+    hs_xim->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    c3->Modified();
+    c3->ForceUpdate();
     // if (saveStack)
     // {
     //     gPad->Print(Form("%s/images/rawPt/ximN.png", outputFolder.Data()), "png");
     // }
-    c->cd(4);
+
+    // c->cd(4);
+    c4->cd();
     hs_omm->Draw("plc pmc nostack");
     gPad->SetLogy();
     gPad->BuildLegend(0.8, 0.75, 0.99, 0.99, "");
+    hs_omm->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
+    hs_omm->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    c4->Modified();
+    c4->ForceUpdate();
     // if (saveStack)
     // {
     //     gPad->Print(Form("%s/images/rawPt/ommN.png", outputFolder.Data()), "png");
     // }
-    c->cd(5);
+
+    // c->cd(5);
+    c5->cd();
     hs_xiC->Draw("plc pmc nostack");
     gPad->SetLogy();
     gPad->BuildLegend(0.8, 0.55, 0.99, 0.99, "");
+    hs_xiC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
+    hs_xiC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    c5->Modified();
+    c5->ForceUpdate();
     // if (saveStack)
     // {
     //     gPad->Print(Form("%s/images/rawPt/xicN.png", outputFolder.Data()), "png");
     // }
-    c->cd(6);
+
+    // c->cd(6);
+    c6->cd();
     hs_omC->Draw("plc pmc nostack");
     gPad->SetLogy();
     gPad->BuildLegend(0.8, 0.75, 0.99, 0.99, "");
+    hs_omC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
+    hs_omC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    c6->Modified();
+    c6->ForceUpdate();
     // if (saveStack)
     // {
     //     gPad->Print(Form("%s/images/rawPt/omcN.png", outputFolder.Data()), "png");
@@ -337,55 +395,93 @@ int AliCascadeAnalysis_Ishaan_Draw(std::string input = "AliCascadeAnalysis_Ishaa
     hs_xiC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     hs_omC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
 
-    c->Modified();
-    c->ForceUpdate();
+    // c->Modified();
+    // c->ForceUpdate();
+
+    c1->Modified();
+    c1->ForceUpdate();
+    c2->Modified();
+    c2->ForceUpdate();
+    c3->Modified();
+    c3->ForceUpdate();
+    c4->Modified();
+    c4->ForceUpdate();
+    c5->Modified();
+    c5->ForceUpdate();
+    c6->Modified();
+    c6->ForceUpdate();
+
+    out->cd();
+
+    hs_xip->Write();
+    hs_xim->Write();
+    hs_omp->Write();
+    hs_omm->Write();
+    hs_xiC->Write();
+    hs_omC->Write();
 
     if (saveStack)
     {
-        c->cd(1);
-        gPad->Print(Form("%s/images/rawPt/xipN.png", outputFolder.Data()), "png");
 
-        c->cd(2);
-        gPad->Print(Form("%s/images/rawPt/ximN.png", outputFolder.Data()), "png");
+        c1->cd();
+        // gPad->Print(Form("%s/images/rawPt/xipN.png", outputFolder.Data()), "png");
+        SaveImage(Form("%s/images/rawPt", outputFolder.Data()), "xipN");
 
-        c->cd(3);
-        gPad->Print(Form("%s/images/rawPt/ompN.png", outputFolder.Data()), "png");
+        c2->cd();
+        // gPad->Print(Form("%s/images/rawPt/ximN.png", outputFolder.Data()), "png");
+        SaveImage(Form("%s/images/rawPt", outputFolder.Data()), "ximN");
 
-        c->cd(4);
-        gPad->Print(Form("%s/images/rawPt/ommN.png", outputFolder.Data()), "png");
+        c3->cd();
+        // gPad->Print(Form("%s/images/rawPt/ompN.png", outputFolder.Data()), "png");
+        SaveImage(Form("%s/images/rawPt", outputFolder.Data()), "ompN");
 
-        c->cd(5);
-        gPad->Print(Form("%s/images/rawPt/xicN.png", outputFolder.Data()), "png");
+        c4->cd();
+        // gPad->Print(Form("%s/images/rawPt/ommN.png", outputFolder.Data()), "png");
+        SaveImage(Form("%s/images/rawPt", outputFolder.Data()), "ommN");
 
-        c->cd(6);
-        gPad->Print(Form("%s/images/rawPt/omcN.png", outputFolder.Data()), "png");
+        c5->cd();
+        // gPad->Print(Form("%s/images/rawPt/xicN.png", outputFolder.Data()), "png");
+        SaveImage(Form("%s/images/rawPt", outputFolder.Data()), "xicN");
+
+        c6->cd();
+        // gPad->Print(Form("%s/images/rawPt/omcN.png", outputFolder.Data()), "png");
+        SaveImage(Form("%s/images/rawPt", outputFolder.Data()), "omcN");
     }
 
-
+    out->Close();
     // delete out;
     return 0;
 }
 void DrawAndSave(TH1 *peak, Double_t pPosition, Double_t pWidth, Bool_t saveImages, TString outputFolder)
 {
+
+    gROOT->SetBatch(kTRUE);
+    TCanvas *c1 = new TCanvas(peak->GetName(), peak->GetTitle(), 900, 600);
+
+    /// Defining peak limits for signal region (green lines):
+    ///  par[1] = peak position, par[2] = peak width
+    Double_t lPeakLeftLimit = pPosition - 1. * 4 * TMath::Abs(pWidth);
+    Double_t lPeakRightLimit = pPosition + 1. * 4 * TMath::Abs(pWidth);
+    TLine *lLineLeft = new TLine(lPeakLeftLimit, 0, lPeakLeftLimit, peak->GetMaximum());
+    TLine *lLineRight = new TLine(lPeakRightLimit, 0, lPeakRightLimit, peak->GetMaximum());
+    lLineLeft->SetLineColor(kMagenta);
+    lLineRight->SetLineColor(kMagenta);
+    peak->Draw();
+    lLineLeft->Draw("same");
+    lLineRight->Draw("same");
+
     if (saveImages)
     {
-        gROOT->SetBatch(kTRUE);
-        TCanvas *c1 = new TCanvas(peak->GetName(), peak->GetTitle(), 900, 600);
-
-        /// Defining peak limits for signal region (green lines):
-        ///  par[1] = peak position, par[2] = peak width
-        Double_t lPeakLeftLimit = pPosition - 1. * 4 * TMath::Abs(pWidth);
-        Double_t lPeakRightLimit = pPosition + 1. * 4 * TMath::Abs(pWidth);
-        TLine *lLineLeft = new TLine(lPeakLeftLimit, 0, lPeakLeftLimit, peak->GetMaximum());
-        TLine *lLineRight = new TLine(lPeakRightLimit, 0, lPeakRightLimit, peak->GetMaximum());
-        lLineLeft->SetLineColor(kMagenta);
-        lLineRight->SetLineColor(kMagenta);
-        peak->Draw();
-        lLineLeft->Draw("same");
-        lLineRight->Draw("same");
         TString imageFolder = peak->GetName();
         imageFolder = imageFolder(0, 17); /// getting substring for naming purpose
-        gPad->Print(Form("%s/images/%s/%s.png", outputFolder.Data(), imageFolder.Data(), peak->GetName()), "png");
+        SaveImage(Form("%s/images/%s", outputFolder.Data(), imageFolder.Data()), peak->GetName());
+
+        // if (gSystem->AccessPathName(Form("%s/images/%s", outputFolder.Data(), imageFolder.Data()))) /// returns true if folder path does NOT exist
+        // {
+        //     gSystem->mkdir(Form("%s/images/%s", outputFolder.Data(), imageFolder.Data()), kTRUE); // makes the path if it doesn't exist
+        //     gSystem->Chmod(Form("%s/images/%s", outputFolder.Data(), imageFolder.Data()), 0755);
+        // }
+        // gPad->Print(Form("%s/images/%s/%s.png", outputFolder.Data(), imageFolder.Data(), peak->GetName()), "png");
         // delete c1, lLineLeft, lLineRight;
     }
 }
