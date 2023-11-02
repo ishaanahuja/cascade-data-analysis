@@ -23,17 +23,17 @@ public:
         kCasc_CascCosPALow,
         kCasc_CascRadXi,
         kCasc_NSigPID,
-        kCasc_LeastCRaws,
-        kCasc_LeastCRawsOvF,
-        kCasc_LeastTPCcls,
-        kCasc_TrackLengthCut,
-        kCasc_MaxChi2perCls,
-        kCasc_InvMassLam,
+        kCasc_LeastCRows,     // not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
+        kCasc_LeastCRowsOvF,  // not used --> USE -> (0.8)
+        kCasc_LeastTPCcls,    // --> DON'T USE
+        kCasc_TrackLengthCut, // not used --> USE
+        kCasc_MaxChi2perCls,  // not used
+        kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
         kCasc_DcaV0DaughtMid,
         kCasc_V0CosPAXi,
         kCasc_DcaV0ToPV,
         kCasc_DcaBachToPV,
-        kCasc_ITSTOFtracks,
+        kCasc_ITSTOFtracks, // not used
         kCasc_y,
         kCasc_etaDaugh,
         kCasc_PropLifetXi,
@@ -41,7 +41,7 @@ public:
         kCasc_V0RadXi,
         kCasc_DcaMesToPV,
         kCasc_DcaBarToPV,
-        kCasc_BacBarCosPA,
+        kCasc_BacBarCosPA, // not used --> USE
         kCasc_CascRadOm,
         kCasc_V0RadOm,
         kCasc_DcaCascDaughtLow,
@@ -84,6 +84,7 @@ public:
     void SetDeadZoneWidthGeoCut(float DeadZoneWidth) { fDeadZoneWidth_GeoCut = DeadZoneWidth; };
     void SetNcrNclLengthGeoCut(float NcrNclLength) { fNcrNclLength_GeoCut = NcrNclLength; };
     void SetTPCsignalNCut(int TPCsignalNCut) { fTPCsignalNCut = TPCsignalNCut; };
+    Float_t GetLengthInActiveZone(AliAODTrack *gt, Float_t deltaY, Float_t deltaZ, Float_t b);
 
     // binning setters
     void SetCentbinning(int, int, double *);
@@ -133,6 +134,9 @@ private:
     // particles to be analysed
     bool fParticleAnalysisStatus[ksignednumpart]; //
 
+    // geometrical cut usage
+    AliESDtrackCuts fESDTrackCuts; //
+
     // variables for Cascade analysis
     double fCasc_DcaCascDaught; //!
     double fCasc_CascCosPA;     //!
@@ -147,9 +151,9 @@ private:
     double fCasc_NSigNegPion;   //!
     double fCasc_NSigBacPion;   //!
     double fCasc_NSigBacKaon;   //!
-    double fCasc_LeastCRaws;    //!
-    double fCasc_LeastCRawsOvF; //!
-    double fCasc_LeastTPCcls;       //!
+    double fCasc_LeastCRows;    //!
+    double fCasc_LeastCRowsOvF; //!
+    double fCasc_LeastTPCcls;   //!
     int fCasc_TrackLengthCut;   //!
     double fCasc_MaxChi2perCls; //!
 
@@ -185,6 +189,7 @@ private:
     float fDeadZoneWidth_GeoCut;      //
     float fNcrNclLength_GeoCut;       //
     int fTPCsignalNCut;               //
+    double fCasc_TrackLength;
 
     // cut values to be set
     double cutval_Casc[kCasccutsnum];     //
