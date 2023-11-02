@@ -14,14 +14,17 @@ AliCascadeAnalysisMC_Ishaan *AddMyTask(bool Xi = true, bool Om = true, TString s
   }
 
   // Create the task and add it to the manager
-  TString tskname = Form("Cascade_analysis%s", suffix.Data());
+  TString tskname = Form("Cascade_analysis_updateCuts%s", suffix.Data());
   AliCascadeAnalysisMC_Ishaan *mytask = new AliCascadeAnalysisMC_Ishaan(tskname);
   mgr->AddTask(mytask);
   mytask->SetParticleAnalysisStatus(Xi, Om);
 
   // output file name
-  TString outputFileName = AliAnalysisManager::GetCommonFileName();
-  // TString outputFileName = "MC_Results.root";
+  // TString outputFileName = AliAnalysisManager::GetCommonFileName();
+  // TString outputFileName = "test_local_newCutsMC.root";
+  // TString outputFileName = "300923_6runs_updatedTL.root";
+  // TString outputFileName = "081023_MC_LHC17f3b_cent_updatedCutsTL.root";
+  TString outputFileName = "091023_MC_Om_LHC17e1a_updatedCutsTL.root";
 
   outputFileName += ":Cascade_analysis";
   printf("Set OutputFileName : \n %s\n", outputFileName.Data());

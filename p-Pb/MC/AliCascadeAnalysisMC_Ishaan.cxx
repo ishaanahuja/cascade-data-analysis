@@ -56,15 +56,16 @@ ClassImp(AliCascadeAnalysisMC_Ishaan)
                                                                  fPileupCut(0),
 
                                                                  // MC-related variables
-                                                                 fisMC(kTRUE),
-                                                                 fisMCassoc(kTRUE),
+                                                                 fisMC(kFALSE),
+                                                                 fisMCassoc(kFALSE),
 
                                                                  /// default cuts configuration
                                                                  fDefOnly(kTRUE),
                                                                  fCasc_Cuts{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                                                                  /// particle to be analysed
                                                                  fParticleAnalysisStatus{true, true, true, true},
-
+                                                                 // geometrical cut usage
+                                                                 fESDTrackCuts(0),
                                                                  /// variables for Cascade analysis
                                                                  fCasc_DcaCascDaught(0),
                                                                  fCasc_CascCosPA(0),
@@ -79,8 +80,8 @@ ClassImp(AliCascadeAnalysisMC_Ishaan)
                                                                  fCasc_NSigNegPion(0),
                                                                  fCasc_NSigBacPion(0),
                                                                  fCasc_NSigBacKaon(0),
-                                                                 fCasc_LeastCRaws(0),
-                                                                 fCasc_LeastCRawsOvF(0),
+                                                                 fCasc_LeastCRows(0),
+                                                                 fCasc_LeastCRowsOvF(0),
                                                                  fCasc_LeastTPCcls(0),
                                                                  fCasc_TrackLengthCut(0),
                                                                  fCasc_MaxChi2perCls(0),
@@ -118,8 +119,9 @@ ClassImp(AliCascadeAnalysisMC_Ishaan)
                                                                  fHist_CentTrackLengthCut(0),
                                                                  fDeadZoneWidth_GeoCut(0),
                                                                  fNcrNclLength_GeoCut(0),
-                                                                 fTPCsignalNCut(0) /*,
-                                                                  fncentbins(0)*/
+                                                                 fTPCsignalNCut(0),
+                                                                 fCasc_TrackLength(0) /*,
+                                                                  fncentbins[](0)*/
 
 {
     ////default constructor
@@ -140,7 +142,7 @@ AliCascadeAnalysisMC_Ishaan::AliCascadeAnalysisMC_Ishaan(const char *name, TStri
                                                                                                     // AliEventCuts object
                                                                                                     fEventCuts(0),
                                                                                                     // pile-up rejection flag
-                                                                                                    fPileupCut(0),
+                                                                                                    fPileupCut(1),
 
                                                                                                     ////MC-related variables
                                                                                                     fisMC(kTRUE),
@@ -148,10 +150,12 @@ AliCascadeAnalysisMC_Ishaan::AliCascadeAnalysisMC_Ishaan(const char *name, TStri
 
                                                                                                     ////default cuts configuration
                                                                                                     fDefOnly(kTRUE),
-                                                                                                    fCasc_Cuts{1.5, 0.96, 0.6, 4., 70., 0.8, 70., 1., 2.5, 0.005, 1.6, 0.98, 0.06, 0.04, 1., -0.5, 0.8, 3., 3., 1.2, 0.04, 0.03, 1., 0.5, 1.1, 1.6, 1.4, 0.97, 0.97, 1.7, 1.5, 0.97, 0.98, 0.98, 0.008},
+                                                                                                    fCasc_Cuts{1.5, 0.96, 0.6, 4., 70., 0.8, 70., 1., 2.5, 0.008, 1.6, 0.98, 0.06, 0.04, 1., -0.5, 0.8, 3., 3., 1.2, 0.04, 0.03, 1., 0.5, 1.1, 1.6, 1.4, 0.97, 0.97, 1.7, 1.5, 0.97, 0.98, 0.98, 0.008},
                                                                                                     ////particle to be analysed
                                                                                                     fParticleAnalysisStatus{true, true, true, true},
 
+                                                                                                    // geometrical cut usage
+                                                                                                    fESDTrackCuts(0),
                                                                                                     ////variables for Cascade analysis
                                                                                                     fCasc_DcaCascDaught(0),
                                                                                                     fCasc_CascCosPA(0),
@@ -166,8 +170,8 @@ AliCascadeAnalysisMC_Ishaan::AliCascadeAnalysisMC_Ishaan(const char *name, TStri
                                                                                                     fCasc_NSigNegPion(0),
                                                                                                     fCasc_NSigBacPion(0),
                                                                                                     fCasc_NSigBacKaon(0),
-                                                                                                    fCasc_LeastCRaws(0),
-                                                                                                    fCasc_LeastCRawsOvF(0),
+                                                                                                    fCasc_LeastCRows(0),
+                                                                                                    fCasc_LeastCRowsOvF(0),
                                                                                                     fCasc_LeastTPCcls(0),
                                                                                                     fCasc_TrackLengthCut(0),
                                                                                                     fCasc_MaxChi2perCls(0),
@@ -205,8 +209,9 @@ AliCascadeAnalysisMC_Ishaan::AliCascadeAnalysisMC_Ishaan(const char *name, TStri
                                                                                                     fHist_CentTrackLengthCut(0),
                                                                                                     fDeadZoneWidth_GeoCut(0),
                                                                                                     fNcrNclLength_GeoCut(0),
-                                                                                                    fTPCsignalNCut(70) /*,
-                                                                                                     fncentbins(0)*/
+                                                                                                    fTPCsignalNCut(50),
+                                                                                                    fCasc_TrackLength(90) /*,
+                                                                                                    fncentbins[](0)*/
 
 {
     ////setting default cuts
@@ -285,22 +290,16 @@ void AliCascadeAnalysisMC_Ishaan::UserCreateOutputObjects()
 
     fHistos_eve->CreateTH1("hcent", "Multiplicity Distribution", 100, 0, 100, "s"); ////storing #events in bins of centrality
     fHistos_eve->CreateTH1("henum", "", 4, -0.5, 3.5);                              ////storing total #events
+
+    /// test
+    fHistos_eve->CreateTH1("hTrackLengthP", "pTrack Length (cm)", 200, 0, 200, "s"); ////check track length for cut
+    fHistos_eve->CreateTH1("hTrackLengthN", "nTrack Length (cm)", 200, 0, 200, "s"); ////check track length for cut
+    fHistos_eve->CreateTH1("hTrackLengthB", "bTrack Length (cm)", 200, 0, 200, "s"); ////check track length for cut
+
     const char *labels[4] = {"Total", "MultSelection", "AliEventCuts", "Pile-up rejection"};
     for (int iLab = 1; iLab <= 4; iLab++)
         ((TH1 *)fHistos_eve->FindObject("henum"))->GetXaxis()->SetBinLabel(iLab, labels[iLab - 1]);
-    fHistos_eve->CreateTH1("fCuts", "Accepted events after event selection", 5, 0, 5, "s"); ////storing impact of cuts on no. of events
-    fHistos_eve->CreateTH1("fHistPtXiP", "fHistPtXiP", fnptbins[kXi], fptbinning[kXi], "s");
-    fHistos_eve->CreateTH1("fHistPtXiM", "fHistPtXiM", fnptbins[kXi], fptbinning[kXi], "s");
-    fHistos_eve->CreateTH1("fHistPtOmP", "fHistPtOmP", fnptbins[kOm], fptbinning[kOm], "s");
-    fHistos_eve->CreateTH1("fHistPtOmM", "fHistPtOmM", fnptbins[kOm], fptbinning[kOm], "s");
-    fHistos_eve->CreateTH1("fCasc_InvMassXiMin", "fCasc_InvMassXiMin", 100, 1.272, 1.372, "s");
-    fHistos_eve->CreateTH1("fCasc_InvMassXiPlu", "fCasc_InvMassXiPlu", 100, 1.272, 1.372, "s");
-    fHistos_eve->CreateTH1("fCasc_InvMassOmMin", "fCasc_InvMassOmMin", 100, 1.622, 1.722, "s");
-    fHistos_eve->CreateTH1("fCasc_InvMassOmPlu", "fCasc_InvMassOmPlu", 100, 1.622, 1.722, "s");
-    fHistos_eve->CreateTH1("fHistCentXiP", "fHistCentXiP", fncentbins[kXi], fcentbinning[kXi], "s");
-    fHistos_eve->CreateTH1("fHistCentXiM", "fHistCentXiM", fncentbins[kXi], fcentbinning[kXi], "s");
-    fHistos_eve->CreateTH1("fHistCentOmP", "fHistCentOmP", fncentbins[kOm], fcentbinning[kOm], "s");
-    fHistos_eve->CreateTH1("fHistCentOmM", "fHistCentOmM", fncentbins[kOm], fcentbinning[kOm], "s");
+    fHistos_eve->CreateTH1("fCuts", "Accepted events after event selection", 6, 0, 6, "s"); ////storing impact of cuts on no. of events
 
     TH1 *fCuts = (TH1 *)fHistos_eve->FindObject("fCuts");
     fCuts->GetXaxis()->SetBinLabel(1, "Total Events");
@@ -308,31 +307,50 @@ void AliCascadeAnalysisMC_Ishaan::UserCreateOutputObjects()
     fCuts->GetXaxis()->SetBinLabel(3, "InelGT0");
     fCuts->GetXaxis()->SetBinLabel(4, "|PVz|<10");
     fCuts->GetXaxis()->SetBinLabel(5, "Mult<0,100> && kINT7");
+    fCuts->GetXaxis()->SetBinLabel(6, "Track Length>90cm");
 
     ////histograms for Cascade variables
     if (fParticleAnalysisStatus[kxip])
     {
         fHistos_XiMin = new THistManager("histos_XiMin");
         fHistos_XiPlu = new THistManager("histos_XiPlu");
-        fHistos_XiMin->CreateTH3("h3_ptmasscent_def", "", fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+
+        fHistos_XiPlu->CreateTH1("fHistPtXiP", "fHistPtXiP", fnptbins[kXi], fptbinning[kXi], "s");
+        fHistos_XiPlu->CreateTH1("fCasc_InvMassXiPlu", "fCasc_InvMassXiPlu", 100, 1.272, 1.372, "s");
+        fHistos_XiPlu->CreateTH1("fHistCentXiP", "fHistCentXiP", fncentbins[kXi], fcentbinning[kXi], "s");
         fHistos_XiPlu->CreateTH3("h3_ptmasscent_def", "", fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+
+        fHistos_XiMin->CreateTH1("fHistPtXiM", "fHistPtXiM", fnptbins[kXi], fptbinning[kXi], "s");
+        fHistos_XiMin->CreateTH1("fCasc_InvMassXiMin", "fCasc_InvMassXiMin", 100, 1.272, 1.372, "s");
+        fHistos_XiMin->CreateTH1("fHistCentXiM", "fHistCentXiM", fncentbins[kXi], fcentbinning[kXi], "s");
+        fHistos_XiMin->CreateTH3("h3_ptmasscent_def", "", fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
         if (fisMC)
+        {
             fHistos_XiMin->CreateTH2("h2_gen", "", fnptbins[kXi], fptbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
-        if (fisMC)
             fHistos_XiPlu->CreateTH2("h2_gen", "", fnptbins[kXi], fptbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+        }
     }
     if (fParticleAnalysisStatus[komp])
     {
         fHistos_OmMin = new THistManager("histos_OmMin");
         fHistos_OmPlu = new THistManager("histos_OmPlu");
-        fHistos_OmMin->CreateTH3("h3_ptmasscent_def", "", fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+
+        fHistos_OmPlu->CreateTH1("fHistPtOmP", "fHistPtOmP", fnptbins[kOm], fptbinning[kOm], "s");
+        fHistos_OmPlu->CreateTH1("fCasc_InvMassOmPlu", "fCasc_InvMassOmPlu", 100, 1.622, 1.722, "s");
+        fHistos_OmPlu->CreateTH1("fHistCentOmP", "fHistCentOmP", fncentbins[kOm], fcentbinning[kOm], "s");
         fHistos_OmPlu->CreateTH3("h3_ptmasscent_def", "", fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+
+        fHistos_OmMin->CreateTH1("fHistPtOmM", "fHistPtOmM", fnptbins[kOm], fptbinning[kOm], "s");
+        fHistos_OmMin->CreateTH1("fCasc_InvMassOmMin", "fCasc_InvMassOmMin", 100, 1.622, 1.722, "s");
+        fHistos_OmMin->CreateTH1("fHistCentOmM", "fHistCentOmM", fncentbins[kOm], fcentbinning[kOm], "s");
+        fHistos_OmMin->CreateTH3("h3_ptmasscent_def", "", fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
         if (fisMC)
+        {
             fHistos_OmMin->CreateTH2("h2_gen", "", fnptbins[kOm], fptbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-        if (fisMC)
             fHistos_OmPlu->CreateTH2("h2_gen", "", fnptbins[kOm], fptbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+        }
     }
-    if (!fDefOnly && (fParticleAnalysisStatus[kxip] || fParticleAnalysisStatus[komp]))
+    if (!fDefOnly && (fParticleAnalysisStatus[kxip] || fParticleAnalysisStatus[komp])) /// check!!!
     {
         for (int icut = 0; icut < kCasccutsnum; icut++)
         {
@@ -484,7 +502,7 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
         return;
     }
 
-    // fill number of events after pile-up rejection
+    // fill number of events after event cuts
     fHistos_eve->FillTH1("henum", 2.);
 
     if (fPileupCut)
@@ -640,6 +658,7 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
             /// preliminary check
             if (pTrackCasc->GetTPCNclsF() <= 0 || nTrackCasc->GetTPCNclsF() <= 0 || bTrackCasc->GetTPCNclsF() <= 0)
                 continue; /// check here to avoid division by zero later
+
             /// daughters' etas
             fCasc_etaPos = pTrackCasc->Eta();
             fCasc_etaNeg = nTrackCasc->Eta();
@@ -653,16 +672,16 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
             fCasc_NSigBacPion = fPIDResponse->NumberOfSigmasTPC(bTrackCasc, AliPID::kPion);
             fCasc_NSigBacKaon = fPIDResponse->NumberOfSigmasTPC(bTrackCasc, AliPID::kKaon);
 
-            /// crossed raws
-            double lCrosRawsPos = pTrackCasc->GetTPCClusterInfo(2, 1);
-            double lCrosRawsNeg = nTrackCasc->GetTPCClusterInfo(2, 1);
-            double lCrosRawsBac = bTrackCasc->GetTPCClusterInfo(2, 1);
-            fCasc_LeastCRaws = (int)(lCrosRawsPos < lCrosRawsNeg ? std::min(lCrosRawsPos, lCrosRawsBac) : std::min(lCrosRawsNeg, lCrosRawsBac));
-            /// crossed raws / Findable clusters
-            double lCrosRawsOvFPos = lCrosRawsPos / ((double)(pTrackCasc->GetTPCNclsF()));
-            double lCrosRawsOvFNeg = lCrosRawsNeg / ((double)(nTrackCasc->GetTPCNclsF()));
-            double lCrosRawsOvFBac = lCrosRawsBac / ((double)(bTrackCasc->GetTPCNclsF()));
-            fCasc_LeastCRawsOvF = lCrosRawsOvFPos < lCrosRawsOvFNeg ? std::min(lCrosRawsOvFPos, lCrosRawsOvFBac) : std::min(lCrosRawsOvFNeg, lCrosRawsOvFBac);
+            /// crossed Rows
+            double lCrosRowsPos = pTrackCasc->GetTPCClusterInfo(2, 1);
+            double lCrosRowsNeg = nTrackCasc->GetTPCClusterInfo(2, 1);
+            double lCrosRowsBac = bTrackCasc->GetTPCClusterInfo(2, 1);
+            fCasc_LeastCRows = (int)(lCrosRowsPos < lCrosRowsNeg ? std::min(lCrosRowsPos, lCrosRowsBac) : std::min(lCrosRowsNeg, lCrosRowsBac));
+            /// crossed Rows / Findable clusters
+            double lCrosRowsOvFPos = lCrosRowsPos / ((double)(pTrackCasc->GetTPCNclsF()));
+            double lCrosRowsOvFNeg = lCrosRowsNeg / ((double)(nTrackCasc->GetTPCNclsF()));
+            double lCrosRowsOvFBac = lCrosRowsBac / ((double)(bTrackCasc->GetTPCNclsF()));
+            fCasc_LeastCRowsOvF = lCrosRowsOvFPos < lCrosRowsOvFNeg ? std::min(lCrosRowsOvFPos, lCrosRowsOvFBac) : std::min(lCrosRowsOvFNeg, lCrosRowsOvFBac);
 
             /// clusters for TPC PID
             double_t lTPCclsPos = pTrackCasc->GetTPCsignalN();
@@ -672,9 +691,24 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
 
             /// New: check effectiveness?
             // track length cut
-            // fCasc_TrackLengthCut = (pTrackCasc->GetTPCsignalN() > fTPCsignalNCut && nTrackCasc->GetTPCsignalN() > fTPCsignalNCut && bTrackCasc->GetTPCsignalN() > fTPCsignalNCut) ? 1 : 0;
-            // if (fESDTrackCuts.AcceptTrack(pTrackCasc) && fESDTrackCuts.AcceptTrack(nTrackCasc) && fESDTrackCuts.AcceptTrack(bTrackCasc))
+            fCasc_TrackLengthCut = (pTrackCasc->GetTPCsignalN() > fTPCsignalNCut && nTrackCasc->GetTPCsignalN() > fTPCsignalNCut && bTrackCasc->GetTPCsignalN() > fTPCsignalNCut) ? 1 : 0;
+            // if (fESDTrackCuts.AcceptVTrack(pTrackCasc) && fESDTrackCuts.AcceptVTrack(nTrackCasc) && fESDTrackCuts.AcceptVTrack(bTrackCasc))
             //     fCasc_TrackLengthCut = fCasc_TrackLengthCut + 2;
+            Float_t lTrackLengthPos, lTrackLengthNeg, lTrackLengthBac = 0;
+            lTrackLengthPos = GetLengthInActiveZone(pTrackCasc, 2.0, 220.0, lMagField);
+            lTrackLengthNeg = GetLengthInActiveZone(nTrackCasc, 2.0, 220.0, lMagField);
+            lTrackLengthBac = GetLengthInActiveZone(bTrackCasc, 2.0, 220.0, lMagField);
+
+            /// test:
+            fHistos_eve->FillTH1("hTrackLengthP", lTrackLengthPos);
+            fHistos_eve->FillTH1("hTrackLengthN", lTrackLengthNeg);
+            fHistos_eve->FillTH1("hTrackLengthB", lTrackLengthBac);
+
+            if ((lTrackLengthPos > fCasc_TrackLength) && (lTrackLengthNeg > fCasc_TrackLength))
+            {
+                fCasc_TrackLengthCut = fCasc_TrackLengthCut + 2;
+                fHistos_eve->FillTH1("fCuts", 5.5);
+            }
 
             // chi^2 per TPC cluster
             // double_t lChi2perTPCclsPos = pTrackCasc->GetTPCchi2() / pTrackCasc->GetNcls(1);
@@ -847,16 +881,36 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
             if (fParticleAnalysisStatus[kxip])
             {
                 if (physprim && assFlag[kxim] && ApplyCuts(kxim))
+                {
+                    fHistos_XiMin->FillTH1("fHistPtXiM", fCasc_Pt);
+                    fHistos_XiMin->FillTH1("fCasc_InvMassXiMin", fCasc_InvMassXiMin);
+                    fHistos_XiMin->FillTH1("fHistCentXiM", lPercentile);
                     fHistos_XiMin->FillTH3("h3_ptmasscent_def", fCasc_Pt, fCasc_InvMassXiMin, lPercentile);
+                }
                 if (physprim && assFlag[kxip] && ApplyCuts(kxip))
+                {
+                    fHistos_XiPlu->FillTH1("fHistPtXiP", fCasc_Pt);
+                    fHistos_XiPlu->FillTH1("fCasc_InvMassXiPlu", fCasc_InvMassXiPlu);
+                    fHistos_XiPlu->FillTH1("fHistCentXiP", lPercentile);
                     fHistos_XiPlu->FillTH3("h3_ptmasscent_def", fCasc_Pt, fCasc_InvMassXiPlu, lPercentile);
+                }
             }
             if (fParticleAnalysisStatus[komp])
             {
                 if (physprim && assFlag[komm] && ApplyCuts(komm))
+                {
+                    fHistos_OmMin->FillTH1("fHistPtOmM", fCasc_Pt);
+                    fHistos_OmMin->FillTH1("fCasc_InvMassOmMin", fCasc_InvMassOmMin);
+                    fHistos_OmMin->FillTH1("fHistCentOmM", lPercentile);
                     fHistos_OmMin->FillTH3("h3_ptmasscent_def", fCasc_Pt, fCasc_InvMassOmMin, lPercentile);
+                }
                 if (physprim && assFlag[komp] && ApplyCuts(komp))
+                {
+                    fHistos_OmPlu->FillTH1("fHistPtOmP", fCasc_Pt);
+                    fHistos_OmPlu->FillTH1("fCasc_InvMassOmPlu", fCasc_InvMassOmPlu);
+                    fHistos_OmPlu->FillTH1("fHistCentOmP", lPercentile);
                     fHistos_OmPlu->FillTH3("h3_ptmasscent_def", fCasc_Pt, fCasc_InvMassOmPlu, lPercentile);
+                }
             }
 
             /// filling 3D histograms
@@ -869,6 +923,20 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
         }
     }
     DataPosting();
+}
+
+Float_t AliCascadeAnalysisMC_Ishaan::GetLengthInActiveZone(AliAODTrack *gt, Float_t deltaY, Float_t deltaZ, Float_t b)
+{
+    // Input parameters:
+    //   deltaY - user defined "dead region" in cm
+    //   deltaZ - user defined "active region" in cm (250 cm drift lenght - 14 cm L1 delay
+    //   b     - magnetic field
+    AliESDtrack esdTrack(gt);
+    esdTrack.SetESDEvent((AliESDEvent *)gt->GetEvent());
+    AliExternalTrackParam etp;
+    etp.CopyFromVTrack(gt);
+    esdTrack.ResetTrackParamIp(&etp);
+    return esdTrack.GetLengthInActiveZone(1, deltaY, deltaZ, b);
 }
 
 void AliCascadeAnalysisMC_Ishaan::SetCutVal(bool defchange, bool iscasc, int cutnum, double cval)
@@ -927,8 +995,8 @@ void AliCascadeAnalysisMC_Ishaan::SetCutVariation(bool iscasc, int cutnum, int n
 //     SetCutVariation(kTRUE, kCasc_CascRadXi, 2, 0.5, 0.6);
 //     SetCutVariation(kTRUE, kCasc_CascRadOm, 2, 0.5, 0.6);
 //     SetCutVariation(kTRUE, kCasc_NSigPID, 2, 4, 4);
-//     // SetCutVariation(kTRUE, kCasc_LeastCRaws, 11, 70, 90);
-//     // SetCutVariation(kTRUE, kCasc_LeastCRawsOvF, 11, 0.75, 0.9);
+//     // SetCutVariation(kTRUE, kCasc_LeastCRows, 11, 70, 90);
+//     // SetCutVariation(kTRUE, kCasc_LeastCRowsOvF, 11, 0.75, 0.9);
 //     SetCutVariation(kTRUE, kCasc_LeastTPCcls, 2, 70, 70);
 //     SetCutVariation(kTRUE, kCasc_InvMassLam, 2, 0.008, 0.008);
 //     SetCutVariation(kTRUE, kCasc_DcaV0Daught, 3, 1.5, 1.7);
@@ -966,20 +1034,20 @@ bool AliCascadeAnalysisMC_Ishaan::ApplyCuts(int part)
     /// check candidate daughters' pseudo-rapidity
     if (TMath::Abs(fCasc_etaPos) > cutval_Casc[kCasc_etaDaugh] || TMath::Abs(fCasc_etaNeg) > cutval_Casc[kCasc_etaDaugh] || TMath::Abs(fCasc_etaBac) > cutval_Casc[kCasc_etaDaugh])
         return kFALSE;
-    /// check candidate daughters' crossed TPC raws (note that the checked value is the lowest among the daughters)
-    if (fCasc_LeastCRaws < cutval_Casc[kCasc_LeastCRaws])
+    /// check candidate daughters' crossed TPC Rows (note that the checked value is the lowest among the daughters)
+    if (fCasc_LeastCRows < cutval_Casc[kCasc_LeastCRows])
         return kFALSE;
-    /// check candidate daughters' crossed TPC raws over findable
-    if (fCasc_LeastCRawsOvF < cutval_Casc[kCasc_LeastCRawsOvF])
+    /// check candidate daughters' crossed TPC Rows over findable
+    if (fCasc_LeastCRowsOvF < cutval_Casc[kCasc_LeastCRowsOvF])
         return kFALSE;
     /// check candidate daughters' TPC clusters
-    if (fCasc_LeastTPCcls < cutval_Casc[kCasc_LeastTPCcls])
-        return kFALSE;
+    // if (fCasc_LeastTPCcls < cutval_Casc[kCasc_LeastTPCcls])
+    //     return kFALSE;
     // check candidate daughters' TPC clusters or/and apply geometrical cut
-    // if (fCasc_TrackLengthCut < cutval_Casc[kCasc_TrackLengthCut] - 0.1)
-    //     return kFALSE;
-    // if (TMath::Abs(cutval_Casc[kCasc_TrackLengthCut] - 1) < 0.1 && fCasc_TrackLengthCut == 2)
-    //     return kFALSE;
+    if (fCasc_TrackLengthCut < (cutval_Casc[kCasc_TrackLengthCut] - 0.1))
+        return kFALSE;
+    if (TMath::Abs(cutval_Casc[kCasc_TrackLengthCut] - 1) < 0.1 && fCasc_TrackLengthCut == 2)
+        return kFALSE;
 
     // check candidate daughters' Chi^2 per TPC cluster
     // if (fCasc_MaxChi2perCls > cutval_Casc[kCasc_MaxChi2perCls])
@@ -1070,10 +1138,12 @@ bool AliCascadeAnalysisMC_Ishaan::ApplyCuts(int part)
         if (((1.67245 * fCasc_DistOverTotP) > (2.461 * cutval_Casc[kCasc_PropLifetOm])))
             return kFALSE; /// 2.461 is the ctau of om in cm
 
+        /// competing cascade rejection (only for omegas)
         if ((part == komm) && ((TMath::Abs(fCasc_InvMassXiMin - 1.32171)) < cutval_Casc[kCasc_CompetingXiMass]))
             return kFALSE;
         if ((part == komp) && ((TMath::Abs(fCasc_InvMassXiPlu - 1.32171)) < cutval_Casc[kCasc_CompetingXiMass]))
             return kFALSE;
+
         if (fCasc_Pt > 0. && fCasc_Pt < ptOmBoundary_LowMid) /// low pt range
         {
             if (fCasc_CascCosPA < cutval_Casc[kCasc_CascCosPALow])
@@ -1125,13 +1195,13 @@ bool AliCascadeAnalysisMC_Ishaan::ApplyCuts(int part)
     /// check that none of daughters is a kink
     // if (fCasc_kinkidx > 0)
     //   return kFALSE;
-    /// check if at least one of candidate's daughter has a hit in the TOF or has ITSrefit flag (removes Out Of Bunch Pileup)
+    /// older, new version below - check if at least one of candidate's daughter has a hit in the TOF or has ITSrefit flag (removes Out Of Bunch Pileup)
     // if (fCasc_ITSTOFtracks < cutval_Casc[kCasc_ITSTOFtracks])
     //   return kFALSE;
 
     // check if at least one of candidate's daughter has a hit in the TOF or has ITSrefit flag (removes Out Of Bunch Pileup)
-    if (fCasc_ITSTOFtracks < cutval_Casc[kCasc_ITSTOFtracks] - 0.1)
-        return kFALSE;
+    // if (fCasc_ITSTOFtracks < cutval_Casc[kCasc_ITSTOFtracks] - 0.1)
+    //     return kFALSE;
 
     // TPC refit, should be already verified for Offline V0s
     if (!(fCasc_PosTrackStatus & AliESDtrack::kTPCrefit) ||
