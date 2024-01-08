@@ -2,11 +2,13 @@
 #include <TFile.h>
 #include <TCanvas.h>
 #include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
 #include <TF1.h>
 #include <TFitResult.h>
 #include <TFitResultPtr.h>
-#include "TLine.h"
 #include <TError.h>
+#include <THashList.h>
 
 // double bgReject_Xi = 0.0075; // 4*sigma=0.01, 6*sigma=0.015
 // double bgReject_Om = 0.0072; // 4*sigma=0.01, 6*sigma=0.015
