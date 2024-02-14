@@ -10,7 +10,7 @@
 #include <TLine.h>
 #include <TROOT.h>
 
-void DrawAndSave(TH1 *peak, Double_t pPosition, Double_t pWidth, Bool_t saveImages, TString outputFolder, TString imageFormat);
+void DrawAndSave(TH1 *peak, TH1 *bg, Double_t pPosition, Double_t pWidth, Bool_t saveImages, TString outputFolder, TString imageFormat);
 
 inline void SaveImage(TString imagePath, TString imageName, TString imageFormat)
 {
@@ -23,7 +23,7 @@ inline void SaveImage(TString imagePath, TString imageName, TString imageFormat)
     gSystem->Chmod(Form("%s/%s.%s", imagePath.Data(), imageName.Data(), imageFormat.Data()), 0755);
 }
 
-int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TString outputFilename = "MCDraw.root", TString outputFolder = ".", Bool_t fisMC = kTRUE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png")
+int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testFitting_all_noComp.root", TString outputFilename = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testDraw_all.root", TString outputFolder = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testDraw", Bool_t fisMC = kTRUE, Bool_t saveImages = kTRUE, Bool_t saveStack = kTRUE, TString imageFormat = "png")
 {
     // TDirectory::AddDirectory(0);
     outputFolder = gSystem->ExpandPathName(outputFolder.Data());
@@ -100,6 +100,16 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     TH1 *h_multBinEntries_Xi;
     TH1 *h_multBinEntries_Om;
 
+    /// background estimation hist through TSpectrum
+
+    TH1 *h_bgXim_pt_mult[nptbins_Xi][nmultbins_Xi];
+    TH1 *h_bgXip_pt_mult[nptbins_Xi][nmultbins_Xi];
+    TH1 *h_bgXiC_pt_mult[nptbins_Xi][nmultbins_Xi];
+
+    TH1 *h_bgOmm_pt_mult[nptbins_Om][nmultbins_Om];
+    TH1 *h_bgOmp_pt_mult[nptbins_Om][nmultbins_Om];
+    TH1 *h_bgOmC_pt_mult[nptbins_Om][nmultbins_Om];
+
     auto hs_xip = new THStack("xip", "");
     auto hs_xim = new THStack("xim", "");
     auto hs_omp = new THStack("omp", "");
@@ -170,10 +180,13 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
                 h_MassXiC_pt_mult[ptBinXi][multBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("h_MassXiC_pt_mult[%d][%d]"), ptBinXi, multBinXi));
                 resultParXiC_pt_mult[ptBinXi][multBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("resultParXiC_pt_mult[%d][%d]"), ptBinXi, multBinXi));
 
-                resultParXip_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("resultParXip_pt[%d]"), ptBinXi));
-                resultParXim_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("resultParXim_pt[%d]"), ptBinXi));
-                resultParXiC_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("resultParXiC_pt[%d]"), ptBinXi));
+                h_bgXim_pt_mult[ptBinXi][multBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("h_bgXim_pt_mult[%d][%d]"), ptBinXi, multBinXi));
+                h_bgXip_pt_mult[ptBinXi][multBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("h_bgXip_pt_mult[%d][%d]"), ptBinXi, multBinXi));
+                h_bgXiC_pt_mult[ptBinXi][multBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("h_bgXiC_pt_mult[%d][%d]"), ptBinXi, multBinXi));
             }
+            resultParXip_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("resultParXip_pt[%d]"), ptBinXi));
+            resultParXim_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("resultParXim_pt[%d]"), ptBinXi));
+            resultParXiC_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("resultParXiC_pt[%d]"), ptBinXi));
         }
         for (Int_t ptBinOm = 0; ptBinOm < nptbins_Om; ptBinOm++)
         {
@@ -187,10 +200,13 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
                 h_MassOmC_pt_mult[ptBinOm][multBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("h_MassOmC_pt_mult[%d][%d]"), ptBinOm, multBinOm));
                 resultParOmC_pt_mult[ptBinOm][multBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("resultParOmC_pt_mult[%d][%d]"), ptBinOm, multBinOm));
 
-                resultParOmp_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("resultParOmp_pt[%d]"), ptBinOm));
-                resultParOmm_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("resultParOmm_pt[%d]"), ptBinOm));
-                resultParOmC_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("resultParOmC_pt[%d]"), ptBinOm));
+                h_bgOmm_pt_mult[ptBinOm][multBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("h_bgOmm_pt_mult[%d][%d]"), ptBinOm, multBinOm));
+                h_bgOmp_pt_mult[ptBinOm][multBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("h_bgOmp_pt_mult[%d][%d]"), ptBinOm, multBinOm));
+                h_bgOmC_pt_mult[ptBinOm][multBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("h_bgOmC_pt_mult[%d][%d]"), ptBinOm, multBinOm));
             }
+            resultParOmp_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("resultParOmp_pt[%d]"), ptBinOm));
+            resultParOmm_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("resultParOmm_pt[%d]"), ptBinOm));
+            resultParOmC_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("resultParOmC_pt[%d]"), ptBinOm));
         }
 
         f->Close();
@@ -299,14 +315,14 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
         // redChi2_xip[multBinXi] = new TH1D(TString::Format(("redChi2_xip[%d]"), multBinXi), TString::Format(("Mult: %.0f-%.0f%%"), multbins_Xi[multBinXi ], multbins_Xi[multBinXi+1]), nptbins_Xi, ptbins_Xi);
         for (Int_t ptBinXi = 0; ptBinXi < nptbins_Xi; ptBinXi++)
         {
-            rawPt_xim[multBinXi]->SetBinContent(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(1)  / ((rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xim[multBinXi]->SetBinError(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(1)   / ((rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+            rawPt_xim[multBinXi]->SetBinContent(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xim[multBinXi]->SetBinError(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
 
-            rawPt_xip[multBinXi]->SetBinContent(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(1)  / ((rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xip[multBinXi]->SetBinError(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(1)   / ((rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+            rawPt_xip[multBinXi]->SetBinContent(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xip[multBinXi]->SetBinError(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
 
-            rawPt_xiC[multBinXi]->SetBinContent(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(1)   / ((rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xiC[multBinXi]->SetBinError(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(1)  / ((rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+            rawPt_xiC[multBinXi]->SetBinContent(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xiC[multBinXi]->SetBinError(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
 
             if (fisMC)
             {
@@ -329,11 +345,11 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
             h_MassXiC_pt_mult[ptBinXi][multBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
 
             TF1 *f1 = (TF1 *)h_MassXim_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0); /// 0 position = peak Function (GausPol2)
-            DrawAndSave(h_MassXim_pt_mult[ptBinXi][multBinXi], f1->GetParameter(1), f1->GetParameter(2), saveImages, outputFolder, imageFormat);
+            DrawAndSave(h_MassXim_pt_mult[ptBinXi][multBinXi], h_bgXim_pt_mult[ptBinXi][multBinXi], f1->GetParameter(1), f1->GetParameter(2), saveImages, outputFolder, imageFormat);
             TF1 *f2 = (TF1 *)h_MassXip_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
-            DrawAndSave(h_MassXip_pt_mult[ptBinXi][multBinXi], f2->GetParameter(1), f2->GetParameter(2), saveImages, outputFolder, imageFormat);
+            DrawAndSave(h_MassXip_pt_mult[ptBinXi][multBinXi], h_bgXip_pt_mult[ptBinXi][multBinXi], f2->GetParameter(1), f2->GetParameter(2), saveImages, outputFolder, imageFormat);
             TF1 *f3 = (TF1 *)h_MassXiC_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
-            DrawAndSave(h_MassXiC_pt_mult[ptBinXi][multBinXi], f3->GetParameter(1), f3->GetParameter(2), saveImages, outputFolder, imageFormat);
+            DrawAndSave(h_MassXiC_pt_mult[ptBinXi][multBinXi], h_bgXiC_pt_mult[ptBinXi][multBinXi], f3->GetParameter(1), f3->GetParameter(2), saveImages, outputFolder, imageFormat);
         }
         out->cd("dirRawPt_xip");
         rawPt_xip[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
@@ -405,13 +421,13 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
         }
         for (Int_t ptBinOm = 0; ptBinOm < nptbins_Om; ptBinOm++)
         {
-            rawPt_omm[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(1)  / ((rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omm[multBinOm]->SetBinError(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(1)  / ((rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
-            rawPt_omp[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(1)  / ((rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omp[multBinOm]->SetBinError(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(1)  / ((rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+            rawPt_omm[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omm[multBinOm]->SetBinError(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+            rawPt_omp[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omp[multBinOm]->SetBinError(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
 
-            rawPt_omC[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(1)  / ((rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omC[multBinOm]->SetBinError(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(1)  / ((rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+            rawPt_omC[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omC[multBinOm]->SetBinError(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
 
             if (fisMC)
             {
@@ -433,11 +449,11 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
             h_MassOmC_pt_mult[ptBinOm][multBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
 
             TF1 *f1 = (TF1 *)h_MassOmm_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
-            DrawAndSave(h_MassOmm_pt_mult[ptBinOm][multBinOm], f1->GetParameter(1), f1->GetParameter(2), saveImages, outputFolder, imageFormat);
+            DrawAndSave(h_MassOmm_pt_mult[ptBinOm][multBinOm], h_bgOmm_pt_mult[ptBinOm][multBinOm], f1->GetParameter(1), f1->GetParameter(2), saveImages, outputFolder, imageFormat);
             TF1 *f2 = (TF1 *)h_MassOmp_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
-            DrawAndSave(h_MassOmp_pt_mult[ptBinOm][multBinOm], f2->GetParameter(1), f2->GetParameter(2), saveImages, outputFolder, imageFormat);
+            DrawAndSave(h_MassOmp_pt_mult[ptBinOm][multBinOm], h_bgOmp_pt_mult[ptBinOm][multBinOm], f2->GetParameter(1), f2->GetParameter(2), saveImages, outputFolder, imageFormat);
             TF1 *f3 = (TF1 *)h_MassOmC_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
-            DrawAndSave(h_MassOmC_pt_mult[ptBinOm][multBinOm], f3->GetParameter(1), f3->GetParameter(2), saveImages, outputFolder, imageFormat);
+            DrawAndSave(h_MassOmC_pt_mult[ptBinOm][multBinOm], h_bgOmC_pt_mult[ptBinOm][multBinOm], f3->GetParameter(1), f3->GetParameter(2), saveImages, outputFolder, imageFormat);
         }
         out->cd("dirRawPt_omp");
         rawPt_omp[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
@@ -509,7 +525,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_xip->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_xip->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_xip->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c1->Modified();
     c1->ForceUpdate();
 
@@ -518,7 +534,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_omp->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_omp->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_omp->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c2->Modified();
     c2->ForceUpdate();
 
@@ -527,7 +543,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_xim->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_xim->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_xim->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c3->Modified();
     c3->ForceUpdate();
 
@@ -536,7 +552,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_omm->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_omm->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_omm->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c4->Modified();
     c4->ForceUpdate();
 
@@ -545,7 +561,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_xiC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_xiC->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_xiC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c5->Modified();
     c5->ForceUpdate();
 
@@ -554,7 +570,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_omC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_omC->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_omC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c6->Modified();
     c6->ForceUpdate();
 
@@ -684,12 +700,12 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
         hs_xiC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
         hs_omC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
 
-        hs_xip->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_xim->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_omp->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_omm->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_xiC->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_omC->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_xip->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_xim->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_omp->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_omm->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_xiC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_omC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
 
         hs_xip_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
         hs_xim_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
@@ -742,7 +758,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
         {
             e1->cd();
             SaveImage(Form("%s/images/eff", outputFolder.Data()), "eff_xipN", imageFormat.Data());
-            
+
             e2->cd();
             SaveImage(Form("%s/images/eff", outputFolder.Data()), "eff_ompN", imageFormat.Data());
 
@@ -770,7 +786,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     // delete out;
     return 0;
 }
-void DrawAndSave(TH1 *peak, Double_t pPosition, Double_t pWidth, Bool_t saveImages, TString outputFolder, TString imageFormat)
+void DrawAndSave(TH1 *peak, TH1 *bg, Double_t pPosition, Double_t pWidth, Bool_t saveImages, TString outputFolder, TString imageFormat)
 {
 
     gROOT->SetBatch(kTRUE);
@@ -785,6 +801,8 @@ void DrawAndSave(TH1 *peak, Double_t pPosition, Double_t pWidth, Bool_t saveImag
     lLineLeft->SetLineColor(kMagenta);
     lLineRight->SetLineColor(kMagenta);
     peak->Draw();
+    if (bg)
+        bg->Draw("same");
     lLineLeft->Draw("same");
     lLineRight->Draw("same");
 
