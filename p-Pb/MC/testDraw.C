@@ -12,7 +12,20 @@
 
 void DrawAndSave(TH1 *peak, TH1 *bg, Double_t pPosition, Double_t pWidth, Bool_t saveImages, TString outputFolder, TString imageFormat);
 
-inline void SaveImage(TString imagePath, TString imageName, TString imageFormat)
+inline void PaintStack(TCanvas &c, THStack &hs, Bool_t setLogY = kTRUE, TString yAxisTitle = "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}", TString xAxisTitle = "#it{p}_{T} (GeV/c)")
+{
+    c.cd();
+    hs.Draw("plc pmc nostack");
+    if (setLogY)
+        gPad->SetLogy();
+    gPad->BuildLegend(0.9, 0.6, 1., 1., "");
+    hs.GetXaxis()->SetTitle(xAxisTitle.Data());
+    hs.GetYaxis()->SetTitle(yAxisTitle.Data());
+    c.Modified();
+    c.ForceUpdate();
+}
+
+void SaveImage(TString imagePath, TString imageName, TString imageFormat)
 {
     if (gSystem->AccessPathName(imagePath.Data())) /// returns true if folder path does NOT exist
     {
@@ -23,7 +36,7 @@ inline void SaveImage(TString imagePath, TString imageName, TString imageFormat)
     gSystem->Chmod(Form("%s/%s.%s", imagePath.Data(), imageName.Data(), imageFormat.Data()), 0755);
 }
 
-int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testFitting_all_noComp.root", TString outputFilename = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testDraw_all.root", TString outputFolder = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testDraw", Bool_t fisMC = kTRUE, Bool_t saveImages = kTRUE, Bool_t saveStack = kTRUE, TString imageFormat = "png")
+int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testFitting_all_noComp.root", TString outputFilename = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testDraw_all.root", TString outputFolder = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testDraw", TString ptRatioFilename = "", Bool_t fisMC = kFALSE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png")
 {
     // TDirectory::AddDirectory(0);
     outputFolder = gSystem->ExpandPathName(outputFolder.Data());
@@ -520,72 +533,13 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
     TCanvas *c4 = new TCanvas("c4", "c4", 1920, 1080);
     TCanvas *c5 = new TCanvas("c5", "c5", 1920, 1080);
     TCanvas *c6 = new TCanvas("c6", "c6", 1920, 1080);
-    c1->cd();
-    hs_xip->Draw("plc pmc nostack");
-    gPad->SetLogy();
-    gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-    hs_xip->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_xip->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-    c1->Modified();
-    c1->ForceUpdate();
 
-    c2->cd();
-    hs_omp->Draw("plc pmc nostack");
-    gPad->SetLogy();
-    gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-    hs_omp->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_omp->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-    c2->Modified();
-    c2->ForceUpdate();
-
-    c3->cd();
-    hs_xim->Draw("plc pmc nostack");
-    gPad->SetLogy();
-    gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-    hs_xim->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_xim->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-    c3->Modified();
-    c3->ForceUpdate();
-
-    c4->cd();
-    hs_omm->Draw("plc pmc nostack");
-    gPad->SetLogy();
-    gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-    hs_omm->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_omm->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-    c4->Modified();
-    c4->ForceUpdate();
-
-    c5->cd();
-    hs_xiC->Draw("plc pmc nostack");
-    gPad->SetLogy();
-    gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-    hs_xiC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_xiC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-    c5->Modified();
-    c5->ForceUpdate();
-
-    c6->cd();
-    hs_omC->Draw("plc pmc nostack");
-    gPad->SetLogy();
-    gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-    hs_omC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_omC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-    c6->Modified();
-    c6->ForceUpdate();
-
-    c1->Modified();
-    c1->ForceUpdate();
-    c2->Modified();
-    c2->ForceUpdate();
-    c3->Modified();
-    c3->ForceUpdate();
-    c4->Modified();
-    c4->ForceUpdate();
-    c5->Modified();
-    c5->ForceUpdate();
-    c6->Modified();
-    c6->ForceUpdate();
+    PaintStack(*c1, *hs_xip);
+    PaintStack(*c2, *hs_omp);
+    PaintStack(*c3, *hs_xim);
+    PaintStack(*c4, *hs_omm);
+    PaintStack(*c5, *hs_xiC);
+    PaintStack(*c6, *hs_omC);
 
     out->cd();
 
@@ -629,120 +583,15 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
         TCanvas *r1 = new TCanvas("r1", "r1", 1920, 1080);
         TCanvas *r2 = new TCanvas("r2", "r2", 1920, 1080);
 
-        e1->cd();
-        hs_xip_eff->Draw("plc pmc nostack");
-        gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-        hs_xip_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_xip_eff->GetYaxis()->SetTitle("Efficiency");
-        e1->Modified();
-        e1->ForceUpdate();
+        PaintStack(*e1, *hs_xip_eff, kFALSE, "Efficiency");
+        PaintStack(*e2, *hs_omp_eff, kFALSE, "Efficiency");
+        PaintStack(*e3, *hs_xim_eff, kFALSE, "Efficiency");
+        PaintStack(*e4, *hs_omm_eff, kFALSE, "Efficiency");
+        PaintStack(*e5, *hs_xiC_eff, kFALSE, "Efficiency");
+        PaintStack(*e6, *hs_omC_eff, kFALSE, "Efficiency");
 
-        e2->cd();
-        hs_omp_eff->Draw("plc pmc nostack");
-        gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-        hs_omp_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omp_eff->GetYaxis()->SetTitle("Efficiency");
-        e2->Modified();
-        e2->ForceUpdate();
-
-        e3->cd();
-        hs_xim_eff->Draw("plc pmc nostack");
-        gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-        hs_xim_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_xim_eff->GetYaxis()->SetTitle("Efficiency");
-        e3->Modified();
-        e3->ForceUpdate();
-
-        e4->cd();
-        hs_omm_eff->Draw("plc pmc nostack");
-        gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-        hs_omm_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omm_eff->GetYaxis()->SetTitle("Efficiency");
-        e4->Modified();
-        e4->ForceUpdate();
-
-        e5->cd();
-        hs_xiC_eff->Draw("plc pmc nostack");
-        gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-        hs_xiC_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_xiC_eff->GetYaxis()->SetTitle("Efficiency");
-        e5->Modified();
-        e5->ForceUpdate();
-
-        e6->cd();
-        hs_omC_eff->Draw("plc pmc nostack");
-        gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-        hs_omC_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omC_eff->GetYaxis()->SetTitle("Efficiency");
-        e6->Modified();
-        e6->ForceUpdate();
-
-        r1->cd();
-        hs_xiC_eff_ratio->Draw("plc pmc nostack");
-        gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-        hs_xiC_eff_ratio->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_xiC_eff_ratio->GetYaxis()->SetTitle("Multiplicity classes/0-100%");
-        r1->Modified();
-        r1->ForceUpdate();
-
-        r2->cd();
-        hs_omC_eff_ratio->Draw("plc pmc nostack");
-        gPad->BuildLegend(0.9, 0.6, 1., 1., "");
-        hs_omC_eff_ratio->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omC_eff_ratio->GetYaxis()->SetTitle("Multiplicity classes/0-100%");
-        r2->Modified();
-        r2->ForceUpdate();
-
-        hs_xip->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_xim->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omp->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omm->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_xiC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-
-        hs_xip->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_xim->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_omp->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_omm->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_xiC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_omC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-
-        hs_xip_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_xim_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omp_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omm_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_xiC_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omC_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-
-        hs_xip_eff->GetYaxis()->SetTitle("Efficiency");
-        hs_xim_eff->GetYaxis()->SetTitle("Efficiency");
-        hs_omp_eff->GetYaxis()->SetTitle("Efficiency");
-        hs_omm_eff->GetYaxis()->SetTitle("Efficiency");
-        hs_xiC_eff->GetYaxis()->SetTitle("Efficiency");
-        hs_omC_eff->GetYaxis()->SetTitle("Efficiency");
-
-        hs_xiC_eff_ratio->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_omC_eff_ratio->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-        hs_xiC_eff_ratio->GetYaxis()->SetTitle("Multiplicity classes/0-100%");
-        hs_omC_eff_ratio->GetYaxis()->SetTitle("Multiplicity classes/0-100%");
-
-        e1->Modified();
-        e1->ForceUpdate();
-        e2->Modified();
-        e2->ForceUpdate();
-        e3->Modified();
-        e3->ForceUpdate();
-        e4->Modified();
-        e4->ForceUpdate();
-        e5->Modified();
-        e5->ForceUpdate();
-        e6->Modified();
-        e6->ForceUpdate();
-
-        r1->Modified();
-        r1->ForceUpdate();
-        r2->Modified();
-        r2->ForceUpdate();
+        PaintStack(*r1, *hs_xiC_eff_ratio, kFALSE, "Multiplicity classes/0-100%");
+        PaintStack(*r2, *hs_omC_eff_ratio, kFALSE, "Multiplicity classes/0-100%");
 
         hs_xip_eff->Write();
         hs_xim_eff->Write();
@@ -779,6 +628,200 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
 
             r2->cd();
             SaveImage(Form("%s/images/effRatio", outputFolder.Data()), "effRatio_omcN", imageFormat.Data());
+        }
+    }
+
+    if (!ptRatioFilename.IsNull())
+    {
+        /// get previusly calculated pT ratio from file to compute ratio of pT spectra
+
+        Printf("\nOpening %s for ratio calculation...", ptRatioFilename.Data());
+        TFile *fRatio = TFile::Open(ptRatioFilename.Data());
+        if (!fRatio)
+        {
+            Printf("Error: Cannot open file '%s' !", ptRatioFilename.Data());
+            return 1;
+        }
+
+        // needed so we can do file->Close()
+        TH1::AddDirectory(0);
+        TH1 *rawPt_xim_compare[nmultbins_Xi];
+        TH1 *rawPt_xip_compare[nmultbins_Xi];
+        TH1 *rawPt_omm_compare[nmultbins_Om];
+        TH1 *rawPt_omp_compare[nmultbins_Om];
+        TH1 *rawPt_xiC_compare[nmultbins_Xi];
+        TH1 *rawPt_omC_compare[nmultbins_Om];
+
+        TH1D *ratioPt_xim[nmultbins_Xi];
+        TH1D *ratioPt_xip[nmultbins_Xi];
+        TH1D *ratioPt_omm[nmultbins_Om];
+        TH1D *ratioPt_omp[nmultbins_Om];
+        TH1D *ratioPt_xiC[nmultbins_Xi];
+        TH1D *ratioPt_omC[nmultbins_Om];
+
+        auto hs_ratio_xip = new THStack("hs_ratio_xip", "#it{p}_{T} spectra ratio");
+        auto hs_ratio_xim = new THStack("hs_ratio_xim", "#it{p}_{T} spectra ratio");
+        auto hs_ratio_omp = new THStack("hs_ratio_omp", "#it{p}_{T} spectra ratio");
+        auto hs_ratio_omm = new THStack("hs_ratio_omm", "#it{p}_{T} spectra ratio");
+        auto hs_ratio_xiC = new THStack("hs_ratio_xiC", "#it{p}_{T} spectra ratio");
+        auto hs_ratio_omC = new THStack("hs_ratio_omC", "#it{p}_{T} spectra ratio");
+
+        for (Int_t multBinXi = 0; multBinXi < nmultbins_Xi; multBinXi++)
+        {
+            rawPt_xim_compare[multBinXi] = (TH1 *)fRatio->FindObjectAny(TString::Format(("rawPt_xim[%d]"), multBinXi));
+            rawPt_xip_compare[multBinXi] = (TH1 *)fRatio->FindObjectAny(TString::Format(("rawPt_xip[%d]"), multBinXi));
+            rawPt_xiC_compare[multBinXi] = (TH1 *)fRatio->FindObjectAny(TString::Format(("rawPt_xiC[%d]"), multBinXi));
+        }
+
+        for (Int_t multBinOm = 0; multBinOm < nmultbins_Om; multBinOm++)
+        {
+            rawPt_omm_compare[multBinOm] = (TH1 *)fRatio->FindObjectAny(TString::Format(("rawPt_omm[%d]"), multBinOm));
+            rawPt_omp_compare[multBinOm] = (TH1 *)fRatio->FindObjectAny(TString::Format(("rawPt_omp[%d]"), multBinOm));
+            rawPt_omC_compare[multBinOm] = (TH1 *)fRatio->FindObjectAny(TString::Format(("rawPt_omC[%d]"), multBinOm));
+        }
+        fRatio->Close(); /// close file for input
+
+        /// calculate ratio of current spectra to previous
+        for (Int_t multBinXi = 0; multBinXi < nmultbins_Xi; multBinXi++)
+        {
+            /// get current histogram scale back to normal to perform divide
+            rawPt_xim[multBinXi]->Scale(pow(2, -((nmultbins_Xi - 1) - multBinXi)));
+            rawPt_xip[multBinXi]->Scale(pow(2, -((nmultbins_Xi - 1) - multBinXi)));
+            rawPt_xiC[multBinXi]->Scale(pow(2, -((nmultbins_Xi - 1) - multBinXi)));
+
+            /// generate ratio hists
+            ratioPt_xim[multBinXi] = new TH1D(TString::Format(("ratioPt_xim[%d]"), multBinXi), "", nptbins_Xi, ptbins_Xi);
+            ratioPt_xip[multBinXi] = new TH1D(TString::Format(("ratioPt_xip[%d]"), multBinXi), "", nptbins_Xi, ptbins_Xi);
+            ratioPt_xiC[multBinXi] = new TH1D(TString::Format(("ratioPt_xiC[%d]"), multBinXi), "", nptbins_Xi, ptbins_Xi);
+
+            ratioPt_xim[multBinXi]->Divide(rawPt_xim[multBinXi], rawPt_xim_compare[multBinXi]);
+            out->cd("dirRawPt_xim");
+            ratioPt_xim[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
+            ratioPt_xim[multBinXi]->Write();
+            ratioPt_xim[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), multbins_Xi[multBinXi], multbins_Xi[multBinXi + 1]));
+            hs_ratio_xim->Add(ratioPt_xim[multBinXi]);
+
+            ratioPt_xip[multBinXi]->Divide(rawPt_xip[multBinXi], rawPt_xip_compare[multBinXi]);
+            out->cd("dirRawPt_xip");
+            ratioPt_xip[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
+            ratioPt_xip[multBinXi]->Write();
+            ratioPt_xip[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), multbins_Xi[multBinXi], multbins_Xi[multBinXi + 1]));
+            hs_ratio_xip->Add(ratioPt_xip[multBinXi]);
+
+            ratioPt_xiC[multBinXi]->Divide(rawPt_xiC[multBinXi], rawPt_xiC_compare[multBinXi]);
+            out->cd("dirRawPt_xiC");
+            ratioPt_xiC[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
+            ratioPt_xiC[multBinXi]->Write();
+            ratioPt_xiC[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), multbins_Xi[multBinXi], multbins_Xi[multBinXi + 1]));
+            hs_ratio_xiC->Add(ratioPt_xiC[multBinXi]);
+        }
+
+        for (Int_t multBinOm = 0; multBinOm < nmultbins_Om; multBinOm++)
+        {
+            /// get current histogram scale back to normal to perform divide
+            rawPt_omm[multBinOm]->Scale(pow(2, -((nmultbins_Om - 1) - multBinOm)));
+            rawPt_omp[multBinOm]->Scale(pow(2, -((nmultbins_Om - 1) - multBinOm)));
+            rawPt_omC[multBinOm]->Scale(pow(2, -((nmultbins_Om - 1) - multBinOm)));
+
+            /// generate ratio hists
+            ratioPt_omm[multBinOm] = new TH1D(TString::Format(("ratioPt_omm[%d]"), multBinOm), "", nptbins_Om, ptbins_Om);
+            ratioPt_omp[multBinOm] = new TH1D(TString::Format(("ratioPt_omm[%d]"), multBinOm), "", nptbins_Om, ptbins_Om);
+            ratioPt_omC[multBinOm] = new TH1D(TString::Format(("ratioPt_omm[%d]"), multBinOm), "", nptbins_Om, ptbins_Om);
+
+            ratioPt_omm[multBinOm]->Divide(rawPt_omm[multBinOm], rawPt_omm_compare[multBinOm]);
+            out->cd("dirRawPt_omm");
+            ratioPt_omm[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
+            ratioPt_omm[multBinOm]->Write();
+            ratioPt_omm[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), multbins_Om[multBinOm], multbins_Om[multBinOm + 1]));
+            hs_ratio_omm->Add(ratioPt_omm[multBinOm]);
+
+            ratioPt_omp[multBinOm]->Divide(rawPt_omp[multBinOm], rawPt_omp_compare[multBinOm]);
+            out->cd("dirRawPt_omp");
+            ratioPt_omp[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
+            ratioPt_omp[multBinOm]->Write();
+            ratioPt_omp[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), multbins_Om[multBinOm], multbins_Om[multBinOm + 1]));
+            hs_ratio_omp->Add(ratioPt_omp[multBinOm]);
+
+            ratioPt_omC[multBinOm]->Divide(rawPt_omC[multBinOm], rawPt_omC_compare[multBinOm]);
+            out->cd("dirRawPt_omC");
+            ratioPt_omC[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
+            ratioPt_omC[multBinOm]->Write();
+            ratioPt_omC[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), multbins_Om[multBinOm], multbins_Om[multBinOm + 1]));
+            hs_ratio_omC->Add(ratioPt_omC[multBinOm]);
+        }
+
+        TCanvas *cRatio1 = new TCanvas("cRatio1", "cRatio1", 1920, 1080);
+        TCanvas *cRatio2 = new TCanvas("cRatio2", "cRatio2", 1920, 1080);
+        TCanvas *cRatio3 = new TCanvas("cRatio3", "cRatio3", 1920, 1080);
+        TCanvas *cRatio4 = new TCanvas("cRatio4", "cRatio4", 1920, 1080);
+        TCanvas *cRatio5 = new TCanvas("cRatio5", "cRatio5", 1920, 1080);
+        TCanvas *cRatio6 = new TCanvas("cRatio6", "cRatio6", 1920, 1080);
+
+        PaintStack(*cRatio1, *hs_ratio_xip, kFALSE, "SNIP/Standard");
+        PaintStack(*cRatio2, *hs_ratio_omp, kFALSE, "SNIP/Standard");
+        PaintStack(*cRatio3, *hs_ratio_xim, kFALSE, "SNIP/Standard");
+        PaintStack(*cRatio4, *hs_ratio_omm, kFALSE, "SNIP/Standard");
+        PaintStack(*cRatio5, *hs_ratio_xiC, kFALSE, "SNIP/Standard");
+        PaintStack(*cRatio6, *hs_ratio_omC, kFALSE, "SNIP/Standard");
+        {
+            /// Draw a line at y=1 for ratio histStack
+            TLine *lLineAt1 = new TLine(0.8, 1, 5.3, 1);
+            lLineAt1->SetLineColor(kRed);
+
+            cRatio1->cd();
+            lLineAt1->Draw("same");
+            cRatio2->cd();
+            lLineAt1->Draw("same");
+            cRatio3->cd();
+            lLineAt1->Draw("same");
+            cRatio4->cd();
+            lLineAt1->Draw("same");
+            cRatio5->cd();
+            lLineAt1->Draw("same");
+            cRatio6->cd();
+            lLineAt1->Draw("same");
+        }
+        hs_ratio_xim->SetMinimum(0.7);
+        hs_ratio_xip->SetMinimum(0.7);
+        hs_ratio_xiC->SetMinimum(0.7);
+        hs_ratio_omm->SetMinimum(0.5);
+        hs_ratio_omp->SetMinimum(0.5);
+        hs_ratio_omC->SetMinimum(0.5);
+
+        hs_ratio_xim->SetMaximum(1.1);
+        hs_ratio_xip->SetMaximum(1.1);
+        hs_ratio_xiC->SetMaximum(1.1);
+        hs_ratio_omm->SetMaximum(1.2);
+        hs_ratio_omp->SetMaximum(1.2);
+        hs_ratio_omC->SetMaximum(1.2);
+
+        out->cd();
+        hs_ratio_xip->Write();
+        hs_ratio_omp->Write();
+        hs_ratio_xim->Write();
+        hs_ratio_omm->Write();
+        hs_ratio_xiC->Write();
+        hs_ratio_omC->Write();
+
+        if (saveStack)
+        {
+            cRatio1->cd();
+            SaveImage(Form("%s/images/ratioPt", outputFolder.Data()), "ratio_xipN", imageFormat.Data());
+
+            cRatio2->cd();
+            SaveImage(Form("%s/images/ratioPt", outputFolder.Data()), "ratio_ompN", imageFormat.Data());
+
+            cRatio3->cd();
+            SaveImage(Form("%s/images/ratioPt", outputFolder.Data()), "ratio_ximN", imageFormat.Data());
+
+            cRatio4->cd();
+            SaveImage(Form("%s/images/ratioPt", outputFolder.Data()), "ratio_ommN", imageFormat.Data());
+
+            cRatio5->cd();
+            SaveImage(Form("%s/images/ratioPt", outputFolder.Data()), "ratio_xicN", imageFormat.Data());
+
+            cRatio6->cd();
+            SaveImage(Form("%s/images/ratioPt", outputFolder.Data()), "ratio_omcN", imageFormat.Data());
         }
     }
 

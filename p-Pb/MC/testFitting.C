@@ -88,13 +88,13 @@ Double_t ErrorInRatio(Double_t A, Double_t Aerr, Double_t B, Double_t Berr)
     }
     return err;
 }
-TH1 *generateBg(TH1 *h_source);
+TH1 *generateBg(bool bgTSpectrum, TH1 *h_source);
 
 TF1 *setFitParameters(TF1 *peakFnc, TH1 *peak, Double_t mass, Int_t ptBin, Bool_t multInt = kFALSE);
 
 TH1 *fitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t fitMaxSig, Double_t *par_allint, Double_t *par_allint_errors, Int_t binsMC[], TH2 *MCgen, bool fisMC = false, Bool_t allInt = kFALSE, Bool_t options = kFALSE);
 
-TH1 *fillParams(TH1 *h_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC);
+TH1 *fillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC);
 
 void GetYieldBinCounting(TH1 *h_bg, TH1 *h, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, bool fisMC, Double_t &val,
                          Double_t &err, Double_t eps = 1e-6);
@@ -102,7 +102,7 @@ void GetYieldFitFunction(TH1 *h, TFitResultPtr fFitResult, Double_t minInt, Doub
                          Double_t &err, Double_t eps = 1e-6);
 
 int testFitting(TString input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/081023_MC_LHC17f3b_cent_updatedCutsTL.root",
-                TString outputFilename = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testFitting_all_noComp.root", TString idAxis = "ye", bool fisMC = false, bool xi = true, bool om = true)
+                TString outputFilename = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testFitting_all_noComp.root", TString idAxis = "ye", bool fisMC = false, bool bgTSpectrum = false, bool xi = true, bool om = true)
 {
     TH1::AddDirectory(0);
     // TVirtualFitter::SetMaxIterations(1000000);
@@ -273,6 +273,7 @@ int testFitting(TString input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/root
     TH1 *resultParOmC_pt[nptbins_Om];
 
     /// background estimation hist through TSpectrum
+
     TH1 *h_bgXim_pt[nptbins_Xi];
     TH1 *h_bgXip_pt[nptbins_Xi];
     TH1 *h_bgXiC_pt[nptbins_Xi];
@@ -372,36 +373,39 @@ int testFitting(TString input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/root
             h_MassXiC_pt[ptBinXi]->SetTitle(TString::Format(("Invariant Mass #Xi: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Xi[ptBinXi], ptbins_Xi[ptBinXi + 1], multbins_Xi[0], multbins_Xi[nmultbins_Xi]));
 
             peakFnc_XiP = setFitParameters(peakFnc_XiP, h_MassXip_pt[ptBinXi], lMass_Xi, ptBinXi + 1, kTRUE);
-            h_bgXip_pt[ptBinXi] = generateBg(h_MassXip_pt[ptBinXi]);
+            h_bgXip_pt[ptBinXi] = generateBg(bgTSpectrum, h_MassXip_pt[ptBinXi]);
             resultParXip_pt[ptBinXi] = fitResults(h_bgXip_pt[ptBinXi], peakFnc_XiP, h_MassXip_pt[ptBinXi], fitMinSig_Xi, fitMaxSig_Xi, &par_allintP[0], &par_allint_errorsP[0], binsMC, MCGenXip, fisMC, kFALSE);
             resultParXip_pt[ptBinXi]->SetName(TString::Format(("resultParXip_pt[%d]"), ptBinXi));
             resultParXip_pt[ptBinXi]->SetTitle(TString::Format(("Result Parameters #Xi^{+}: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Xi[ptBinXi], ptbins_Xi[ptBinXi + 1], multbins_Xi[0], multbins_Xi[nmultbins_Xi]));
 
             peakFnc_XiM = setFitParameters(peakFnc_XiM, h_MassXim_pt[ptBinXi], lMass_Xi, ptBinXi + 1, kTRUE);
-            h_bgXim_pt[ptBinXi] = generateBg(h_MassXim_pt[ptBinXi]);
+            h_bgXim_pt[ptBinXi] = generateBg(bgTSpectrum, h_MassXim_pt[ptBinXi]);
             resultParXim_pt[ptBinXi] = fitResults(h_MassXim_pt[ptBinXi], peakFnc_XiM, h_MassXim_pt[ptBinXi], fitMinSig_Xi, fitMaxSig_Xi, &par_allintM[0], &par_allint_errorsM[0], binsMC, MCGenXim, fisMC, kFALSE);
             resultParXim_pt[ptBinXi]->SetName(TString::Format(("resultParXim_pt[%d]"), ptBinXi));
             resultParXim_pt[ptBinXi]->SetTitle(TString::Format(("Result Parameters #Xi^{-}: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Xi[ptBinXi], ptbins_Xi[ptBinXi + 1], multbins_Xi[0], multbins_Xi[nmultbins_Xi]));
 
             peakFnc_XiC = setFitParameters(peakFnc_XiC, h_MassXiC_pt[ptBinXi], lMass_Xi, ptBinXi + 1, kTRUE);
-            h_bgXiC_pt[ptBinXi] = generateBg(h_MassXiC_pt[ptBinXi]);
+            h_bgXiC_pt[ptBinXi] = generateBg(bgTSpectrum, h_MassXiC_pt[ptBinXi]);
             resultParXiC_pt[ptBinXi] = fitResults(h_bgXiC_pt[ptBinXi], peakFnc_XiC, h_MassXiC_pt[ptBinXi], fitMinSig_Xi, fitMaxSig_Xi, &par_allintC[0], &par_allint_errorsC[0], binsMC, MCGenXiC, fisMC, kFALSE);
             resultParXiC_pt[ptBinXi]->SetName(TString::Format(("resultParXiC_pt[%d]"), ptBinXi));
             resultParXiC_pt[ptBinXi]->SetTitle(TString::Format(("Result Parameters #Xi: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Xi[ptBinXi], ptbins_Xi[ptBinXi + 1], multbins_Xi[0], multbins_Xi[nmultbins_Xi]));
 
             out->cd("h_MassXim_pt");
             h_MassXim_pt[ptBinXi]->Write();
-            h_bgXim_pt[ptBinXi]->Write();
+            if (h_bgXim_pt[ptBinXi])
+                h_bgXim_pt[ptBinXi]->Write();
             resultParXim_pt[ptBinXi]->Write();
 
             out->cd("h_MassXip_pt");
             h_MassXip_pt[ptBinXi]->Write();
-            h_bgXip_pt[ptBinXi]->Write();
+            if (h_bgXip_pt[ptBinXi])
+                h_bgXip_pt[ptBinXi]->Write();
             resultParXip_pt[ptBinXi]->Write();
 
             out->cd("h_MassXiC_pt");
             h_MassXiC_pt[ptBinXi]->Write();
-            h_bgXiC_pt[ptBinXi]->Write();
+            if (h_bgXiC_pt[ptBinXi])
+                h_bgXiC_pt[ptBinXi]->Write();
             resultParXiC_pt[ptBinXi]->Write();
 
             for (Int_t multBinXi = 0; multBinXi < nmultbins_Xi; multBinXi++)
@@ -425,35 +429,38 @@ int testFitting(TString input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/root
                 h_MassXiC_pt_mult[ptBinXi][multBinXi]->SetTitle(TString::Format(("Invariant Mass #Xi: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Xi[ptBinXi], ptbins_Xi[ptBinXi + 1], multbins_Xi[multBinXi], multbins_Xi[multBinXi + 1]));
 
                 peakFnc_XiP = setFitParameters(peakFnc_XiP, h_MassXip_pt_mult[ptBinXi][multBinXi], lMass_Xi, ptBinXi + 1, kFALSE);
-                h_bgXip_pt_mult[ptBinXi][multBinXi] = generateBg(h_MassXip_pt_mult[ptBinXi][multBinXi]);
+                h_bgXip_pt_mult[ptBinXi][multBinXi] = generateBg(bgTSpectrum, h_MassXip_pt_mult[ptBinXi][multBinXi]);
                 resultParXip_pt_mult[ptBinXi][multBinXi] = fitResults(h_bgXip_pt_mult[ptBinXi][multBinXi], peakFnc_XiP, h_MassXip_pt_mult[ptBinXi][multBinXi], fitMinSig_Xi, fitMaxSig_Xi, &par_allintP[0], &par_allint_errorsP[0], binsMC, MCGenXip, fisMC, kFALSE);
                 resultParXip_pt_mult[ptBinXi][multBinXi]->SetName(TString::Format(("resultParXip_pt_mult[%d][%d]"), ptBinXi, multBinXi));
                 resultParXip_pt_mult[ptBinXi][multBinXi]->SetTitle(TString::Format(("Result Parameters #Xi^{+}: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Xi[ptBinXi], ptbins_Xi[ptBinXi + 1], multbins_Xi[multBinXi], multbins_Xi[multBinXi + 1]));
 
                 peakFnc_XiM = setFitParameters(peakFnc_XiM, h_MassXim_pt_mult[ptBinXi][multBinXi], lMass_Xi, ptBinXi + 1, kFALSE);
-                h_bgXim_pt_mult[ptBinXi][multBinXi] = generateBg(h_MassXim_pt_mult[ptBinXi][multBinXi]);
+                h_bgXim_pt_mult[ptBinXi][multBinXi] = generateBg(bgTSpectrum, h_MassXim_pt_mult[ptBinXi][multBinXi]);
                 resultParXim_pt_mult[ptBinXi][multBinXi] = fitResults(h_bgXim_pt_mult[ptBinXi][multBinXi], peakFnc_XiM, h_MassXim_pt_mult[ptBinXi][multBinXi], fitMinSig_Xi, fitMaxSig_Xi, &par_allintM[0], &par_allint_errorsM[0], binsMC, MCGenXim, fisMC, kFALSE);
                 resultParXim_pt_mult[ptBinXi][multBinXi]->SetName(TString::Format(("resultParXim_pt_mult[%d][%d]"), ptBinXi, multBinXi));
                 resultParXim_pt_mult[ptBinXi][multBinXi]->SetTitle(TString::Format(("Result Parameters #Xi^{-}: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Xi[ptBinXi], ptbins_Xi[ptBinXi + 1], multbins_Xi[multBinXi], multbins_Xi[multBinXi + 1]));
 
                 peakFnc_XiC = setFitParameters(peakFnc_XiC, h_MassXiC_pt_mult[ptBinXi][multBinXi], lMass_Xi, ptBinXi + 1, kFALSE);
-                h_bgXiC_pt_mult[ptBinXi][multBinXi] = generateBg(h_MassXiC_pt_mult[ptBinXi][multBinXi]);
+                h_bgXiC_pt_mult[ptBinXi][multBinXi] = generateBg(bgTSpectrum, h_MassXiC_pt_mult[ptBinXi][multBinXi]);
                 resultParXiC_pt_mult[ptBinXi][multBinXi] = fitResults(h_bgXiC_pt_mult[ptBinXi][multBinXi], peakFnc_XiC, h_MassXiC_pt_mult[ptBinXi][multBinXi], fitMinSig_Xi, fitMaxSig_Xi, &par_allintC[0], &par_allint_errorsC[0], binsMC, MCGenXiC, fisMC, kFALSE);
                 resultParXiC_pt_mult[ptBinXi][multBinXi]->SetName(TString::Format(("resultParXiC_pt_mult[%d][%d]"), ptBinXi, multBinXi));
                 resultParXiC_pt_mult[ptBinXi][multBinXi]->SetTitle(TString::Format(("Result Parameters #Xi: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Xi[ptBinXi], ptbins_Xi[ptBinXi + 1], multbins_Xi[multBinXi], multbins_Xi[multBinXi + 1]));
 
                 out->cd("h_MassXim_pt_mult");
                 h_MassXim_pt_mult[ptBinXi][multBinXi]->Write();
-                h_bgXim_pt_mult[ptBinXi][multBinXi]->Write();
+                if (h_bgXim_pt_mult[ptBinXi][multBinXi])
+                    h_bgXim_pt_mult[ptBinXi][multBinXi]->Write();
                 resultParXim_pt_mult[ptBinXi][multBinXi]->Write();
                 out->cd("h_MassXip_pt_mult");
                 h_MassXip_pt_mult[ptBinXi][multBinXi]->Write();
-                h_bgXip_pt_mult[ptBinXi][multBinXi]->Write();
+                if (h_bgXip_pt_mult[ptBinXi][multBinXi])
+                    h_bgXip_pt_mult[ptBinXi][multBinXi]->Write();
                 resultParXip_pt_mult[ptBinXi][multBinXi]->Write();
 
                 out->cd("h_MassXiC_pt_mult");
                 h_MassXiC_pt_mult[ptBinXi][multBinXi]->Write();
-                h_bgXiC_pt_mult[ptBinXi][multBinXi]->Write();
+                if (h_bgXiC_pt_mult[ptBinXi][multBinXi])
+                    h_bgXiC_pt_mult[ptBinXi][multBinXi]->Write();
                 resultParXiC_pt_mult[ptBinXi][multBinXi]->Write();
             }
         }
@@ -512,36 +519,39 @@ int testFitting(TString input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/root
             h_MassOmC_pt[ptBinOm]->SetTitle(TString::Format(("Invariant Mass #Omega: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Om[ptBinOm], ptbins_Om[ptBinOm + 1], multbins_Om[0], multbins_Om[nmultbins_Om]));
 
             peakFnc_OmP = setFitParameters(peakFnc_OmP, h_MassOmp_pt[ptBinOm], lMass_Om, ptBinOm + 1, kTRUE);
-            h_bgOmp_pt[ptBinOm] = generateBg(h_MassOmp_pt[ptBinOm]);
+            h_bgOmp_pt[ptBinOm] = generateBg(bgTSpectrum, h_MassOmp_pt[ptBinOm]);
             resultParOmp_pt[ptBinOm] = fitResults(h_MassOmp_pt[ptBinOm], peakFnc_OmP, h_MassOmp_pt[ptBinOm], fitMinSig_Om, fitMaxSig_Om, &par_allintP[0], &par_allint_errorsP[0], binsMC, MCGenOmp, fisMC, kFALSE);
             resultParOmp_pt[ptBinOm]->SetName(TString::Format(("resultParOmp_pt[%d]"), ptBinOm));
             resultParOmp_pt[ptBinOm]->SetTitle(TString::Format(("Result Parameters #Omega^{+}: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Om[ptBinOm], ptbins_Om[ptBinOm + 1], multbins_Om[0], multbins_Om[nmultbins_Om]));
 
             peakFnc_OmM = setFitParameters(peakFnc_OmM, h_MassOmm_pt[ptBinOm], lMass_Om, ptBinOm + 1, kTRUE);
-            h_bgOmm_pt[ptBinOm] = generateBg(h_MassOmm_pt[ptBinOm]);
+            h_bgOmm_pt[ptBinOm] = generateBg(bgTSpectrum, h_MassOmm_pt[ptBinOm]);
             resultParOmm_pt[ptBinOm] = fitResults(h_MassOmm_pt[ptBinOm], peakFnc_OmM, h_MassOmm_pt[ptBinOm], fitMinSig_Om, fitMaxSig_Om, &par_allintM[0], &par_allint_errorsM[0], binsMC, MCGenOmm, fisMC, kFALSE);
             resultParOmm_pt[ptBinOm]->SetName(TString::Format(("resultParOmm_pt[%d]"), ptBinOm));
             resultParOmm_pt[ptBinOm]->SetTitle(TString::Format(("Result Parameters #Omega^{-}: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Om[ptBinOm], ptbins_Om[ptBinOm + 1], multbins_Om[0], multbins_Om[nmultbins_Om]));
 
             peakFnc_OmC = setFitParameters(peakFnc_OmC, h_MassOmC_pt[ptBinOm], lMass_Om, ptBinOm + 1, kTRUE);
-            h_bgOmC_pt[ptBinOm] = generateBg(h_MassOmC_pt[ptBinOm]);
+            h_bgOmC_pt[ptBinOm] = generateBg(bgTSpectrum, h_MassOmC_pt[ptBinOm]);
             resultParOmC_pt[ptBinOm] = fitResults(h_MassOmC_pt[ptBinOm], peakFnc_OmC, h_MassOmC_pt[ptBinOm], fitMinSig_Om, fitMaxSig_Om, &par_allintC[0], &par_allint_errorsC[0], binsMC, MCGenOmC, fisMC, kFALSE);
             resultParOmC_pt[ptBinOm]->SetName(TString::Format(("resultParOmC_pt[%d]"), ptBinOm));
             resultParOmC_pt[ptBinOm]->SetTitle(TString::Format(("Result Parameters #Omega: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Om[ptBinOm], ptbins_Om[ptBinOm + 1], multbins_Om[0], multbins_Om[nmultbins_Om]));
 
             out->cd("h_MassOmm_pt");
             h_MassOmm_pt[ptBinOm]->Write();
-            h_bgOmm_pt[ptBinOm]->Write();
+            if (h_bgOmm_pt[ptBinOm])
+                h_bgOmm_pt[ptBinOm]->Write();
             resultParOmm_pt[ptBinOm]->Write();
 
             out->cd("h_MassOmp_pt");
             h_MassOmp_pt[ptBinOm]->Write();
-            h_bgOmp_pt[ptBinOm]->Write();
+            if (h_bgOmp_pt[ptBinOm])
+                h_bgOmp_pt[ptBinOm]->Write();
             resultParOmp_pt[ptBinOm]->Write();
 
             out->cd("h_MassOmC_pt");
             h_MassOmC_pt[ptBinOm]->Write();
-            h_bgOmC_pt[ptBinOm]->Write();
+            if (h_bgOmC_pt[ptBinOm])
+                h_bgOmC_pt[ptBinOm]->Write();
             resultParOmC_pt[ptBinOm]->Write();
 
             for (Int_t multBinOm = 0; multBinOm < nmultbins_Om; multBinOm++)
@@ -564,36 +574,39 @@ int testFitting(TString input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/root
                 h_MassOmC_pt_mult[ptBinOm][multBinOm]->SetTitle(TString::Format(("Invariant Mass #Omega: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Om[ptBinOm], ptbins_Om[ptBinOm + 1], multbins_Om[multBinOm], multbins_Om[multBinOm + 1]));
 
                 peakFnc_OmP = setFitParameters(peakFnc_OmP, h_MassOmp_pt_mult[ptBinOm][multBinOm], lMass_Om, ptBinOm + 1, kFALSE);
-                h_bgOmp_pt_mult[ptBinOm][multBinOm] = generateBg(h_MassOmp_pt_mult[ptBinOm][multBinOm]);
+                h_bgOmp_pt_mult[ptBinOm][multBinOm] = generateBg(bgTSpectrum, h_MassOmp_pt_mult[ptBinOm][multBinOm]);
                 resultParOmp_pt_mult[ptBinOm][multBinOm] = fitResults(h_bgOmp_pt_mult[ptBinOm][multBinOm], peakFnc_OmP, h_MassOmp_pt_mult[ptBinOm][multBinOm], fitMinSig_Om, fitMaxSig_Om, &par_allintP[0], &par_allint_errorsP[0], binsMC, MCGenOmp, fisMC, kFALSE);
                 resultParOmp_pt_mult[ptBinOm][multBinOm]->SetName(TString::Format(("resultParOmp_pt_mult[%d][%d]"), ptBinOm, multBinOm));
                 resultParOmp_pt_mult[ptBinOm][multBinOm]->SetTitle(TString::Format(("Result Parameters #Omega^{+}: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Om[ptBinOm], ptbins_Om[ptBinOm + 1], multbins_Om[multBinOm], multbins_Om[multBinOm + 1]));
 
                 peakFnc_OmM = setFitParameters(peakFnc_OmM, h_MassOmm_pt_mult[ptBinOm][multBinOm], lMass_Om, ptBinOm + 1, kFALSE);
-                h_bgOmm_pt_mult[ptBinOm][multBinOm] = generateBg(h_MassOmm_pt_mult[ptBinOm][multBinOm]);
+                h_bgOmm_pt_mult[ptBinOm][multBinOm] = generateBg(bgTSpectrum, h_MassOmm_pt_mult[ptBinOm][multBinOm]);
                 resultParOmm_pt_mult[ptBinOm][multBinOm] = fitResults(h_bgOmm_pt_mult[ptBinOm][multBinOm], peakFnc_OmM, h_MassOmm_pt_mult[ptBinOm][multBinOm], fitMinSig_Om, fitMaxSig_Om, &par_allintM[0], &par_allint_errorsM[0], binsMC, MCGenOmm, fisMC, kFALSE);
                 resultParOmm_pt_mult[ptBinOm][multBinOm]->SetName(TString::Format(("resultParOmm_pt_mult[%d][%d]"), ptBinOm, multBinOm));
                 resultParOmm_pt_mult[ptBinOm][multBinOm]->SetTitle(TString::Format(("Result Parameters #Omega^{-}: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Om[ptBinOm], ptbins_Om[ptBinOm + 1], multbins_Om[multBinOm], multbins_Om[multBinOm + 1]));
 
                 peakFnc_OmC = setFitParameters(peakFnc_OmC, h_MassOmC_pt_mult[ptBinOm][multBinOm], lMass_Om, ptBinOm + 1, kFALSE);
-                h_bgOmC_pt_mult[ptBinOm][multBinOm] = generateBg(h_MassOmC_pt_mult[ptBinOm][multBinOm]);
+                h_bgOmC_pt_mult[ptBinOm][multBinOm] = generateBg(bgTSpectrum, h_MassOmC_pt_mult[ptBinOm][multBinOm]);
                 resultParOmC_pt_mult[ptBinOm][multBinOm] = fitResults(h_bgOmC_pt_mult[ptBinOm][multBinOm], peakFnc_OmC, h_MassOmC_pt_mult[ptBinOm][multBinOm], fitMinSig_Om, fitMaxSig_Om, &par_allintC[0], &par_allint_errorsC[0], binsMC, MCGenOmC, fisMC, kFALSE);
                 resultParOmC_pt_mult[ptBinOm][multBinOm]->SetName(TString::Format(("resultParOmC_pt_mult[%d][%d]"), ptBinOm, multBinOm));
                 resultParOmC_pt_mult[ptBinOm][multBinOm]->SetTitle(TString::Format(("Result Parameters #Omega: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), ptbins_Om[ptBinOm], ptbins_Om[ptBinOm + 1], multbins_Om[multBinOm], multbins_Om[multBinOm + 1]));
 
                 out->cd("h_MassOmm_pt_mult");
                 h_MassOmm_pt_mult[ptBinOm][multBinOm]->Write();
-                h_bgOmm_pt_mult[ptBinOm][multBinOm]->Write();
+                if (h_bgOmm_pt_mult[ptBinOm][multBinOm])
+                    h_bgOmm_pt_mult[ptBinOm][multBinOm]->Write();
                 resultParOmm_pt_mult[ptBinOm][multBinOm]->Write();
 
                 out->cd("h_MassOmp_pt_mult");
                 h_MassOmp_pt_mult[ptBinOm][multBinOm]->Write();
-                h_bgOmp_pt_mult[ptBinOm][multBinOm]->Write();
+                if (h_bgOmp_pt_mult[ptBinOm][multBinOm])
+                    h_bgOmp_pt_mult[ptBinOm][multBinOm]->Write();
                 resultParOmp_pt_mult[ptBinOm][multBinOm]->Write();
 
                 out->cd("h_MassOmC_pt_mult");
                 h_MassOmC_pt_mult[ptBinOm][multBinOm]->Write();
-                h_bgOmC_pt_mult[ptBinOm][multBinOm]->Write();
+                if (h_bgOmC_pt_mult[ptBinOm][multBinOm])
+                    h_bgOmC_pt_mult[ptBinOm][multBinOm]->Write();
                 resultParOmC_pt_mult[ptBinOm][multBinOm]->Write();
 
                 // resultParOmC_pt_mult[ptBinOm][multBinOm] = fitResults(nullptr, peakFnc_OmC, h_MassOmC_pt_mult[ptBinOm][multBinOm], fitMinSig_Om, fitMaxSig_Om, &par_allintC[0], &par_allint_errorsC[0], binsMC, MCGenOmC, fisMC, kFALSE);
@@ -661,8 +674,13 @@ int testFitting(TString input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/root
     return 0;
 }
 
-TH1 *generateBg(TH1 *h_source)
+TH1 *generateBg(bool bgTSpectrum, TH1 *h_source)
 {
+    if (!bgTSpectrum)
+    {
+        return nullptr;
+    }
+
     /// testing spectrum
     Int_t nbinsX = h_source->GetNbinsX();
     Double_t source[nbinsX];
@@ -811,6 +829,8 @@ TH1 *fitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
     peakFitSigma = TMath::Abs(peakFnc->GetParameter(2));
     bgReject = 4 * peakFitSigma; // 4*sigma region to be excluded from bg fit
 
+    TFitResultPtr fFitResult_bg;
+
     if (!fisMC)
     {
         TF1 *bgFnc = new TF1("Pol2Exclude", Pol2Exclude, peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)), 6);
@@ -828,11 +848,11 @@ TH1 *fitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
         bgFnc->SetParError(1, par_allint_errors[4]);
         bgFnc->SetParError(2, par_allint_errors[5]);
 
-        // fitMinBg = peakFitMass - 10 * peakFitSigma;
-        // fitMaxBg = peakFitMass + 10 * peakFitSigma;
-        // peak->Fit(bgFnc, optBg.Data(), "", fitMinBg, fitMaxBg);
+        // Double_t fitMinBg = peakFitMass - 10 * peakFitSigma;
+        // Double_t fitMaxBg = peakFitMass + 10 * peakFitSigma;
         bgFnc->FixParameter(5, 1); // "reject" (set 1 or 0)
-        peak->Fit(bgFnc, optBg.Data(), "", peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)));
+        // fFitResult_bg = peak->Fit(bgFnc, optBg.Data(), "", fitMinBg, fitMaxBg);
+        fFitResult_bg = peak->Fit(bgFnc, optBg.Data(), "", peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)));
         bgFnc->FixParameter(5, 0); // reject = off (set 1 or 0)
 
         // add fit and background function to histogram so it is automatically drawn
@@ -845,11 +865,11 @@ TH1 *fitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
     Double_t maxInt = peakFitMass + bgReject; /// mean + 4*sigma
     // Printf("%s: MinInt, MaxInt = %f, %f ", peak->GetName(), minInt, maxInt);
 
-    TH1 *resultParams = fillParams(h_bg, peakFnc, peak, fFitResult, minInt, maxInt, MCgen, binsMC, fisMC);
+    TH1 *resultParams = fillParams(h_bg, fFitResult_bg, peakFnc, peak, fFitResult, minInt, maxInt, MCgen, binsMC, fisMC);
     peak->SetOption("X0E1");
     return resultParams;
 }
-TH1 *fillParams(TH1 *h_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC)
+TH1 *fillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC)
 {
     Double_t val, err, gen, genErr;
     Double_t val_intBC, err_intBC, val_intFF, err_intFF, eff, effErr;
@@ -866,7 +886,7 @@ TH1 *fillParams(TH1 *h_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, D
     TH1 *resultParams = new TH1D("resultParams", "Result parameters", nBins, 0, nBins);
     Int_t iBin = 1;
 
-    GetYieldBinCounting(h_bg, peak, fFitResult, minInt, maxInt, fisMC, val, err);
+    GetYieldBinCounting(h_bg, peak, fFitResult_bg, minInt, maxInt, fisMC, val, err);
     val_intBC = val;
     err_intBC = err;
     if (TMath::IsNaN(val_intBC) || TMath::IsNaN(err_intBC))
@@ -1005,8 +1025,8 @@ void GetYieldBinCounting(TH1 *h_bg, TH1 *h, TFitResultPtr fFitResult, Double_t m
         // Printf("IntBC: %s: [%f, %f], bins:[%d, %d]: bgVal = %f,bgErr = %f, val(signal) = %f", h->GetName(), minInt, maxInt, bin_minSig, bin_maxSig, bgVal, bgErr, val);
         // bgFnc->Print("V");
         // }
-            val -= bgVal;
-            err = TMath::Sqrt(TMath::Power(err, 2) + TMath::Power(bgErr, 2));
+        val -= bgVal;
+        err = TMath::Sqrt(TMath::Power(err, 2) + TMath::Power(bgErr, 2));
     }
 }
 
