@@ -9,8 +9,9 @@
 #include <TCanvas.h>
 #include <TLine.h>
 #include <TROOT.h>
+#include <TLegend.h>
 
-void DrawAndSave(TH1 *peak, TH1 *bg, Double_t pPosition, Double_t pWidth, Bool_t saveImages, TString outputFolder, TString imageFormat);
+void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TString outputFolder, TString imageFormat);
 
 inline void PaintStack(TCanvas &c, THStack &hs, Bool_t setLogY = kTRUE, TString yAxisTitle = "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}", TString xAxisTitle = "#it{p}_{T} (GeV/c)")
 {
@@ -36,8 +37,10 @@ void SaveImage(TString imagePath, TString imageName, TString imageFormat)
     gSystem->Chmod(Form("%s/%s.%s", imagePath.Data(), imageName.Data(), imageFormat.Data()), 0755);
 }
 
-int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testFitting_all_noComp.root", TString outputFilename = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testDraw_all.root", TString outputFolder = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET_GP_LHC17f3b/testDraw", TString ptRatioFilename = "", Bool_t fisMC = kFALSE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png")
+int testDraw(std::string input = "", TString outputFilename = "", TString outputFolder = ".", TString ptRatioFilename = "", Bool_t fisMC = kFALSE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png")
 {
+    gErrorIgnoreLevel = kWarning; /// suppresses printing of Info messages
+
     // TDirectory::AddDirectory(0);
     outputFolder = gSystem->ExpandPathName(outputFolder.Data());
     if (gSystem->AccessPathName(outputFolder.Data())) /// returns true if folder path does NOT exist
@@ -97,6 +100,13 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
     TH1 *resultParXiC_pt[nptbins_Xi];
     TH1 *resultParOmC_pt[nptbins_Om];
 
+    TH1 *h_MassXip_pt[nptbins_Xi];
+    TH1 *h_MassXim_pt[nptbins_Xi];
+    TH1 *h_MassOmp_pt[nptbins_Om];
+    TH1 *h_MassOmm_pt[nptbins_Om];
+    TH1 *h_MassXiC_pt[nptbins_Xi];
+    TH1 *h_MassOmC_pt[nptbins_Om];
+
     TH1D *eff_pt_xim = new TH1D("eff_pt_xim", "Mult: 0-100%", nptbins_Xi, ptbins_Xi);
     TH1D *eff_pt_xip = new TH1D("eff_pt_xip", "Mult: 0-100%", nptbins_Xi, ptbins_Xi);
     TH1D *eff_pt_omm = new TH1D("eff_pt_omm", "Mult: 0-100%", nptbins_Om, ptbins_Om);
@@ -113,6 +123,8 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
     TH1 *h_multBinEntries_Xi;
     TH1 *h_multBinEntries_Om;
 
+    TH1 *resultParams_Xip_allInt, *resultParams_Xim_allInt, *resultParams_XiC_allInt;
+    TH1 *resultParams_Omp_allInt, *resultParams_Omm_allInt, *resultParams_OmC_allInt;
     /// background estimation hist through TSpectrum
 
     TH1 *h_bgXim_pt_mult[nptbins_Xi][nmultbins_Xi];
@@ -123,12 +135,12 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
     TH1 *h_bgOmp_pt_mult[nptbins_Om][nmultbins_Om];
     TH1 *h_bgOmC_pt_mult[nptbins_Om][nmultbins_Om];
 
-    auto hs_xip = new THStack("xip", "");
-    auto hs_xim = new THStack("xim", "");
-    auto hs_omp = new THStack("omp", "");
-    auto hs_omm = new THStack("omm", "");
-    auto hs_xiC = new THStack("xiC", "");
-    auto hs_omC = new THStack("omC", "");
+    auto hs_xip = new THStack("hs_xip", "");
+    auto hs_xim = new THStack("hs_xim", "");
+    auto hs_omp = new THStack("hs_omp", "");
+    auto hs_omm = new THStack("hs_omm", "");
+    auto hs_xiC = new THStack("hs_xiC", "");
+    auto hs_omC = new THStack("hs_omC", "");
     if (fisMC)
     {
         hs_xip->SetTitle("Rec. + Ass. #it{p}_{T} spectra #Xi^{+}");
@@ -149,15 +161,15 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
     }
 
     // THstack efficiency
-    auto hs_xip_eff = new THStack("xip_eff", "Efficiency #Xi^{+}");
-    auto hs_xim_eff = new THStack("xim_eff", "Efficiency #Xi^{-}");
-    auto hs_omp_eff = new THStack("omp_eff", "Efficiency #Omega^{+}");
-    auto hs_omm_eff = new THStack("omm_eff", "Efficiency #Omega^{-}");
-    auto hs_xiC_eff = new THStack("xiC_eff", "Efficiency #Xi^{+} + #Xi^{-}");
-    auto hs_omC_eff = new THStack("omC_eff", "Efficiency #Omega^{+} + #Omega^{-}");
+    auto hs_xip_eff = new THStack("hs_xip_eff", "Efficiency #Xi^{+}");
+    auto hs_xim_eff = new THStack("hs_xim_eff", "Efficiency #Xi^{-}");
+    auto hs_omp_eff = new THStack("hs_omp_eff", "Efficiency #Omega^{+}");
+    auto hs_omm_eff = new THStack("hs_omm_eff", "Efficiency #Omega^{-}");
+    auto hs_xiC_eff = new THStack("hs_xiC_eff", "Efficiency #Xi^{+} + #Xi^{-}");
+    auto hs_omC_eff = new THStack("hs_omC_eff", "Efficiency #Omega^{+} + #Omega^{-}");
 
-    auto hs_xiC_eff_ratio = new THStack("xiC_eff_ratio", "#Xi^{+} + #Xi^{-} efficiency ratio");
-    auto hs_omC_eff_ratio = new THStack("omC_eff_ratio", "#Omega^{+} + #Omega^{-} efficiency ratio");
+    auto hs_xiC_eff_ratio = new THStack("hs_xiC_eff_ratio", "#Xi^{+} + #Xi^{-} efficiency ratio");
+    auto hs_omC_eff_ratio = new THStack("hs_omC_eff_ratio", "#Omega^{+} + #Omega^{-} efficiency ratio");
 
     /// Getting histograms:
 
@@ -173,14 +185,22 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
         // needed so we can do file->Close()
         TH1::AddDirectory(0);
 
-        h_MassXim = (TH1 *)f->Get("h_MassXim");
-        h_MassXip = (TH1 *)f->Get("h_MassXip");
-        h_MassXiC = (TH1 *)f->Get("h_MassXiC");
-        h_MassOmm = (TH1 *)f->Get("h_MassOmm");
-        h_MassOmp = (TH1 *)f->Get("h_MassOmp");
-        h_MassOmC = (TH1 *)f->Get("h_MassOmC");
-        h_multBinEntries_Xi = (TH1 *)f->Get("h_multBinEntries_Xi");
-        h_multBinEntries_Om = (TH1 *)f->Get("h_multBinEntries_Om");
+        h_MassXim = (TH1 *)f->FindObjectAny("h_MassXim");
+        h_MassXip = (TH1 *)f->FindObjectAny("h_MassXip");
+        h_MassXiC = (TH1 *)f->FindObjectAny("h_MassXiC");
+        h_MassOmm = (TH1 *)f->FindObjectAny("h_MassOmm");
+        h_MassOmp = (TH1 *)f->FindObjectAny("h_MassOmp");
+        h_MassOmC = (TH1 *)f->FindObjectAny("h_MassOmC");
+        h_multBinEntries_Xi = (TH1 *)f->FindObjectAny("h_multBinEntries_Xi");
+        h_multBinEntries_Om = (TH1 *)f->FindObjectAny("h_multBinEntries_Om");
+
+        resultParams_Xip_allInt = (TH1 *)f->FindObjectAny("resultParams_Xip_allInt");
+        resultParams_Xim_allInt = (TH1 *)f->FindObjectAny("resultParams_Xim_allInt");
+        resultParams_XiC_allInt = (TH1 *)f->FindObjectAny("resultParams_XiC_allInt");
+        resultParams_Omp_allInt = (TH1 *)f->FindObjectAny("resultParams_Omp_allInt");
+        resultParams_Omm_allInt = (TH1 *)f->FindObjectAny("resultParams_Omm_allInt");
+        resultParams_OmC_allInt = (TH1 *)f->FindObjectAny("resultParams_OmC_allInt");
+
         for (Int_t ptBinXi = 0; ptBinXi < nptbins_Xi; ptBinXi++)
         {
             for (Int_t multBinXi = 0; multBinXi < nmultbins_Xi; multBinXi++)
@@ -197,6 +217,9 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
                 h_bgXip_pt_mult[ptBinXi][multBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("h_bgXip_pt_mult[%d][%d]"), ptBinXi, multBinXi));
                 h_bgXiC_pt_mult[ptBinXi][multBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("h_bgXiC_pt_mult[%d][%d]"), ptBinXi, multBinXi));
             }
+            h_MassXip_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("h_MassXip_pt[%d]"), ptBinXi));
+            h_MassXim_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("h_MassXim_pt[%d]"), ptBinXi));
+            h_MassXiC_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("h_MassXiC_pt[%d]"), ptBinXi));
             resultParXip_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("resultParXip_pt[%d]"), ptBinXi));
             resultParXim_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("resultParXim_pt[%d]"), ptBinXi));
             resultParXiC_pt[ptBinXi] = (TH1 *)f->FindObjectAny(TString::Format(("resultParXiC_pt[%d]"), ptBinXi));
@@ -217,6 +240,9 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
                 h_bgOmp_pt_mult[ptBinOm][multBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("h_bgOmp_pt_mult[%d][%d]"), ptBinOm, multBinOm));
                 h_bgOmC_pt_mult[ptBinOm][multBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("h_bgOmC_pt_mult[%d][%d]"), ptBinOm, multBinOm));
             }
+            h_MassOmp_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("h_MassOmp_pt[%d]"), ptBinOm));
+            h_MassOmm_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("h_MassOmm_pt[%d]"), ptBinOm));
+            h_MassOmC_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("h_MassOmC_pt[%d]"), ptBinOm));
             resultParOmp_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("resultParOmp_pt[%d]"), ptBinOm));
             resultParOmm_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("resultParOmm_pt[%d]"), ptBinOm));
             resultParOmC_pt[ptBinOm] = (TH1 *)f->FindObjectAny(TString::Format(("resultParOmC_pt[%d]"), ptBinOm));
@@ -229,9 +255,12 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
     TString output = outputFilename;
     if (outputFilename.IsNull())
     {
-        output = input;
-        output.ReplaceAll("AliCascadeAnalysisMC_Ishaan_Fitting.root", "MCDraw.root");
+        // output = input;
+        // output.ReplaceAll("Fit", "Draw");
+        Printf("Empty output filename, aborting...");
+        return 2;
     }
+
     Printf("Saving output to '%s' ...", output.Data());
     TFile *out = TFile::Open(output.Data(), "RECREATE");
     if (!out)
@@ -258,13 +287,13 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
 
         for (Int_t ptBinXi = 0; ptBinXi < nptbins_Xi; ptBinXi++)
         {
-            eff_pt_xim->SetBinContent(ptBinXi + 1, resultParXim_pt[ptBinXi]->GetBinContent(4));
-            eff_pt_xip->SetBinContent(ptBinXi + 1, resultParXip_pt[ptBinXi]->GetBinContent(4));
-            eff_pt_xiC->SetBinContent(ptBinXi + 1, resultParXiC_pt[ptBinXi]->GetBinContent(4));
+            eff_pt_xim->SetBinContent(ptBinXi + 1, resultParXim_pt[ptBinXi]->GetBinContent(6));
+            eff_pt_xip->SetBinContent(ptBinXi + 1, resultParXip_pt[ptBinXi]->GetBinContent(6));
+            eff_pt_xiC->SetBinContent(ptBinXi + 1, resultParXiC_pt[ptBinXi]->GetBinContent(6));
 
-            eff_pt_xim->SetBinError(ptBinXi + 1, resultParXim_pt[ptBinXi]->GetBinError(4));
-            eff_pt_xip->SetBinError(ptBinXi + 1, resultParXip_pt[ptBinXi]->GetBinError(4));
-            eff_pt_xiC->SetBinError(ptBinXi + 1, resultParXiC_pt[ptBinXi]->GetBinError(4));
+            eff_pt_xim->SetBinError(ptBinXi + 1, resultParXim_pt[ptBinXi]->GetBinError(6));
+            eff_pt_xip->SetBinError(ptBinXi + 1, resultParXip_pt[ptBinXi]->GetBinError(6));
+            eff_pt_xiC->SetBinError(ptBinXi + 1, resultParXiC_pt[ptBinXi]->GetBinError(6));
         }
 
         eff_pt_xim->SetMarkerStyle(markerStyles[10]);
@@ -284,13 +313,13 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
 
         for (Int_t ptBinOm = 0; ptBinOm < nptbins_Om; ptBinOm++)
         {
-            eff_pt_omm->SetBinContent(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinContent(4));
-            eff_pt_omp->SetBinContent(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinContent(4));
-            eff_pt_omC->SetBinContent(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinContent(4));
+            eff_pt_omm->SetBinContent(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinContent(6));
+            eff_pt_omp->SetBinContent(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinContent(6));
+            eff_pt_omC->SetBinContent(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinContent(6));
 
-            eff_pt_omm->SetBinError(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinError(4));
-            eff_pt_omp->SetBinError(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinError(4));
-            eff_pt_omC->SetBinError(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinError(4));
+            eff_pt_omm->SetBinError(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinError(6));
+            eff_pt_omp->SetBinError(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinError(6));
+            eff_pt_omC->SetBinError(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinError(6));
         }
 
         eff_pt_omm->SetMarkerStyle(markerStyles[10]);
@@ -308,8 +337,28 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
         eff_pt_omC->SetName(TString::Format(("Mult: %.0f-%.0f%%"), multbins_Om[0], multbins_Om[nmultbins_Om]));
         hs_omC_eff->Add(eff_pt_omC);
     }
-    /// Begin differential part
 
+    /// XI:
+    h_MassXim->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+    h_MassXip->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+    h_MassXiC->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+
+    DrawAndSave(h_MassXim, nullptr, resultParams_Xim_allInt, saveImages, outputFolder, imageFormat);
+    DrawAndSave(h_MassXip, nullptr, resultParams_Xip_allInt, saveImages, outputFolder, imageFormat);
+    DrawAndSave(h_MassXiC, nullptr, resultParams_XiC_allInt, saveImages, outputFolder, imageFormat);
+
+    /// Begin mult integrated part
+    for (Int_t ptBinXi = 0; ptBinXi < nptbins_Xi; ptBinXi++)
+    {
+        h_MassXim_pt[ptBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+        h_MassXip_pt[ptBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+        h_MassXiC_pt[ptBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+        DrawAndSave(h_MassXim_pt[ptBinXi], nullptr, resultParXim_pt[ptBinXi], saveImages, outputFolder, imageFormat);
+        DrawAndSave(h_MassXip_pt[ptBinXi], nullptr, resultParXip_pt[ptBinXi], saveImages, outputFolder, imageFormat);
+        DrawAndSave(h_MassXiC_pt[ptBinXi], nullptr, resultParXiC_pt[ptBinXi], saveImages, outputFolder, imageFormat);
+    }
+
+    /// Begin differential part
     for (Int_t multBinXi = 0; multBinXi < nmultbins_Xi; multBinXi++)
     {
         rawPt_xim[multBinXi] = new TH1D(TString::Format(("rawPt_xim[%d]"), multBinXi), "", nptbins_Xi, ptbins_Xi);
@@ -339,14 +388,14 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
 
             if (fisMC)
             {
-                eff_xim[multBinXi]->SetBinContent(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(4)); // Bin 4 in resultparams is MC efficiency
-                eff_xim[multBinXi]->SetBinError(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(4));
+                eff_xim[multBinXi]->SetBinContent(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
+                eff_xim[multBinXi]->SetBinError(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(6));
 
-                eff_xip[multBinXi]->SetBinContent(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(4)); // Bin 4 in resultparams is MC efficiency
-                eff_xip[multBinXi]->SetBinError(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(4));
+                eff_xip[multBinXi]->SetBinContent(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
+                eff_xip[multBinXi]->SetBinError(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(6));
 
-                eff_xiC[multBinXi]->SetBinContent(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(4)); // Bin 4 in resultparams is MC efficiency
-                eff_xiC[multBinXi]->SetBinError(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(4));
+                eff_xiC[multBinXi]->SetBinContent(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
+                eff_xiC[multBinXi]->SetBinError(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(6));
             }
 
             /// Scale for bin width: N->dN/dpt
@@ -357,12 +406,12 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
             h_MassXip_pt_mult[ptBinXi][multBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
             h_MassXiC_pt_mult[ptBinXi][multBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
 
-            TF1 *f1 = (TF1 *)h_MassXim_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0); /// 0 position = peak Function (GausPol2)
-            DrawAndSave(h_MassXim_pt_mult[ptBinXi][multBinXi], h_bgXim_pt_mult[ptBinXi][multBinXi], f1->GetParameter(1), f1->GetParameter(2), saveImages, outputFolder, imageFormat);
-            TF1 *f2 = (TF1 *)h_MassXip_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
-            DrawAndSave(h_MassXip_pt_mult[ptBinXi][multBinXi], h_bgXip_pt_mult[ptBinXi][multBinXi], f2->GetParameter(1), f2->GetParameter(2), saveImages, outputFolder, imageFormat);
-            TF1 *f3 = (TF1 *)h_MassXiC_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
-            DrawAndSave(h_MassXiC_pt_mult[ptBinXi][multBinXi], h_bgXiC_pt_mult[ptBinXi][multBinXi], f3->GetParameter(1), f3->GetParameter(2), saveImages, outputFolder, imageFormat);
+            // TF1 *f1 = (TF1 *)h_MassXim_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0); /// 0 position = peak Function (GausPol2)
+            DrawAndSave(h_MassXim_pt_mult[ptBinXi][multBinXi], h_bgXim_pt_mult[ptBinXi][multBinXi], resultParXim_pt_mult[ptBinXi][multBinXi], saveImages, outputFolder, imageFormat);
+            // TF1 *f2 = (TF1 *)h_MassXip_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
+            DrawAndSave(h_MassXip_pt_mult[ptBinXi][multBinXi], h_bgXip_pt_mult[ptBinXi][multBinXi], resultParXip_pt_mult[ptBinXi][multBinXi], saveImages, outputFolder, imageFormat);
+            // TF1 *f3 = (TF1 *)h_MassXiC_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
+            DrawAndSave(h_MassXiC_pt_mult[ptBinXi][multBinXi], h_bgXiC_pt_mult[ptBinXi][multBinXi], resultParXiC_pt_mult[ptBinXi][multBinXi], saveImages, outputFolder, imageFormat);
         }
         out->cd("dirRawPt_xip");
         rawPt_xip[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
@@ -418,6 +467,25 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
             hs_xiC_eff_ratio->Add(eff_xiC_ratio[multBinXi]);
         }
     }
+
+    /// OMEGA:
+    h_MassOmm->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+    h_MassOmp->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+    h_MassOmC->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+    DrawAndSave(h_MassOmm, nullptr, resultParams_Omm_allInt, saveImages, outputFolder, imageFormat);
+    DrawAndSave(h_MassOmp, nullptr, resultParams_Omp_allInt, saveImages, outputFolder, imageFormat);
+    DrawAndSave(h_MassOmC, nullptr, resultParams_OmC_allInt, saveImages, outputFolder, imageFormat);
+
+    for (Int_t ptBinOm = 0; ptBinOm < nptbins_Om; ptBinOm++)
+    {
+        h_MassOmm_pt[ptBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+        h_MassOmp_pt[ptBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+        h_MassOmC_pt[ptBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+
+        DrawAndSave(h_MassOmm_pt[ptBinOm], nullptr, resultParOmm_pt[ptBinOm], saveImages, outputFolder, imageFormat);
+        DrawAndSave(h_MassOmp_pt[ptBinOm], nullptr, resultParOmp_pt[ptBinOm], saveImages, outputFolder, imageFormat);
+        DrawAndSave(h_MassOmC_pt[ptBinOm], nullptr, resultParOmC_pt[ptBinOm], saveImages, outputFolder, imageFormat);
+    }
     for (Int_t multBinOm = 0; multBinOm < nmultbins_Om; multBinOm++)
     {
         rawPt_omm[multBinOm] = new TH1D(TString::Format(("rawPt_omm[%d]"), multBinOm), TString::Format(("Mult: %.0f-%.0f%%, #times2^{%d}"), multbins_Om[multBinOm], multbins_Om[multBinOm + 1], (nmultbins_Om - 1) - multBinOm), nptbins_Om, ptbins_Om);
@@ -444,14 +512,14 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
 
             if (fisMC)
             {
-                eff_omm[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(4)); // Bin 4 in resultparams is MC efficiency
-                eff_omm[multBinOm]->SetBinError(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(4));
+                eff_omm[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
+                eff_omm[multBinOm]->SetBinError(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(6));
 
-                eff_omp[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(4)); // Bin 4 in resultparams is MC efficiency
-                eff_omp[multBinOm]->SetBinError(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(4));
+                eff_omp[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
+                eff_omp[multBinOm]->SetBinError(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(6));
 
-                eff_omC[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(4)); // Bin 4 in resultparams is MC efficiency
-                eff_omC[multBinOm]->SetBinError(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(4));
+                eff_omC[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
+                eff_omC[multBinOm]->SetBinError(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(6));
             }
             /// Scale for bin width: N->dN/dpt
             // rawPt_omm[multBinOm]->Scale(1, "width");
@@ -461,12 +529,12 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
             h_MassOmp_pt_mult[ptBinOm][multBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
             h_MassOmC_pt_mult[ptBinOm][multBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
 
-            TF1 *f1 = (TF1 *)h_MassOmm_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
-            DrawAndSave(h_MassOmm_pt_mult[ptBinOm][multBinOm], h_bgOmm_pt_mult[ptBinOm][multBinOm], f1->GetParameter(1), f1->GetParameter(2), saveImages, outputFolder, imageFormat);
-            TF1 *f2 = (TF1 *)h_MassOmp_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
-            DrawAndSave(h_MassOmp_pt_mult[ptBinOm][multBinOm], h_bgOmp_pt_mult[ptBinOm][multBinOm], f2->GetParameter(1), f2->GetParameter(2), saveImages, outputFolder, imageFormat);
-            TF1 *f3 = (TF1 *)h_MassOmC_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
-            DrawAndSave(h_MassOmC_pt_mult[ptBinOm][multBinOm], h_bgOmC_pt_mult[ptBinOm][multBinOm], f3->GetParameter(1), f3->GetParameter(2), saveImages, outputFolder, imageFormat);
+            // TF1 *f1 = (TF1 *)h_MassOmm_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
+            DrawAndSave(h_MassOmm_pt_mult[ptBinOm][multBinOm], h_bgOmm_pt_mult[ptBinOm][multBinOm], resultParOmm_pt_mult[ptBinOm][multBinOm], saveImages, outputFolder, imageFormat);
+            // TF1 *f2 = (TF1 *)h_MassOmp_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
+            DrawAndSave(h_MassOmp_pt_mult[ptBinOm][multBinOm], h_bgOmp_pt_mult[ptBinOm][multBinOm], resultParOmp_pt_mult[ptBinOm][multBinOm], saveImages, outputFolder, imageFormat);
+            // TF1 *f3 = (TF1 *)h_MassOmC_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0); /// peak Function (GausPol2)
+            DrawAndSave(h_MassOmC_pt_mult[ptBinOm][multBinOm], h_bgOmC_pt_mult[ptBinOm][multBinOm], resultParOmC_pt_mult[ptBinOm][multBinOm], saveImages, outputFolder, imageFormat);
         }
         out->cd("dirRawPt_omp");
         rawPt_omp[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
@@ -643,6 +711,10 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
             return 1;
         }
 
+        TString yAxisTitle = outputFilename(outputFilename.Last('/') + 1, outputFilename.Length()) + "/" + ptRatioFilename(ptRatioFilename.Last('/') + 1, ptRatioFilename.Length());
+        yAxisTitle.ReplaceAll(".root", "");
+        yAxisTitle.ReplaceAll("_draw", "");
+
         // needed so we can do file->Close()
         TH1::AddDirectory(0);
         TH1 *rawPt_xim_compare[nmultbins_Xi];
@@ -659,12 +731,12 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
         TH1D *ratioPt_xiC[nmultbins_Xi];
         TH1D *ratioPt_omC[nmultbins_Om];
 
-        auto hs_ratio_xip = new THStack("hs_ratio_xip", "#it{p}_{T} spectra ratio");
-        auto hs_ratio_xim = new THStack("hs_ratio_xim", "#it{p}_{T} spectra ratio");
-        auto hs_ratio_omp = new THStack("hs_ratio_omp", "#it{p}_{T} spectra ratio");
-        auto hs_ratio_omm = new THStack("hs_ratio_omm", "#it{p}_{T} spectra ratio");
-        auto hs_ratio_xiC = new THStack("hs_ratio_xiC", "#it{p}_{T} spectra ratio");
-        auto hs_ratio_omC = new THStack("hs_ratio_omC", "#it{p}_{T} spectra ratio");
+        auto hs_ratio_xip = new THStack("hs_ratio_xip", "#it{p}_{T} spectra ratio #Xi^{+}");
+        auto hs_ratio_xim = new THStack("hs_ratio_xim", "#it{p}_{T} spectra ratio #Xi^{-}");
+        auto hs_ratio_omp = new THStack("hs_ratio_omp", "#it{p}_{T} spectra ratio #Omega^{+}");
+        auto hs_ratio_omm = new THStack("hs_ratio_omm", "#it{p}_{T} spectra ratio #Omega^{-}");
+        auto hs_ratio_xiC = new THStack("hs_ratio_xiC", "#it{p}_{T} spectra ratio #Xi^{+} + #Xi^{-}");
+        auto hs_ratio_omC = new THStack("hs_ratio_omC", "#it{p}_{T} spectra ratio #Omega^{+} + #Omega^{-}");
 
         for (Int_t multBinXi = 0; multBinXi < nmultbins_Xi; multBinXi++)
         {
@@ -757,12 +829,12 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
         TCanvas *cRatio5 = new TCanvas("cRatio5", "cRatio5", 1920, 1080);
         TCanvas *cRatio6 = new TCanvas("cRatio6", "cRatio6", 1920, 1080);
 
-        PaintStack(*cRatio1, *hs_ratio_xip, kFALSE, "SNIP/Standard");
-        PaintStack(*cRatio2, *hs_ratio_omp, kFALSE, "SNIP/Standard");
-        PaintStack(*cRatio3, *hs_ratio_xim, kFALSE, "SNIP/Standard");
-        PaintStack(*cRatio4, *hs_ratio_omm, kFALSE, "SNIP/Standard");
-        PaintStack(*cRatio5, *hs_ratio_xiC, kFALSE, "SNIP/Standard");
-        PaintStack(*cRatio6, *hs_ratio_omC, kFALSE, "SNIP/Standard");
+        PaintStack(*cRatio1, *hs_ratio_xip, kFALSE, yAxisTitle);
+        PaintStack(*cRatio2, *hs_ratio_omp, kFALSE, yAxisTitle);
+        PaintStack(*cRatio3, *hs_ratio_xim, kFALSE, yAxisTitle);
+        PaintStack(*cRatio4, *hs_ratio_omm, kFALSE, yAxisTitle);
+        PaintStack(*cRatio5, *hs_ratio_xiC, kFALSE, yAxisTitle);
+        PaintStack(*cRatio6, *hs_ratio_omC, kFALSE, yAxisTitle);
         {
             /// Draw a line at y=1 for ratio histStack
             TLine *lLineAt1 = new TLine(0.8, 1, 5.3, 1);
@@ -829,14 +901,25 @@ int testDraw(std::string input = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/roo
     // delete out;
     return 0;
 }
-void DrawAndSave(TH1 *peak, TH1 *bg, Double_t pPosition, Double_t pWidth, Bool_t saveImages, TString outputFolder, TString imageFormat)
+void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TString outputFolder, TString imageFormat)
 {
 
     gROOT->SetBatch(kTRUE);
     TCanvas *c1 = new TCanvas(peak->GetName(), peak->GetTitle(), 1920, 1080);
 
-    /// Defining peak limits for signal region (green lines):
-    ///  par[1] = peak position, par[2] = peak width
+    /// TODO: CREATE CUSTOM LEGEND SHOWING AVG MASS AND SIGMA ON GRAPH
+    Double_t pPosition = resultParams->GetBinContent(3); // avg mean for DGaus fit is stored in resultParams bin 3
+    Double_t pWidth = resultParams->GetBinContent(4);    // avg sigma for DGaus fit is stored in resultParams bin 4
+    auto legend = new TLegend(0.1, 0.7, 0.28, 0.9);
+    legend->SetHeader("Fit Stats", "C"); // option "C" allows to center the header
+    legend->AddEntry(peak->GetListOfFunctions()->At(0), "", "l");
+    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit mean = %f +/- %f", pPosition, resultParams->GetBinError(3)), "l");
+    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit sigma = %f +/- %f", pWidth, resultParams->GetBinError(4)), "l");
+    // legend->AddEntry(peak->GetListOfFunctions()->At(1), "", "lpf");
+    legend->AddEntry(peak, TString::Format("Sig - Bg (BC-FF) = %f +/- %f", resultParams->GetBinContent(1), resultParams->GetBinError(1)), "pe");
+
+    ///  Defining peak limits for signal region (green lines):
+    ///   par[1] = peak position, par[2] = peak width
     Double_t lPeakLeftLimit = pPosition - 1. * 4 * TMath::Abs(pWidth);
     Double_t lPeakRightLimit = pPosition + 1. * 4 * TMath::Abs(pWidth);
     TLine *lLineLeft = new TLine(lPeakLeftLimit, 0, lPeakLeftLimit, peak->GetMaximum());
@@ -848,11 +931,15 @@ void DrawAndSave(TH1 *peak, TH1 *bg, Double_t pPosition, Double_t pWidth, Bool_t
         bg->Draw("same");
     lLineLeft->Draw("same");
     lLineRight->Draw("same");
+    legend->Draw();
 
     if (saveImages)
     {
         TString imageFolder = peak->GetName();
-        imageFolder = imageFolder(0, 17); /// getting substring for naming purpose
+        if (imageFolder.Contains("["))
+            imageFolder.Remove(imageFolder.First('[')); /// getting substring for folder naming purpose
+        else
+            imageFolder = "h_allInt";
         SaveImage(Form("%s/images/%s", outputFolder.Data(), imageFolder.Data()), peak->GetName(), imageFormat.Data());
     }
 }
