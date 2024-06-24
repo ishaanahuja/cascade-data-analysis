@@ -111,7 +111,7 @@ void GetYieldBinCounting(TH1 *h_bg, TH1 *h, TFitResultPtr fFitResult, Double_t m
 void GetYieldFitFunction(TH1 *h, TFitResultPtr fFitResult_sig, TFitResultPtr fFitResult_bg, Double_t minInt, Double_t maxInt, bool fisMC, Double_t &val,
                          Double_t &err, Double_t eps = 1e-3);
 
-int testFitting(TString input = "", TString outputFilename = "", TString idAxis = "ye", bool fisMC = false, Int_t fitFunction = 2, bool xi = true, bool om = true, Int_t verbosity = kWarning)
+int CascadesFitting(TString input = "", TString outputFilename = "", TString idAxis = "ye", bool fisMC = false, Int_t fitFunction = 2, bool xi = true, bool om = true, Int_t verbosity = kWarning)
 {
     ROOT::EnableImplicitMT();
     ROOT::Math::IntegratorOneDimOptions::SetDefaultIntegrator("Adaptive");

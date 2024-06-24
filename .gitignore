@@ -1,5 +1,5 @@
 .vscode
-*.root
+p-Pb/*.root
 *.pcm
 *.d
 *.so
@@ -7,19 +7,18 @@
 *.png
 *.jdl
 *.sh
-*.txt
+*.pdf
+*.zip
+
+old_stuff_for_reference/
+orphan_results/
 *myAnalysis.C
 *myTask_merge.C
 *stderr
 *stdout
-**/runAnalysis_ROOT6.C
-p-Pb/New
-p-Pb/cent.C
-cascades/TopologicalCuts.cxx
-cascades/adam.cxx
-cascades/TopologicalCuts.h
-AN*
-data_AOD*
-Prep*
-pdf_final*
-p-Pb/MC/rootResults
+
+# ignore all rootResults ... 
+**/1_Root_Results/*    
+
+# except... backup current results
+!**/1_Root_Results/0_current_best/

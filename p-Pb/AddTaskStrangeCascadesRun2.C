@@ -1,21 +1,21 @@
-AliCascadeAnalysisMC_Ishaan *AddMyTask(bool Xi = true, bool Om = true, TString suffix = "")
+AliAnalysisTaskStrangeCascadesRun2 *AddTaskStrangeCascadesRun2(bool Xi = true, bool Om = true, TString suffix = "")
 {
   // analysis manager
   AliAnalysisManager *mgr = AliAnalysisManager::GetAnalysisManager();
   if (!mgr)
   {
-    ::Error("AddMyTask", "No analysis manager to connect to.");
+    ::Error("AddTaskStrangeCascadesRun2", "No analysis manager to connect to.");
     return NULL;
   }
   if (!mgr->GetInputEventHandler())
   {
-    ::Error("AddMyTask", "This task requires an input event handler");
+    ::Error("AddTaskStrangeCascadesRun2", "This task requires an input event handler");
     return NULL;
   }
 
   // Create the task and add it to the manager
   TString tskname = Form("Cascade_analysis_testVar%s", suffix.Data());
-  AliCascadeAnalysisMC_Ishaan *mytask = new AliCascadeAnalysisMC_Ishaan(tskname);
+  AliAnalysisTaskStrangeCascadesRun2 *mytask = new AliAnalysisTaskStrangeCascadesRun2(tskname);
   mgr->AddTask(mytask);
   mytask->SetParticleAnalysisStatus(Xi, Om);
 

@@ -1,5 +1,5 @@
-#ifndef AliCascadeAnalysisMC_Ishaan_H
-#define AliCascadeAnalysisMC_Ishaan_H
+#ifndef AliAnalysisTaskStrangeCascadesRun2_H
+#define AliAnalysisTaskStrangeCascadesRun2_H
 
 #include "TString.h"
 #include "AliPIDResponse.h"
@@ -9,12 +9,12 @@
 #include "AliEventCuts.h"
 #include "AliESDtrackCuts.h"
 
-class AliCascadeAnalysisMC_Ishaan : public AliAnalysisTaskSE
+class AliAnalysisTaskStrangeCascadesRun2 : public AliAnalysisTaskSE
 {
 public:
-    AliCascadeAnalysisMC_Ishaan();
-    AliCascadeAnalysisMC_Ishaan(const char *name, TString lExtraOptions = "");
-    virtual ~AliCascadeAnalysisMC_Ishaan();
+    AliAnalysisTaskStrangeCascadesRun2();
+    AliAnalysisTaskStrangeCascadesRun2(const char *name, TString lExtraOptions = "");
+    virtual ~AliAnalysisTaskStrangeCascadesRun2();
 
     enum particles
     {
@@ -273,10 +273,10 @@ private:
     void SetDefCutVariations();
     void SetCutValue(bool, int, double, int, int);
 
-    AliCascadeAnalysisMC_Ishaan(const AliCascadeAnalysisMC_Ishaan &);            // not implemented
-    AliCascadeAnalysisMC_Ishaan &operator=(const AliCascadeAnalysisMC_Ishaan &); // not implemented
+    AliAnalysisTaskStrangeCascadesRun2(const AliAnalysisTaskStrangeCascadesRun2 &);            // not implemented
+    AliAnalysisTaskStrangeCascadesRun2 &operator=(const AliAnalysisTaskStrangeCascadesRun2 &); // not implemented
 
-    ClassDef(AliCascadeAnalysisMC_Ishaan, 6);
+    ClassDef(AliAnalysisTaskStrangeCascadesRun2, 6);
     // version 6: introduced variations for # of TPC PID clusters and # of ITS-TOF tracks
 };
 

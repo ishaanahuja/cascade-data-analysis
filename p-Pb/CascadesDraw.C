@@ -37,7 +37,7 @@ void SaveImage(TString imagePath, TString imageName, TString imageFormat)
     gSystem->Chmod(Form("%s/%s.%s", imagePath.Data(), imageName.Data(), imageFormat.Data()), 0755);
 }
 
-int testDraw(std::string input = "", TString outputFilename = "", TString outputFolder = ".", TString ptRatioFilename = "", Bool_t fisMC = kFALSE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png")
+int CascadesDraw(std::string input = "", TString outputFilename = "", TString outputFolder = ".", TString ptRatioFilename = "", Bool_t fisMC = kFALSE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png")
 {
     gErrorIgnoreLevel = kWarning; /// suppresses printing of Info messages
 

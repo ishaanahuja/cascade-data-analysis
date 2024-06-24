@@ -1,6 +1,9 @@
+/// DEPRECATED: Needs rewrite. Use at your own risk.
+
+
 #include <TString.h>
 
-int AliCascadeAnalysis_Ishaan_Pileup(TString outputFilename = "AliCascadeAnalysis_Ishaan_Pileup.root")
+int CheckPileup(TString outputFilename = "AliCascadeAnalysis_Ishaan_Pileup.root")
 {
     TDirectory::AddDirectory(0);
     gStyle->SetOptFit(1111);

@@ -34,13 +34,13 @@ class AliAODcascade;
 #include "AliESDtrackCuts.h"
 #include "TError.h"
 
-#include "AliCascadeAnalysisMC_Ishaan.h"
+#include "AliAnalysisTaskStrangeCascadesRun2.h"
 
 #include "TMath.h"
 
-ClassImp(AliCascadeAnalysisMC_Ishaan)
+ClassImp(AliAnalysisTaskStrangeCascadesRun2)
 
-    AliCascadeAnalysisMC_Ishaan::AliCascadeAnalysisMC_Ishaan() : AliAnalysisTaskSE(),
+    AliAnalysisTaskStrangeCascadesRun2::AliAnalysisTaskStrangeCascadesRun2() : AliAnalysisTaskSE(),
                                                                  /// outputs
                                                                  fHistos_eve(nullptr),
                                                                  fHistos_XiMin(nullptr),
@@ -130,7 +130,7 @@ ClassImp(AliCascadeAnalysisMC_Ishaan)
     ////default constructor
 }
 
-AliCascadeAnalysisMC_Ishaan::AliCascadeAnalysisMC_Ishaan(const char *name, TString lExtraOptions) : AliAnalysisTaskSE(name),
+AliAnalysisTaskStrangeCascadesRun2::AliAnalysisTaskStrangeCascadesRun2(const char *name, TString lExtraOptions) : AliAnalysisTaskSE(name),
                                                                                                     ////outputs
                                                                                                     fHistos_eve(nullptr),
 
@@ -274,7 +274,7 @@ AliCascadeAnalysisMC_Ishaan::AliCascadeAnalysisMC_Ishaan(const char *name, TStri
     DefineOutput(5, TList::Class()); //// OmegaPlus Histograms
 }
 
-AliCascadeAnalysisMC_Ishaan::~AliCascadeAnalysisMC_Ishaan()
+AliAnalysisTaskStrangeCascadesRun2::~AliAnalysisTaskStrangeCascadesRun2()
 {
     ////------------------------------------------------
     //// DESTRUCTOR
@@ -288,7 +288,7 @@ AliCascadeAnalysisMC_Ishaan::~AliCascadeAnalysisMC_Ishaan()
 }
 
 //_____________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::UserCreateOutputObjects()
+void AliAnalysisTaskStrangeCascadesRun2::UserCreateOutputObjects()
 {
 
     ////histograms for event variables
@@ -459,7 +459,7 @@ void AliCascadeAnalysisMC_Ishaan::UserCreateOutputObjects()
     DataPosting();
 }
 //_____________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
+void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
 {
     // ignore all warnings
     gErrorIgnoreLevel = kError;
@@ -947,7 +947,7 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
     DataPosting();
 }
 
-Float_t AliCascadeAnalysisMC_Ishaan::GetLengthInActiveZone(AliAODTrack *gt, Float_t deltaY, Float_t deltaZ, Float_t b)
+Float_t AliAnalysisTaskStrangeCascadesRun2::GetLengthInActiveZone(AliAODTrack *gt, Float_t deltaY, Float_t deltaZ, Float_t b)
 {
     // Input parameters:
     //   deltaY - user defined "dead region" in cm
@@ -961,7 +961,7 @@ Float_t AliCascadeAnalysisMC_Ishaan::GetLengthInActiveZone(AliAODTrack *gt, Floa
     return esdTrack.GetLengthInActiveZone(1, deltaY, deltaZ, b);
 }
 
-void AliCascadeAnalysisMC_Ishaan::SetCutValue(bool isTopo, int cutName, double cutVal, int particle = -1, int ptInterval = -1)
+void AliAnalysisTaskStrangeCascadesRun2::SetCutValue(bool isTopo, int cutName, double cutVal, int particle = -1, int ptInterval = -1)
 {
     if (!isTopo)
         cutValEv[cutName] = cutVal;
@@ -999,7 +999,7 @@ void AliCascadeAnalysisMC_Ishaan::SetCutValue(bool isTopo, int cutName, double c
     }
 }
 
-void AliCascadeAnalysisMC_Ishaan::SetDefCutValue(bool isTopo, int cutName, double cutVal, int particle = -1, int ptInterval = -1)
+void AliAnalysisTaskStrangeCascadesRun2::SetDefCutValue(bool isTopo, int cutName, double cutVal, int particle = -1, int ptInterval = -1)
 {
     if (!isTopo)
     {
@@ -1049,7 +1049,7 @@ void AliCascadeAnalysisMC_Ishaan::SetDefCutValue(bool isTopo, int cutName, doubl
     }
 }
 
-void AliCascadeAnalysisMC_Ishaan::SetVarCutValue(bool isTopo, int cutName, int cutVar, double cutVal, int particle = -1, int ptInterval = -1)
+void AliAnalysisTaskStrangeCascadesRun2::SetVarCutValue(bool isTopo, int cutName, int cutVar, double cutVal, int particle = -1, int ptInterval = -1)
 {
     if (!isTopo)
     {
@@ -1089,7 +1089,7 @@ void AliCascadeAnalysisMC_Ishaan::SetVarCutValue(bool isTopo, int cutName, int c
 }
 
 ///________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::SetParametricBacBarCosPA(int nbins, float *ptbins, float *values, int cent_limit)
+void AliAnalysisTaskStrangeCascadesRun2::SetParametricBacBarCosPA(int nbins, float *ptbins, float *values, int cent_limit)
 {
     fisParametricBacBarCosPA = kTRUE;
     fCentLimit_BacBarCosPA = cent_limit;
@@ -1099,7 +1099,7 @@ void AliCascadeAnalysisMC_Ishaan::SetParametricBacBarCosPA(int nbins, float *ptb
 }
 
 ///________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::SetDefCuts()
+void AliAnalysisTaskStrangeCascadesRun2::SetDefCuts()
 {
     Int_t all = -1;
 
@@ -1142,7 +1142,7 @@ void AliCascadeAnalysisMC_Ishaan::SetDefCuts()
 }
 
 ///________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::SetDefCutVariations()
+void AliAnalysisTaskStrangeCascadesRun2::SetDefCutVariations()
 // {
 
 //     /// Initialise all elements of var array to -1 to skip unused indices
@@ -1311,7 +1311,7 @@ void AliCascadeAnalysisMC_Ishaan::SetDefCutVariations()
 }
 
 //________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::SetCutVariation(bool isTopo, int cutnum, int nvar, double lowval, double highval)
+void AliAnalysisTaskStrangeCascadesRun2::SetCutVariation(bool isTopo, int cutnum, int nvar, double lowval, double highval)
 {
     if (!isTopo)
     {
@@ -1328,13 +1328,13 @@ void AliCascadeAnalysisMC_Ishaan::SetCutVariation(bool isTopo, int cutnum, int n
 }
 
 ///________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::SetDefOnly(bool isdefonly)
+void AliAnalysisTaskStrangeCascadesRun2::SetDefOnly(bool isdefonly)
 {
     fDefOnly = isdefonly;
 }
 
 ///________________________________________________________________________
-bool AliCascadeAnalysisMC_Ishaan::ApplyCuts(int part)
+bool AliAnalysisTaskStrangeCascadesRun2::ApplyCuts(int part)
 {
     /// Event Selection Cuts
 
@@ -1718,7 +1718,7 @@ bool AliCascadeAnalysisMC_Ishaan::ApplyCuts(int part)
     return kTRUE; /// survived!
 }
 
-void AliCascadeAnalysisMC_Ishaan::SetParticleAnalysisStatus(bool xi, bool omega)
+void AliAnalysisTaskStrangeCascadesRun2::SetParticleAnalysisStatus(bool xi, bool omega)
 {
     fParticleAnalysisStatus[kxip] = xi;
     fParticleAnalysisStatus[kxim] = xi;
@@ -1726,17 +1726,17 @@ void AliCascadeAnalysisMC_Ishaan::SetParticleAnalysisStatus(bool xi, bool omega)
     fParticleAnalysisStatus[komm] = omega;
 }
 
-bool AliCascadeAnalysisMC_Ishaan::GetParticleAnalysisStatus(int part)
+bool AliAnalysisTaskStrangeCascadesRun2::GetParticleAnalysisStatus(int part)
 {
     if (part < 0 || part >= ksignednumpart)
     {
-        ::Error("AliCascadeAnalysisMC_Ishaan::GetParticleAnalysisStatus", "Wrong particle selected: accepted values from 0 to 1");
+        ::Error("AliAnalysisTaskStrangeCascadesRun2::GetParticleAnalysisStatus", "Wrong particle selected: accepted values from 0 to 1");
         return false;
     }
     return fParticleAnalysisStatus[part];
 }
 
-void AliCascadeAnalysisMC_Ishaan::SetCentbinning(int ipart, int numcentbins, double *centbins)
+void AliAnalysisTaskStrangeCascadesRun2::SetCentbinning(int ipart, int numcentbins, double *centbins)
 {
     fncentbins[ipart] = numcentbins;
     for (int i = 0; i < fncentbins[ipart] + 1; i++)
@@ -1745,7 +1745,7 @@ void AliCascadeAnalysisMC_Ishaan::SetCentbinning(int ipart, int numcentbins, dou
     }
 }
 
-void AliCascadeAnalysisMC_Ishaan::SetPtbinning(int ipart, int numptbins, double *ptbins)
+void AliAnalysisTaskStrangeCascadesRun2::SetPtbinning(int ipart, int numptbins, double *ptbins)
 {
     fnptbins[ipart] = numptbins;
     for (int i = 0; i < fnptbins[ipart] + 1; i++)
@@ -1754,7 +1754,7 @@ void AliCascadeAnalysisMC_Ishaan::SetPtbinning(int ipart, int numptbins, double 
     }
 }
 
-void AliCascadeAnalysisMC_Ishaan::SetMassbinning(int ipart, int nummassbins, double valminmass, double valmaxmass)
+void AliAnalysisTaskStrangeCascadesRun2::SetMassbinning(int ipart, int nummassbins, double valminmass, double valmaxmass)
 {
     fnmassbins[ipart] = nummassbins;
     for (int i = 0; i < fnmassbins[ipart] + 1; i++)
@@ -1764,7 +1764,7 @@ void AliCascadeAnalysisMC_Ishaan::SetMassbinning(int ipart, int nummassbins, dou
 }
 
 ///________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::DataPosting()
+void AliAnalysisTaskStrangeCascadesRun2::DataPosting()
 {
 
     PostData(1, fHistos_eve->GetListOfHistograms());
@@ -1787,7 +1787,7 @@ void AliCascadeAnalysisMC_Ishaan::DataPosting()
 }
 
 /*
-void AliCascadeAnalysisMC_Ishaan::FillHistCutVariations(double perc, bool phypri, bool *associFlag)
+void AliAnalysisTaskStrangeCascadesRun2::FillHistCutVariations(double perc, bool phypri, bool *associFlag)
 {
     for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
     {
@@ -1882,7 +1882,7 @@ void AliCascadeAnalysisMC_Ishaan::FillHistCutVariations(double perc, bool phypri
 */
 
 //________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::FillHistCutVariations(double perc, bool phypri, bool *associFlag)
+void AliAnalysisTaskStrangeCascadesRun2::FillHistCutVariations(double perc, bool phypri, bool *associFlag)
 {
     int all = -1;
 
@@ -1989,6 +1989,6 @@ void AliCascadeAnalysisMC_Ishaan::FillHistCutVariations(double perc, bool phypri
     }
 }
 
-void AliCascadeAnalysisMC_Ishaan::Terminate(Option_t *)
+void AliAnalysisTaskStrangeCascadesRun2::Terminate(Option_t *)
 {
 }
