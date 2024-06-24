@@ -2,11 +2,13 @@
 #include <TFile.h>
 #include <TCanvas.h>
 #include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
 #include <TF1.h>
 #include <TFitResult.h>
 #include <TFitResultPtr.h>
-#include "TLine.h"
 #include <TError.h>
+#include <THashList.h>
 
 // double bgReject_Xi = 0.0075; // 4*sigma=0.01, 6*sigma=0.015
 // double bgReject_Om = 0.0072; // 4*sigma=0.01, 6*sigma=0.015
@@ -90,7 +92,7 @@ TF1 *setFitParameters(TF1 *peakFnc, TH1 *peak, Double_t mass, Int_t ptBin, Bool_
 
 TH1 *fitResults(TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t fitMaxSig, Double_t *par_allint, Double_t *par_allint_errors, Int_t binsMC[], TH2 *MCgen, bool fisMC = false, Bool_t allInt = kFALSE, Bool_t options = kFALSE);
 
-TH1 *fillParams(TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC);
+TH1 *fillParams(TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC, TFitResultPtr fFitResult_bg);
 
 void GetYieldBinCounting(TH1 *h, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, bool fisMC, Double_t &val,
                          Double_t &err, Double_t eps = 1e-6);
@@ -699,6 +701,9 @@ TH1 *fitResults(TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t fitMaxSig,
     peakFitSigma = TMath::Abs(peakFnc->GetParameter(2));
     bgReject = 4 * peakFitSigma; // 4*sigma region to be excluded from bg fit
 
+    ///
+    TFitResultPtr fFitResult_bg;
+    ///
     if (!fisMC)
     {
         TF1 *bgFnc = new TF1("Pol2Exclude", Pol2Exclude, peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)), 6);
@@ -720,7 +725,7 @@ TH1 *fitResults(TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t fitMaxSig,
         // fitMaxBg = peakFitMass + 10 * peakFitSigma;
         // peak->Fit(bgFnc, optBg.Data(), "", fitMinBg, fitMaxBg);
         bgFnc->FixParameter(5, 1); // "reject" (set 1 or 0)
-        peak->Fit(bgFnc, optBg.Data(), "", peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)));
+        fFitResult_bg = peak->Fit(bgFnc, optBg.Data(), "", peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)));
         bgFnc->FixParameter(5, 0); // reject = off (set 1 or 0)
 
         // add fit and background function to histogram so it is automatically drawn
@@ -733,11 +738,11 @@ TH1 *fitResults(TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t fitMaxSig,
     Double_t maxInt = peakFitMass + bgReject; /// mean + 4*sigma
     // Printf("%s: MinInt, MaxInt = %f, %f ", peak->GetName(), minInt, maxInt);
 
-    TH1 *resultParams = fillParams(peakFnc, peak, fFitResult, minInt, maxInt, MCgen, binsMC, fisMC);
+    TH1 *resultParams = fillParams(peakFnc, peak, fFitResult, minInt, maxInt, MCgen, binsMC, fisMC, fFitResult_bg);
     peak->SetOption("X0E1");
     return resultParams;
 }
-TH1 *fillParams(TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC)
+TH1 *fillParams(TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC, TFitResultPtr fFitResult_bg)
 {
     Double_t val, err, gen, genErr;
     Double_t val_intBC, err_intBC, val_intFF, err_intFF, eff, effErr;
@@ -754,7 +759,7 @@ TH1 *fillParams(TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t min
     TH1 *resultParams = new TH1D("resultParams", "Result parameters", nBins, 0, nBins);
     Int_t iBin = 1;
 
-    GetYieldBinCounting(peak, fFitResult, minInt, maxInt, fisMC, val, err);
+    GetYieldBinCounting(peak, fFitResult_bg, minInt, maxInt, fisMC, val, err);
     val_intBC = val;
     err_intBC = err;
     if (TMath::IsNaN(val_intBC) || TMath::IsNaN(err_intBC))

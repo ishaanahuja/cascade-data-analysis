@@ -32,6 +32,7 @@ class AliAODcascade;
 #include "AliAODMCHeader.h"
 #include "AliEventCuts.h"
 #include "AliESDtrackCuts.h"
+#include "TError.h"
 
 #include "AliCascadeAnalysisMC_Ishaan.h"
 
@@ -60,8 +61,8 @@ ClassImp(AliCascadeAnalysisMC_Ishaan)
                                                                  fisMCassoc(kFALSE),
 
                                                                  /// default cuts configuration
-                                                                 fDefOnly(kTRUE),
-                                                                 fCasc_Cuts{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                                                                 fDefOnly(kFALSE),
+                                                                 //  fCasc_Cuts{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                                                                  /// particle to be analysed
                                                                  fParticleAnalysisStatus{true, true, true, true},
                                                                  // geometrical cut usage
@@ -117,6 +118,8 @@ ClassImp(AliCascadeAnalysisMC_Ishaan)
                                                                  fCentLimit_BacBarCosPA(0),
                                                                  fisParametricTrackLengthCut(kFALSE),
                                                                  fHist_CentTrackLengthCut(0),
+                                                                 //  fHistCutsEv(0),
+                                                                 //  fHistCutsTopo(0),
                                                                  fDeadZoneWidth_GeoCut(0),
                                                                  fNcrNclLength_GeoCut(0),
                                                                  fTPCsignalNCut(0),
@@ -144,13 +147,13 @@ AliCascadeAnalysisMC_Ishaan::AliCascadeAnalysisMC_Ishaan(const char *name, TStri
                                                                                                     // pile-up rejection flag
                                                                                                     fPileupCut(1),
 
-                                                                                                    ////MC-related variables
-                                                                                                    fisMC(kTRUE),
-                                                                                                    fisMCassoc(kTRUE),
+                                                                                                    ////MC-related variables - make true for MC only
+                                                                                                    fisMC(kFALSE),
+                                                                                                    fisMCassoc(kFALSE),
 
                                                                                                     ////default cuts configuration
-                                                                                                    fDefOnly(kTRUE),
-                                                                                                    fCasc_Cuts{1.5, 0.96, 0.6, 4., 70., 0.8, 70., 1., 2.5, 0.008, 1.6, 0.98, 0.06, 0.04, 1., -0.5, 0.8, 3., 3., 1.2, 0.04, 0.03, 1., 0.5, 1.1, 1.6, 1.4, 0.97, 0.97, 1.7, 1.5, 0.97, 0.98, 0.98, 0.008},
+                                                                                                    fDefOnly(kFALSE),
+                                                                                                    // fCasc_Cuts{1.5, 0.96, 0.6, 4., 70., 0.8, 70., 1., 2.5, 0.008, 1.6, 0.98, 0.06, 0.04, 1., -0.5, 0.8, 3., 3., 1.2, 0.04, 0.03, 1., 0.5, 1.1, 1.6, 1.4, 0.97, 0.97, 1.7, 1.5, 0.97, 0.98, 0.98, 0.008, 0.98, 0.98, 0.6, 0.6, 1.2, 1.2},
                                                                                                     ////particle to be analysed
                                                                                                     fParticleAnalysisStatus{true, true, true, true},
 
@@ -207,6 +210,8 @@ AliCascadeAnalysisMC_Ishaan::AliCascadeAnalysisMC_Ishaan(const char *name, TStri
                                                                                                     fCentLimit_BacBarCosPA(0),
                                                                                                     fisParametricTrackLengthCut(kFALSE),
                                                                                                     fHist_CentTrackLengthCut(0),
+                                                                                                    // fHistCutsEv(0),
+                                                                                                    // fHistCutsTopo(0),
                                                                                                     fDeadZoneWidth_GeoCut(0),
                                                                                                     fNcrNclLength_GeoCut(0),
                                                                                                     fTPCsignalNCut(50),
@@ -214,9 +219,10 @@ AliCascadeAnalysisMC_Ishaan::AliCascadeAnalysisMC_Ishaan(const char *name, TStri
                                                                                                     fncentbins[](0)*/
 
 {
+
     ////setting default cuts
-    SetDefCutVals();
-    // SetDefCutVariations();
+    SetDefCuts();
+    SetDefCutVariations();
     ////setting default centrality binning
     Double_t centbins_Xi[11] = {0, 5, 10, 15, 20, 30, 40, 50, 60, 80, 100}; // V0A
     Double_t centbins_Om[6] = {0, 5, 15, 30, 60, 100};                      // V0A
@@ -290,6 +296,7 @@ void AliCascadeAnalysisMC_Ishaan::UserCreateOutputObjects()
 
     fHistos_eve->CreateTH1("hcent", "Multiplicity Distribution", 100, 0, 100, "s"); ////storing #events in bins of centrality
     fHistos_eve->CreateTH1("henum", "", 4, -0.5, 3.5);                              ////storing total #events
+    // fHistos_eve->CreateTH1("hCheckCuts", "", 200, -1, 4);                          ////storing total #events
 
     /// test
     fHistos_eve->CreateTH1("hTrackLengthP", "pTrack Length (cm)", 200, 0, 200, "s"); ////check track length for cut
@@ -308,6 +315,28 @@ void AliCascadeAnalysisMC_Ishaan::UserCreateOutputObjects()
     fCuts->GetXaxis()->SetBinLabel(4, "|PVz|<10");
     fCuts->GetXaxis()->SetBinLabel(5, "Mult<0,100> && kINT7");
     fCuts->GetXaxis()->SetBinLabel(6, "Track Length>90cm");
+
+    ////storing impact of evCuts on no. of events
+    fHistos_eve->CreateTH1("fHistCutsEv", "Event Selection cuts", kNumCascEvCuts + 1, 0, kNumCascEvCuts + 1, "s");                                                               // last bin (entry 12.5) for kTPCrefit
+    fHistos_eve->CreateTH3("fHistCutsTopo", "Topological Selection cuts", knumpart, 0, knumpart, kNumCascTopoCuts, 0, kNumCascTopoCuts, kNumPtInterval, 0, kNumPtInterval, "s"); ////storing impact of topoCuts on no. of events
+
+    TH1 *fHistCutsEv = (TH1 *)fHistos_eve->FindObject("fHistCutsEv");
+    for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
+    {
+        fHistCutsEv->GetXaxis()->SetBinLabel(iCutEv + 1, cutNamesEv[iCutEv].Data());
+    }
+    fHistCutsEv->GetXaxis()->SetBinLabel(13, "kTPCrefit");
+
+    TH3 *fHistCutsTopo = (TH3 *)fHistos_eve->FindObject("fHistCutsTopo");
+    fHistCutsTopo->GetXaxis()->SetBinLabel(1, "#Xi");
+    fHistCutsTopo->GetXaxis()->SetBinLabel(2, "#Omega");
+    fHistCutsTopo->GetZaxis()->SetBinLabel(1, "Low p_{T}");
+    fHistCutsTopo->GetZaxis()->SetBinLabel(2, "Mid p_{T}");
+    fHistCutsTopo->GetZaxis()->SetBinLabel(3, "High p_{T}");
+    for (int iCutTopo = 0; iCutTopo < kNumCascTopoCuts; iCutTopo++)
+    {
+        fHistCutsTopo->GetYaxis()->SetBinLabel(iCutTopo + 1, cutNamesTopo[iCutTopo].Data());
+    }
 
     ////histograms for Cascade variables
     if (fParticleAnalysisStatus[kxip])
@@ -350,29 +379,66 @@ void AliCascadeAnalysisMC_Ishaan::UserCreateOutputObjects()
             fHistos_OmPlu->CreateTH2("h2_gen", "", fnptbins[kOm], fptbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
         }
     }
-    if (!fDefOnly && (fParticleAnalysisStatus[kxip] || fParticleAnalysisStatus[komp])) /// check!!!
+
+    /// creating histograms for cut variations
+    if (!fDefOnly && (fParticleAnalysisStatus[kxip] || fParticleAnalysisStatus[komp]))
     {
-        for (int icut = 0; icut < kCasccutsnum; icut++)
+
+        for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
         {
-            if (icut == kCasc_y || icut == kCasc_etaDaugh)
+            if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kLeastCRows || iCutEv == kLeastCRowsOvF || iCutEv == kTrackLengthCut || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
                 continue;
-            for (int ivar = 0; ivar < nvarcut_Casc[icut]; ivar++)
+            if (nvarcut_Ev[iCutEv] == -1) // skip the cut if value == -1 -> unused variations
+                continue;
+            for (int iVarEv = 0; iVarEv < nvarcut_Ev[iCutEv]; iVarEv++)
             {
-                if (fParticleAnalysisStatus[kxip])
+                if (iCutEv != kCompetingCascRejectOm)
                 {
-                    // if (icut != kCasc_PropLifetOm)
-                    if (icut != kCasc_PropLifetOm && icut != kCasc_CompetingXiMass)
-                        fHistos_XiMin->CreateTH3(Form("h3_ptmasscent[%d][%d]", icut, ivar), "", fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
-                    // if (icut != kCasc_PropLifetOm)
-                    if (icut != kCasc_PropLifetOm && icut != kCasc_CompetingXiMass)
-                        fHistos_XiPlu->CreateTH3(Form("h3_ptmasscent[%d][%d]", icut, ivar), "", fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+                    if (fParticleAnalysisStatus[kxip])
+                    {
+                        // if (icut != kCasc_PropLifetOm)
+                        // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
+                        fHistos_XiMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+                        // if (icut != kCasc_PropLifetOm)
+                        // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
+                        fHistos_XiPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+                    }
                 }
                 if (fParticleAnalysisStatus[komp])
                 {
-                    if (icut != kCasc_PropLifetXi)
-                        fHistos_OmMin->CreateTH3(Form("h3_ptmasscent[%d][%d]", icut, ivar), "", fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-                    if (icut != kCasc_PropLifetXi)
-                        fHistos_OmPlu->CreateTH3(Form("h3_ptmasscent[%d][%d]", icut, ivar), "", fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+                    // if (icut != kCasc_PropLifetXi)
+                    fHistos_OmMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+                    // if (icut != kCasc_PropLifetXi)
+                    fHistos_OmPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+                }
+            }
+        }
+
+        for (int iCutTopo = 0; iCutTopo < kNumCascTopoCuts; iCutTopo++)
+        {
+            if (nvarcut_Topo[iCutTopo] == -1) // skip the cut if value == -1 -> unused variations
+                continue;
+            for (int iVarTopo = 0; iVarTopo < nvarcut_Topo[iCutTopo]; iVarTopo++)
+            {
+
+                // if (fParticleAnalysisStatus[kxip] && (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] != -1))
+                // {
+                if (fParticleAnalysisStatus[kxip])
+                {
+                    // if (icut != kCasc_PropLifetOm)
+                    // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
+                    fHistos_XiMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+                    // if (icut != kCasc_PropLifetOm)
+                    // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
+                    fHistos_XiPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+                }
+                //
+                if (fParticleAnalysisStatus[komp])
+                {
+                    // if (icut != kCasc_PropLifetXi)
+                    fHistos_OmMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+                    // if (icut != kCasc_PropLifetXi)
+                    fHistos_OmPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
                 }
             }
         }
@@ -395,6 +461,8 @@ void AliCascadeAnalysisMC_Ishaan::UserCreateOutputObjects()
 //_____________________________________________________________________________
 void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
 {
+    // ignore all warnings
+    gErrorIgnoreLevel = kError;
 
     // get event from the input handler and cast it into the desired type of event
     AliVEvent *lVevent = dynamic_cast<AliVEvent *>(InputEvent());
@@ -600,7 +668,7 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
     int pdgCasc = 0;
     //  bool assFlag[ksignednumpart] = {1, 1, 1, 1, 1, 1, 1}; ////MC ass flags are true if associated and, by construction, always for data. They can be false only if fisMC && notassociated
     bool assFlag[ksignednumpart]; // MC ass flags are true if associated and, by construction, always for data. They can be false only if fisMC && notassociated
-    double fdmtx_ptxi = 0;        // 0 if no secondary lambda, value corresponding to generated-xi pT, - for lambda (from xim) and + for anti-lambda (from xip)
+    // double fdmtx_ptxi = 0;        // 0 if no secondary lambda, value corresponding to generated-xi pT, - for lambda (from xim) and + for anti-lambda (from xip)
 
     /// centrality selection and triggermask, kINT7 (MB)
     if ((lPercentile > 0. && lPercentile < 100.) && fTriggerMask & AliVEvent::kINT7)
@@ -766,12 +834,12 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
                 fCasc_InvMassLam = casc->MassAntiLambda();
             }
 
+            // fHistos_eve->FillTH1("hCheckCuts", cutValEv[kDeviationPropLifetime]);
             /// transverse momentum
             fCasc_Pt = TMath::Sqrt(casc->Pt2Xi());
 
             /// distance over total momentum
             fCasc_DistOverTotP = (TMath::Sqrt(TMath::Power(lVtxCasc[0] - lBestPV[0], 2) + TMath::Power(lVtxCasc[1] - lBestPV[1], 2) + TMath::Power(lVtxCasc[2] - lBestPV[2], 2))) / (TMath::Sqrt(casc->Ptot2Xi()) + 1e-10);
-
             /// candidate's invariant mass
             fCasc_InvMassXiMin = casc->MassXi();
             fCasc_InvMassXiPlu = casc->MassXi();
@@ -808,12 +876,12 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
             {
                 if (fCasc_Pt >= fHist_PtBacBarCosPA->GetXaxis()->GetXmin() && fCasc_Pt <= fHist_PtBacBarCosPA->GetXaxis()->GetXmax() && lPercentile < fCentLimit_BacBarCosPA)
                 {
-                    SetCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fHist_PtBacBarCosPA->GetBinContent(fHist_PtBacBarCosPA->GetXaxis()->FindBin(fCasc_Pt)));
+                    SetEvCutVal(kFALSE, kTRUE, kBacBarCosPa, fHist_PtBacBarCosPA->GetBinContent(fHist_PtBacBarCosPA->GetXaxis()->FindBin(fCasc_Pt)));
                 }
                 else
                 {
                     if ((fParticleAnalysisStatus[kxip] || fParticleAnalysisStatus[komp]))
-                        SetCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fCasc_Cuts[kCasc_BacBarCosPA]);
+                        SetEvCutVal(kFALSE, kTRUE, kBacBarCosPa, def_cutValEv[kBacBarCosPa]);
                 }
             }
 
@@ -822,60 +890,13 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
             {
                 if (lPercentile >= fHist_CentTrackLengthCut->GetXaxis()->GetXmin() && lPercentile <= fHist_CentTrackLengthCut->GetXaxis()->GetXmax())
                 {
-                    SetCutVal(kFALSE, kTRUE, kCasc_TrackLengthCut, fHist_CentTrackLengthCut->GetBinContent(fHist_CentTrackLengthCut->GetXaxis()->FindBin(lPercentile)));
+                    SetEvCutVal(kFALSE, kTRUE, kTrackLengthCut, fHist_CentTrackLengthCut->GetBinContent(fHist_CentTrackLengthCut->GetXaxis()->FindBin(lPercentile)));
                 }
                 else
                 {
-                    SetCutVal(kFALSE, kTRUE, kCasc_TrackLengthCut, fCasc_Cuts[kCasc_TrackLengthCut]);
+                    SetEvCutVal(kFALSE, kTRUE, kTrackLengthCut, cutValEv[kTrackLengthCut]);
                 }
             }
-
-            /// default cuts
-
-            // if (fParticleAnalysisStatus[kxip])
-            // {
-            //     if (ApplyCuts(kxip))
-            //     {
-            //         fHistos_eve->FillTH1("fHistPtXiP", fCasc_Pt);
-            //         fHistos_eve->FillTH1("fCasc_InvMassXiPlu", fCasc_InvMassXiPlu);
-            //         fHistos_eve->FillTH1("fHistCentXiP", lPercentile);
-
-            //         fHistos_XiPlu->FillTH3("h3_ptmasscent_def", fCasc_Pt, fCasc_InvMassXiPlu, lPercentile);
-            //     }
-            // }
-            // if (fParticleAnalysisStatus[kxim])
-            // {
-            //     if (ApplyCuts(kxim))
-            //     {
-            //         fHistos_eve->FillTH1("fHistPtXiM", fCasc_Pt);
-            //         fHistos_eve->FillTH1("fCasc_InvMassXiMin", fCasc_InvMassXiMin);
-            //         fHistos_eve->FillTH1("fHistCentXiM", lPercentile);
-
-            //         fHistos_XiMin->FillTH3("h3_ptmasscent_def", fCasc_Pt, fCasc_InvMassXiMin, lPercentile);
-            //     }
-            // }
-            // if (fParticleAnalysisStatus[komp])
-            // {
-            //     if (ApplyCuts(komp))
-            //     {
-            //         fHistos_eve->FillTH1("fHistPtOmP", fCasc_Pt);
-            //         fHistos_eve->FillTH1("fCasc_InvMassOmPlu", fCasc_InvMassOmPlu);
-            //         fHistos_eve->FillTH1("fHistCentOmP", lPercentile);
-
-            //         fHistos_OmPlu->FillTH3("h3_ptmasscent_def", fCasc_Pt, fCasc_InvMassOmPlu, lPercentile);
-            //     }
-            // }
-            // if (fParticleAnalysisStatus[komm])
-            // {
-            //     if (ApplyCuts(komm))
-            //     {
-            //         fHistos_eve->FillTH1("fHistPtOmM", fCasc_Pt);
-            //         fHistos_eve->FillTH1("fCasc_InvMassOmMin", fCasc_InvMassOmMin);
-            //         fHistos_eve->FillTH1("fHistCentOmM", lPercentile);
-
-            //         fHistos_OmMin->FillTH3("h3_ptmasscent_def", fCasc_Pt, fCasc_InvMassOmMin, lPercentile);
-            //     }
-            // }
 
             // fills TH3 with default cuts
             if (fParticleAnalysisStatus[kxip])
@@ -887,6 +908,7 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
                     fHistos_XiMin->FillTH1("fHistCentXiM", lPercentile);
                     fHistos_XiMin->FillTH3("h3_ptmasscent_def", fCasc_Pt, fCasc_InvMassXiMin, lPercentile);
                 }
+
                 if (physprim && assFlag[kxip] && ApplyCuts(kxip))
                 {
                     fHistos_XiPlu->FillTH1("fHistPtXiP", fCasc_Pt);
@@ -915,11 +937,11 @@ void AliCascadeAnalysisMC_Ishaan::UserExec(Option_t *)
 
             /// filling 3D histograms
             // if (!fDefOnly)
-            //     FillHistCutVariations(kTRUE, lPercentile, 1, assFlag, 0);
+            // FillHistCutVariations(kTRUE, lPercentile, 1, assFlag, 0);
 
             // filling 3D histograms
-            // if (!fDefOnly)
-            //     FillHistCutVariations(kTRUE, lPercentile, physprim, assFlag, 0);
+            if (!fDefOnly)
+                FillHistCutVariations(lPercentile, physprim, assFlag);
         }
     }
     DataPosting();
@@ -939,14 +961,129 @@ Float_t AliCascadeAnalysisMC_Ishaan::GetLengthInActiveZone(AliAODTrack *gt, Floa
     return esdTrack.GetLengthInActiveZone(1, deltaY, deltaZ, b);
 }
 
-void AliCascadeAnalysisMC_Ishaan::SetCutVal(bool defchange, bool iscasc, int cutnum, double cval)
+void AliCascadeAnalysisMC_Ishaan::SetCutValue(bool isTopo, int cutName, double cutVal, int particle = -1, int ptInterval = -1)
 {
-    if (iscasc)
+    if (!isTopo)
+        cutValEv[cutName] = cutVal;
+
+    else
     {
-        cutval_Casc[cutnum] = cval;
-        if (defchange)
+        if (particle == -1)
         {
-            fCasc_Cuts[cutnum] = cval;
+            for (int iPart = kXi; iPart < knumpart; iPart++)
+            {
+                if (ptInterval == -1)
+                {
+                    for (int iPt = kLow; iPt < kNumPtInterval; iPt++)
+                    {
+                        cutValTopo[iPart][cutName][iPt] = cutVal;
+                    }
+                }
+                else
+                {
+                    cutValTopo[iPart][cutName][ptInterval] = cutVal;
+                }
+            }
+        }
+        else if (ptInterval == -1)
+        {
+            for (int iPt = kLow; iPt < kNumPtInterval; iPt++)
+            {
+                cutValTopo[particle][cutName][iPt] = cutVal;
+            }
+        }
+        else
+        {
+            cutValTopo[particle][cutName][ptInterval] = cutVal;
+        }
+    }
+}
+
+void AliCascadeAnalysisMC_Ishaan::SetDefCutValue(bool isTopo, int cutName, double cutVal, int particle = -1, int ptInterval = -1)
+{
+    if (!isTopo)
+    {
+        // SetCutValue(def_cutValEv, isTopo, cutName, cutVal, particle, ptInterval);
+        // SetCutValue(cutValEv, isTopo, cutName, cutVal, particle, ptInterval);
+
+        def_cutValEv[cutName] = cutVal;
+        cutValEv[cutName] = cutVal;
+    }
+    else
+    {
+
+        // SetCutValue(def_cutValTopo, isTopo, cutName, cutVal, particle, ptInterval);
+        // SetCutValue(cutValTopo, isTopo, cutName, cutVal, particle, ptInterval);
+        if (particle == -1)
+        {
+            for (int iPart = kXi; iPart < knumpart; iPart++)
+            {
+                if (ptInterval == -1)
+                {
+                    for (int iPt = kLow; iPt < kNumPtInterval; iPt++)
+                    {
+                        def_cutValTopo[iPart][cutName][iPt] = cutVal;
+                        cutValTopo[iPart][cutName][iPt] = cutVal;
+                    }
+                }
+                else
+                {
+                    def_cutValTopo[iPart][cutName][ptInterval] = cutVal;
+                    cutValTopo[iPart][cutName][ptInterval] = cutVal;
+                }
+            }
+        }
+        else if (ptInterval == -1)
+        {
+            for (int iPt = kLow; iPt < kNumPtInterval; iPt++)
+            {
+                def_cutValTopo[particle][cutName][iPt] = cutVal;
+                cutValTopo[particle][cutName][iPt] = cutVal;
+            }
+        }
+        else
+        {
+            def_cutValTopo[particle][cutName][ptInterval] = cutVal;
+            cutValTopo[particle][cutName][ptInterval] = cutVal;
+        }
+    }
+}
+
+void AliCascadeAnalysisMC_Ishaan::SetVarCutValue(bool isTopo, int cutName, int cutVar, double cutVal, int particle = -1, int ptInterval = -1)
+{
+    if (!isTopo)
+    {
+        var_cutValEv[cutName][cutVar] = cutVal;
+    }
+    else
+    {
+        if (particle == -1)
+        {
+            for (int iPart = kXi; iPart < knumpart; iPart++)
+            {
+                if (ptInterval == -1)
+                {
+                    for (int iPt = kLow; iPt < kNumPtInterval; iPt++)
+                    {
+                        var_cutValTopo[iPart][cutName][iPt][cutVar] = cutVal;
+                    }
+                }
+                else
+                {
+                    var_cutValTopo[iPart][cutName][ptInterval][cutVar] = cutVal;
+                }
+            }
+        }
+        else if (ptInterval == -1)
+        {
+            for (int iPt = kLow; iPt < kNumPtInterval; iPt++)
+            {
+                var_cutValTopo[particle][cutName][iPt][cutVar] = cutVal;
+            }
+        }
+        else
+        {
+            var_cutValTopo[particle][cutName][ptInterval][cutVar] = cutVal;
         }
     }
 }
@@ -962,56 +1099,233 @@ void AliCascadeAnalysisMC_Ishaan::SetParametricBacBarCosPA(int nbins, float *ptb
 }
 
 ///________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::SetDefCutVals()
+void AliCascadeAnalysisMC_Ishaan::SetDefCuts()
 {
+    Int_t all = -1;
 
-    /// Cascade part
-    if (fParticleAnalysisStatus[kxip] || fParticleAnalysisStatus[komp])
-    {
-        for (int iCasc_cut = 0; iCasc_cut < kCasccutsnum; iCasc_cut++)
-        {
-            SetCutVal(kFALSE, kTRUE, iCasc_cut, fCasc_Cuts[iCasc_cut]);
-        }
-    }
+    /// event selection cuts
+    SetDefCutValue(kFALSE, kRapidityIntervalMin, -0.5);    // kCasc_y
+    SetDefCutValue(kFALSE, kRapidityIntervalMax, 0.0);     // == 0
+    SetDefCutValue(kFALSE, kTpcDedxPidSigma, 4);           // kCasc_NSigPID
+    SetDefCutValue(kFALSE, kDeviationPropLifetime, 3.0);   // kCasc_PropLifetXi
+    SetDefCutValue(kFALSE, kLeastTpcClusters, 70);         // kCasc_LeastTPCcls,    // --> DON'T USE
+    SetDefCutValue(kFALSE, kCompetingCascRejectOm, 0.008); // kCasc_CompetingXiMass
+    SetDefCutValue(kFALSE, kLeastCRows, 70);               // not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
+    SetDefCutValue(kFALSE, kLeastCRowsOvF, 0.8);           // not used --> USE -> (0.8)
+    SetDefCutValue(kFALSE, kTrackLengthCut, 1.0);          // not used --> USE
+    SetDefCutValue(kFALSE, kEtaDaughter, 0.8);             // kCasc_etaDaugh
+    SetDefCutValue(kFALSE, kBacBarCosPa, 1.0);             // kCasc_BacBarCosPA :: not used --> USE
+    SetDefCutValue(kFALSE, kV0InvMassWindow, 0.008);       // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
+
+    /// topological cuts
+    SetDefCutValue(kTRUE, kCascTransDecayRadius, 0.6, kXi, all); // kCasc_CascRad(XiMid)
+    SetDefCutValue(kTRUE, kCascTransDecayRadius, 0.5, kOm, all); // kCasc_CascRad(XiMid)
+    SetDefCutValue(kTRUE, kV0TransDecayRadius, 1.2, kXi, all);   // kCasc_V0RadXi(Mid)
+    SetDefCutValue(kTRUE, kV0TransDecayRadius, 1.1, kOm, all);   // kCasc_V0RadXi(Mid)
+    SetDefCutValue(kTRUE, kDcaBachToPv, 0.04, all, all);         // kCasc_DcaBachToPV
+    SetDefCutValue(kTRUE, kDcaV0ToPv, 0.06, all, all);           // kCasc_DcaV0ToPV
+    SetDefCutValue(kTRUE, kDcaMesV0ToPv, 0.04, all, all);        // kCasc_DcaMesToPV
+    SetDefCutValue(kTRUE, kDcaBarV0ToPv, 0.03, all, all);        // kCasc_DcaBarToPV
+    SetDefCutValue(kTRUE, kDcaV0Daughters, 1.7, all, kLow);      // kCasc_DcaV0Daught(Mid), // DCA V0 daughters (sigma)
+    SetDefCutValue(kTRUE, kDcaV0Daughters, 1.6, all, kMid);
+    SetDefCutValue(kTRUE, kDcaV0Daughters, 1.5, all, kHigh);
+    SetDefCutValue(kTRUE, kDcaBachToV0, 1.6, all, kLow); // kCasc_DcaCascDaught(Mid)
+    SetDefCutValue(kTRUE, kDcaBachToV0, 1.5, all, kMid);
+    SetDefCutValue(kTRUE, kDcaBachToV0, 1.4, all, kHigh);
+    SetDefCutValue(kTRUE, kCascCosPa, 0.96, all, kLow); // kCasc_CascCosPA(Low)
+    SetDefCutValue(kTRUE, kCascCosPa, 0.97, all, kMid);
+    SetDefCutValue(kTRUE, kCascCosPa, 0.97, all, kHigh);
+    SetDefCutValue(kTRUE, kV0CosPa, 0.98, kXi, all);
+    SetDefCutValue(kTRUE, kV0CosPa, 0.97, kOm, kLow);
+    SetDefCutValue(kTRUE, kV0CosPa, 0.98, kOm, kMid); // kCasc_V0CosPAXi(Mid)
+    SetDefCutValue(kTRUE, kV0CosPa, 0.98, kOm, kHigh);
 }
 
 ///________________________________________________________________________
-void AliCascadeAnalysisMC_Ishaan::SetCutVariation(bool iscasc, int cutnum, int nvar, double lowval, double highval)
-{
-
-    {
-        nvarcut_Casc[cutnum] = nvar;
-        varlowcut_Casc[cutnum] = lowval;
-        varhighcut_Casc[cutnum] = highval;
-    }
-}
-
-///________________________________________________________________________
-// void AliCascadeAnalysisMC_Ishaan::SetDefCutVariations()
+void AliCascadeAnalysisMC_Ishaan::SetDefCutVariations()
 // {
 
-//     SetCutVariation(kTRUE, kCasc_DcaCascDaught, 3, 1.4, 1.6);
-//     SetCutVariation(kTRUE, kCasc_CascCosPA, 2, 0.96, 0.97);
-//     SetCutVariation(kTRUE, kCasc_CascRadXi, 2, 0.5, 0.6);
-//     SetCutVariation(kTRUE, kCasc_CascRadOm, 2, 0.5, 0.6);
-//     SetCutVariation(kTRUE, kCasc_NSigPID, 2, 4, 4);
-//     // SetCutVariation(kTRUE, kCasc_LeastCRows, 11, 70, 90);
-//     // SetCutVariation(kTRUE, kCasc_LeastCRowsOvF, 11, 0.75, 0.9);
-//     SetCutVariation(kTRUE, kCasc_LeastTPCcls, 2, 70, 70);
-//     SetCutVariation(kTRUE, kCasc_InvMassLam, 2, 0.008, 0.008);
-//     SetCutVariation(kTRUE, kCasc_DcaV0Daught, 3, 1.5, 1.7);
-//     SetCutVariation(kTRUE, kCasc_V0CosPA, 2, 0.98, 0.98);
-//     SetCutVariation(kTRUE, kCasc_DcaV0ToPV, 2, 0.06, 0.06);
-//     SetCutVariation(kTRUE, kCasc_DcaBachToPV, 2, 0.04, 0.04);
-//     // SetCutVariation(kTRUE, kCasc_ITSTOFtracks, 3, 1, 3);
-//     SetCutVariation(kTRUE, kCasc_PropLifetXi, 7, 2, 5);
-//     SetCutVariation(kTRUE, kCasc_PropLifetOm, 7, 2, 5);
-//     SetCutVariation(kTRUE, kCasc_V0RadXi, 2, 1.1, 1.2);
-//     SetCutVariation(kTRUE, kCasc_V0RadOm, 2, 1.1, 1.2);
-//     SetCutVariation(kTRUE, kCasc_DcaMesToPV, 2, 0.04, 0.04);
-//     SetCutVariation(kTRUE, kCasc_DcaBarToPV, 2, 0.03, 0.03);
-//     SetCutVariation(kTRUE, kCasc_BacBarCosPA, 10, 0.999, 0.99999);
+//     /// Initialise all elements of var array to -1 to skip unused indices
+//     // CAUTION: make sure none of the var values are -1: this value is ignored for applying cuts
+//     std::fill_n(*var_cutValEv, kNumCascEvCuts * kNumCutVars, -1.);
+//     std::fill_n(***var_cutValTopo, knumpart * kNumCascTopoCuts * kNumPtInterval * kNumCutVars, -1.);
+
+//     Int_t all = -1;
+
+//     /// event selection cuts
+//     // SetVarCutValue(kFALSE, kRapidityIntervalMin, -0.5);    // kCasc_y
+//     // SetVarCutValue(kFALSE, kRapidityIntervalMax, 0.0);     // == 0
+//     SetVarCutValue(kFALSE, kTpcDedxPidSigma, kLoose, 5);         // kCasc_NSigPID
+//     SetVarCutValue(kFALSE, kTpcDedxPidSigma, kTight, 3.5);       // kCasc_NSigPID
+//     SetVarCutValue(kFALSE, kDeviationPropLifetime, kLoose, 4);   // kCasc_PropLifetXi
+//     SetVarCutValue(kFALSE, kDeviationPropLifetime, kTight, 2);   // kCasc_PropLifetXi
+//     SetVarCutValue(kFALSE, kLeastTpcClusters, kTight, 75);       // kCasc_LeastTPCcls,    // --> DON'T USE
+//     SetVarCutValue(kFALSE, kLeastTpcClusters, kVeryTight, 80);   // kCasc_LeastTPCcls,    // --> DON'T USE
+//     SetVarCutValue(kFALSE, kCompetingCascRejectOm, kLoose, 0.0); // kCasc_CompetingXiMass
+
+//     // SetVarCutValue(kFALSE, kLeastCRows, 70);               // not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
+//     // SetVarCutValue(kFALSE, kLeastCRowsOvF, 0.8);           // not used --> USE -> (0.8)
+//     // SetVarCutValue(kFALSE, kTrackLengthCut, 1.0);          // not used --> USE
+//     // SetVarCutValue(kFALSE, kEtaDaughter, 0.8);             // kCasc_etaDaugh
+//     // SetVarCutValue(kFALSE, kBacBarCosPa, 1.0);             // kCasc_BacBarCosPA :: not used --> USE
+//     SetVarCutValue(kFALSE, kV0InvMassWindow, kLoose, 0.009); // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
+//     SetVarCutValue(kFALSE, kV0InvMassWindow, kTight, 0.006); // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
+
+//     /// topological cuts
+//     SetVarCutValue(kTRUE, kV0CosPa, kVeryLoose, 0.95, all, all);
+//     SetVarCutValue(kTRUE, kV0CosPa, kLoose, 0.96, all, all);
+//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.985, kXi, kLow);
+//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.996, kXi, kMid);
+//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.998, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.975, kOm, kLow);
+//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.994, kOm, kMid);
+//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.996, kOm, kHigh);
+//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.99, kXi, kLow);
+//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.998, kXi, kMid);
+//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.999, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.98, kOm, kLow);
+//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.994, kOm, kMid);
+//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.996, kOm, kHigh);
+
+//     SetVarCutValue(kTRUE, kCascCosPa, kVeryLoose, 0.95, all, all);
+//     SetVarCutValue(kTRUE, kCascCosPa, kLoose, 0.95, all, kLow);
+//     SetVarCutValue(kTRUE, kCascCosPa, kLoose, 0.96, all, kMid);
+//     SetVarCutValue(kTRUE, kCascCosPa, kLoose, 0.96, all, kHigh);
+//     SetVarCutValue(kTRUE, kCascCosPa, kTight, 0.965, all, kLow);
+//     SetVarCutValue(kTRUE, kCascCosPa, kTight, 0.985, all, kMid);
+//     SetVarCutValue(kTRUE, kCascCosPa, kTight, 0.985, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kCascCosPa, kTight, 0.98, kOm, kHigh);
+//     SetVarCutValue(kTRUE, kCascCosPa, kVeryTight, 0.97, all, kLow);
+//     SetVarCutValue(kTRUE, kCascCosPa, kVeryTight, 0.992, all, kMid);
+//     SetVarCutValue(kTRUE, kCascCosPa, kVeryTight, 0.992, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kCascCosPa, kVeryTight, 0.985, kOm, kHigh);
+
+//     SetVarCutValue(kTRUE, kDcaBachToV0, kVeryLoose, 2.0, all, all);
+//     SetVarCutValue(kTRUE, kDcaBachToV0, kLoose, 1.8, all, all);
+//     SetVarCutValue(kTRUE, kDcaBachToV0, kTight, 1.4, all, kLow);
+//     SetVarCutValue(kTRUE, kDcaBachToV0, kTight, 1.0, all, kMid);
+//     SetVarCutValue(kTRUE, kDcaBachToV0, kTight, 0.9, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kDcaBachToV0, kTight, 1.0, kOm, kHigh);
+//     SetVarCutValue(kTRUE, kDcaBachToV0, kVeryTight, 1.2, all, kLow);
+//     SetVarCutValue(kTRUE, kDcaBachToV0, kVeryTight, 0.8, all, kMid);
+//     SetVarCutValue(kTRUE, kDcaBachToV0, kVeryTight, 0.7, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kDcaBachToV0, kVeryTight, 0.8, kOm, kHigh);
+
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryLoose, 2.0, all, all);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kLoose, 1.9, all, kLow);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kLoose, 1.8, all, kMid);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kLoose, 1.8, all, kHigh);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kTight, 1.5, all, kLow);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kTight, 0.9, kXi, kMid);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kTight, 0.6, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kTight, 1.4, kOm, kMid);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kTight, 1.4, kOm, kHigh);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryTight, 1.3, all, kLow);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryTight, 0.8, kXi, kMid);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryTight, 0.4, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryTight, 1.2, kOm, kMid);
+//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryTight, 1.2, kOm, kHigh);
+
+//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kLoose, 0.5, all, all);
+//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 1.0, kXi, kLow);
+//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 1.4, kXi, kMid);
+//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 2.0, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 0.6, kOm, kLow);
+//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 0.9, kOm, kMid);
+//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 1.0, kOm, kHigh);
+//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kVeryTight, 1.4, kXi, kLow);
+//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kVeryTight, 2, kXi, kMid);
+//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kVeryTight, 3, kXi, kHigh);
+
+//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kLoose, 1.1, all, all);
+//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 3.0, kXi, kLow);
+//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 5.5, kXi, kMid);
+//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 7.0, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 2.0, kOm, kLow);
+//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 2.5, kOm, kMid);
+//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 5.0, kOm, kHigh);
+
+//     SetVarCutValue(kTRUE, kDcaBachToPv, kLoose, 0.03, all, all);
+//     SetVarCutValue(kTRUE, kDcaBachToPv, kTight, 0.11, kXi, all);
+//     SetVarCutValue(kTRUE, kDcaBachToPv, kTight, 0.06, kOm, all);
+//     SetVarCutValue(kTRUE, kDcaBachToPv, kVeryTight, 0.19, kXi, all);
+//     SetVarCutValue(kTRUE, kDcaBachToPv, kVeryTight, 0.09, kOm, all);
+
+//     SetVarCutValue(kTRUE, kDcaV0ToPv, kLoose, 0.05, all, all);
+//     SetVarCutValue(kTRUE, kDcaV0ToPv, kTight, 0.09, kXi, all);
+//     SetVarCutValue(kTRUE, kDcaV0ToPv, kTight, 0.08, kOm, all);
+//     SetVarCutValue(kTRUE, kDcaV0ToPv, kVeryTight, 0.14, kXi, kLow);
+//     SetVarCutValue(kTRUE, kDcaV0ToPv, kVeryTight, 0.13, kXi, kMid);
+//     SetVarCutValue(kTRUE, kDcaV0ToPv, kVeryTight, 0.11, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kDcaV0ToPv, kVeryTight, 0.1, kOm, all);
+
+//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kVeryLoose, 0.02, all, all);
+//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kLoose, 0.03, all, all);
+//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kTight, 0.24, kXi, all);
+//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kTight, 0.11, kOm, kLow);
+//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kTight, 0.06, kOm, kMid);
+//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kTight, 0.15, kOm, kHigh);
+//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kVeryTight, 0.42, kXi, kLow);
+//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kVeryTight, 0.5, kXi, kMid);
+//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kVeryTight, 0.5, kXi, kHigh);
+
+//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kLoose, 0.02, all, all);
+//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kTight, 0.07, kXi, all);
+//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kTight, 0.06, kOm, all);
+//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kVeryTight, 0.13, kXi, kLow);
+//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kVeryTight, 0.11, kXi, kMid);
+//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kVeryTight, 0.11, kXi, kHigh);
+//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kVeryTight, 0.1, kOm, all);
 // }
+{
+    /// Initialise all elements of nvarcut array to -1 to skip unused indices
+    std::fill_n(nvarcut_Ev, kNumCascEvCuts, -1);
+    std::fill_n(nvarcut_Topo, kNumCascTopoCuts, -1);
+
+    /// event selection cuts
+    // SetVarCutValue(kFALSE, kRapidityIntervalMin, -0.5);    // kCasc_y
+    // SetVarCutValue(kFALSE, kRapidityIntervalMax, 0.0);     // == 0
+    SetCutVariation(kFALSE, kTpcDedxPidSigma, 6, 2, 7);             // kCasc_NSigPID
+    SetCutVariation(kFALSE, kDeviationPropLifetime, 7, 2, 5);       // kCasc_PropLifetXi
+    SetCutVariation(kFALSE, kLeastTpcClusters, 5, 65, 85);          // kCasc_LeastTPCcls,    // --> DON'T USE
+    SetCutVariation(kFALSE, kCompetingCascRejectOm, 6, 0.0, 0.010); // kCasc_CompetingXiMass
+
+    // SetVarCutValue(kFALSE, kLeastCRows, 70);               // not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
+    // SetVarCutValue(kFALSE, kLeastCRowsOvF, 0.8);           // not used --> USE -> (0.8)
+    // SetVarCutValue(kFALSE, kTrackLengthCut, 1.0);          // not used --> USE
+    // SetVarCutValue(kFALSE, kEtaDaughter, 0.8);             // kCasc_etaDaugh
+    // SetVarCutValue(kFALSE, kBacBarCosPa, 1.0);             // kCasc_BacBarCosPA :: not used --> USE
+    SetCutVariation(kFALSE, kV0InvMassWindow, 4, 0.003, 0.012); // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
+
+    /// topological cuts
+    SetCutVariation(kTRUE, kV0CosPa, 21, 0.94, 0.999);
+    SetCutVariation(kTRUE, kCascCosPa, 21, 0.94, 0.999);
+    SetCutVariation(kTRUE, kDcaBachToV0, 19, 0.3, 2.1);
+    SetCutVariation(kTRUE, kDcaV0Daughters, 19, 0.3, 2.1);
+    SetCutVariation(kTRUE, kCascTransDecayRadius, 11, 0.5, 1.5);
+    SetCutVariation(kTRUE, kV0TransDecayRadius, 13, 1., 7.);
+    SetCutVariation(kTRUE, kDcaBachToPv, 19, 0.02, 0.2);
+    SetCutVariation(kTRUE, kDcaV0ToPv, 19, 0.02, 0.2);
+    SetCutVariation(kTRUE, kDcaMesV0ToPv, 24, 0.02, 0.5);
+    SetCutVariation(kTRUE, kDcaBarV0ToPv, 15, 0.01, 0.15);
+}
+
+//________________________________________________________________________
+void AliCascadeAnalysisMC_Ishaan::SetCutVariation(bool isTopo, int cutnum, int nvar, double lowval, double highval)
+{
+    if (!isTopo)
+    {
+        nvarcut_Ev[cutnum] = nvar;
+        varlowcut_Ev[cutnum] = lowval;
+        varhighcut_Ev[cutnum] = highval;
+    }
+    else
+    {
+        nvarcut_Topo[cutnum] = nvar;
+        varlowcut_Topo[cutnum] = lowval;
+        varhighcut_Topo[cutnum] = highval;
+    }
+}
 
 ///________________________________________________________________________
 void AliCascadeAnalysisMC_Ishaan::SetDefOnly(bool isdefonly)
@@ -1022,7 +1336,7 @@ void AliCascadeAnalysisMC_Ishaan::SetDefOnly(bool isdefonly)
 ///________________________________________________________________________
 bool AliCascadeAnalysisMC_Ishaan::ApplyCuts(int part)
 {
-    /// we are checking cascades
+    /// Event Selection Cuts
 
     /// check candidate's charge
     if ((part == kxim || part == komm) && fCasc_charge > 0)
@@ -1031,95 +1345,222 @@ bool AliCascadeAnalysisMC_Ishaan::ApplyCuts(int part)
     if ((part == kxip || part == komp) && fCasc_charge < 0)
         return kFALSE;
 
+    /// check DCA bachelor-baryon. If it is too small --> bump structure in Inv Mass
+    if (fCasc_BacBarCosPA > cutValEv[kBacBarCosPa])
+        return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", kBacBarCosPa);
+
+    /// check PID for all daughters (particle hypothesis' dependent)
+    if ((part == kxip) && (TMath::Abs(fCasc_NSigPosPion) > cutValEv[kTpcDedxPidSigma] || TMath::Abs(fCasc_NSigNegProton) > cutValEv[kTpcDedxPidSigma] || TMath::Abs(fCasc_NSigBacPion) > cutValEv[kTpcDedxPidSigma]))
+        return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", kTpcDedxPidSigma);
+    if ((part == kxim) && (TMath::Abs(fCasc_NSigNegPion) > cutValEv[kTpcDedxPidSigma] || TMath::Abs(fCasc_NSigPosProton) > cutValEv[kTpcDedxPidSigma] || TMath::Abs(fCasc_NSigBacPion) > cutValEv[kTpcDedxPidSigma]))
+        return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", kTpcDedxPidSigma);
+    if ((part == komp) && (TMath::Abs(fCasc_NSigPosPion) > cutValEv[kTpcDedxPidSigma] || TMath::Abs(fCasc_NSigNegProton) > cutValEv[kTpcDedxPidSigma] || TMath::Abs(fCasc_NSigBacKaon) > cutValEv[kTpcDedxPidSigma]))
+        return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", kTpcDedxPidSigma);
+    if ((part == komm) && (TMath::Abs(fCasc_NSigNegPion) > cutValEv[kTpcDedxPidSigma] || TMath::Abs(fCasc_NSigPosProton) > cutValEv[kTpcDedxPidSigma] || TMath::Abs(fCasc_NSigBacKaon) > cutValEv[kTpcDedxPidSigma]))
+        return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", kTpcDedxPidSigma);
+
     /// check candidate daughters' pseudo-rapidity
-    if (TMath::Abs(fCasc_etaPos) > cutval_Casc[kCasc_etaDaugh] || TMath::Abs(fCasc_etaNeg) > cutval_Casc[kCasc_etaDaugh] || TMath::Abs(fCasc_etaBac) > cutval_Casc[kCasc_etaDaugh])
+    if (TMath::Abs(fCasc_etaPos) > cutValEv[kEtaDaughter] || TMath::Abs(fCasc_etaNeg) > cutValEv[kEtaDaughter] || TMath::Abs(fCasc_etaBac) > cutValEv[kEtaDaughter])
         return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", kEtaDaughter);
+
     /// check candidate daughters' crossed TPC Rows (note that the checked value is the lowest among the daughters)
-    if (fCasc_LeastCRows < cutval_Casc[kCasc_LeastCRows])
+    if (fCasc_LeastCRows < cutValEv[kLeastCRows])
         return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", kLeastCRows);
     /// check candidate daughters' crossed TPC Rows over findable
-    if (fCasc_LeastCRowsOvF < cutval_Casc[kCasc_LeastCRowsOvF])
+    if (fCasc_LeastCRowsOvF < cutValEv[kLeastCRowsOvF])
         return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", kLeastCRowsOvF);
+
     /// check candidate daughters' TPC clusters
-    // if (fCasc_LeastTPCcls < cutval_Casc[kCasc_LeastTPCcls])
+    // if (fCasc_LeastTPCcls < cutValEv[kCasc_LeastTPCcls])
     //     return kFALSE;
+
     // check candidate daughters' TPC clusters or/and apply geometrical cut
-    if (fCasc_TrackLengthCut < (cutval_Casc[kCasc_TrackLengthCut] - 0.1))
+    if (fCasc_TrackLengthCut < (cutValEv[kTrackLengthCut] - 0.1))
         return kFALSE;
-    if (TMath::Abs(cutval_Casc[kCasc_TrackLengthCut] - 1) < 0.1 && fCasc_TrackLengthCut == 2)
+    if (TMath::Abs(cutValEv[kTrackLengthCut] - 1) < 0.1 && fCasc_TrackLengthCut == 2)
         return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", kTrackLengthCut);
 
+    /// check candidate V0 daughter's mass difference from nominal Lambda mass
+    if (TMath::Abs(fCasc_InvMassLam - 1.115683) > cutValEv[kV0InvMassWindow])
+        return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", kV0InvMassWindow);
+    // TPC refit, should be already verified for Offline V0s
+    if (!(fCasc_PosTrackStatus & AliESDtrack::kTPCrefit) ||
+        !(fCasc_NegTrackStatus & AliESDtrack::kTPCrefit) ||
+        !(fCasc_BacTrackStatus & AliESDtrack::kTPCrefit))
+        return kFALSE;
+    else
+        fHistos_eve->FillTH1("fHistCutsEv", 12.5);
     // check candidate daughters' Chi^2 per TPC cluster
-    // if (fCasc_MaxChi2perCls > cutval_Casc[kCasc_MaxChi2perCls])
+    // if (fCasc_MaxChi2perCls > cutValEv[kCasc_MaxChi2perCls])
     //     return kFALSE;
-
-    /// check candidate V0 daughter's 2D decay distance from PV (if it is too small, then it's not a weak decay)
-    if ((part == kxip || part == kxim) && fCasc_V0Rad < cutval_Casc[kCasc_V0RadXi])
-        return kFALSE;
-    if ((part == komp || part == komm) && fCasc_V0Rad < cutval_Casc[kCasc_V0RadOm])
-        return kFALSE;
-
-    /// check candidate daughters' DCA to Primary Vertex (needs to be large because decay is far from the Primary Vertex)
-    if (fCasc_DcaBachToPV < cutval_Casc[kCasc_DcaBachToPV])
-        return kFALSE;
-    if (fCasc_DcaV0ToPV < cutval_Casc[kCasc_DcaV0ToPV])
-        return kFALSE;
-    /// check V0 daughters' DCA to Primary Vertex. Different cut for meson and baryon daughters, so different conditions for + and - candidates
-    if ((part == kxim || part == komm) && (fCasc_DcaPosToPV < cutval_Casc[kCasc_DcaBarToPV] || fCasc_DcaNegToPV < cutval_Casc[kCasc_DcaMesToPV]))
-        return kFALSE; /// in this case pos=p, neg=pi-, bach=pi- or K-
-    if ((part == kxip || part == komp) && (fCasc_DcaPosToPV < cutval_Casc[kCasc_DcaMesToPV] || fCasc_DcaNegToPV < cutval_Casc[kCasc_DcaBarToPV]))
-        return kFALSE; /// in this case pos=pi+, neg=anti-p, bach=pi+ or K+
 
     /// Xi: Particle dependent cuts
     if ((part == kxip || part == kxim))
     {
 
         /// check candidate's rapidity (particle hypothesis' dependent)
-        if (fCasc_yXi < cutval_Casc[kCasc_y] && fCasc_yXi > 0.)
+        if (fCasc_yXi < cutValEv[kRapidityIntervalMin] && fCasc_yXi > cutValEv[kRapidityIntervalMax])
             return kFALSE;
-
-        /// check candidate's 2D decay distance from PV (if it is too small, then it's not a weak decay)
-        if (fCasc_CascRad < cutval_Casc[kCasc_CascRadXi])
-            return kFALSE;
-
-        if (fCasc_V0CosPA < cutval_Casc[kCasc_V0CosPAXi])
-            return kFALSE;
+        else
+        {
+            fHistos_eve->FillTH1("fHistCutsEv", kRapidityIntervalMin);
+            fHistos_eve->FillTH1("fHistCutsEv", kRapidityIntervalMax);
+        }
 
         /// check candidate's proper lifetime (particle hypothesis' dependent). Remember: c*tau = L*m/p
-        if (((1.32171 * fCasc_DistOverTotP) > (4.91 * cutval_Casc[kCasc_PropLifetXi])))
+        if (((1.32171 * fCasc_DistOverTotP) > (4.91 * cutValEv[kDeviationPropLifetime])))
             return kFALSE; /// 4.91 is the ctau of xi in cm
+        else
+            fHistos_eve->FillTH1("fHistCutsEv", kDeviationPropLifetime);
 
         if (fCasc_Pt > 0. && fCasc_Pt < ptXiBoundary_LowMid) /// low pt range
         {
-            /// check the cosine of the Pointing Angle for both cascade and V0 (angle between candidate's momentum and vector connecting Primary and secondary vertices)
-            if (fCasc_CascCosPA < cutval_Casc[kCasc_CascCosPALow])
+            /// check candidate's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_CascRad < cutValTopo[kXi][kCascTransDecayRadius][kLow])
                 return kFALSE;
+            else
+                fHistos_eve->FillTH3("fHistCutsTopo", kXi, kCascTransDecayRadius, kLow);
+            /// check candidate V0 daughter's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_V0Rad < cutValTopo[kXi][kV0TransDecayRadius][kLow])
+                return kFALSE;
+            else
+                fHistos_eve->FillTH3("fHistCutsTopo", kXi, kV0TransDecayRadius, kLow);
+            /// check candidate daughters' DCA to Primary Vertex (needs to be large because decay is far from the Primary Vertex)
+            if (fCasc_DcaBachToPV < cutValTopo[kXi][kDcaBachToPv][kLow])
+                return kFALSE;
+            else
+                fHistos_eve->FillTH3("fHistCutsTopo", kXi, kDcaBachToPv, kLow);
+            if (fCasc_DcaV0ToPV < cutValTopo[kXi][kDcaV0ToPv][kLow])
+                return kFALSE;
+            else
+                fHistos_eve->FillTH3("fHistCutsTopo", kXi, kDcaV0ToPv, kLow);
 
+            /// check V0 daughters' DCA to Primary Vertex. Different cut for meson and baryon daughters, so different conditions for + and - candidates
+            if ((part == kxim) && (fCasc_DcaPosToPV < cutValTopo[kXi][kDcaBarV0ToPv][kLow] || fCasc_DcaNegToPV < cutValTopo[kXi][kDcaMesV0ToPv][kLow]))
+                return kFALSE; // in this case pos=p, neg=pi-, bach=pi- or K-
+            if ((part == kxip) && (fCasc_DcaPosToPV < cutValTopo[kXi][kDcaMesV0ToPv][kLow] || fCasc_DcaNegToPV < cutValTopo[kXi][kDcaBarV0ToPv][kLow]))
+                return kFALSE; // in this case pos=pi+, neg=anti-p, bach=pi+ or K+
+            else
+            {
+                fHistos_eve->FillTH3("fHistCutsTopo", kXi, kDcaBarV0ToPv, kLow);
+                fHistos_eve->FillTH3("fHistCutsTopo", kXi, kDcaMesV0ToPv, kLow);
+            }
             /// check V0 daughter's daughters DCA between them (needs to be small because they have to come from the same secondary vertex)
-            if (fCasc_DcaV0Daught > cutval_Casc[kCasc_DcaV0DaughtLow])
+            if (fCasc_DcaV0Daught > cutValTopo[kXi][kDcaV0Daughters][kLow])
                 return kFALSE;
-
-            if (fCasc_DcaCascDaught > cutval_Casc[kCasc_DcaCascDaughtLow]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+            else
+                fHistos_eve->FillTH3("fHistCutsTopo", kXi, kDcaV0Daughters, kLow);
+            if (fCasc_DcaCascDaught > cutValTopo[kXi][kDcaBachToV0][kLow]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
                 return kFALSE;
+            else
+                fHistos_eve->FillTH3("fHistCutsTopo", kXi, kDcaBachToV0, kLow);
+            /// check the cosine of the Pointing Angle for both cascade and V0 (angle between candidate's momentum and vector connecting Primary and secondary vertices)
+            if (fCasc_CascCosPA < cutValTopo[kXi][kCascCosPa][kLow])
+                return kFALSE;
+            else
+                fHistos_eve->FillTH3("fHistCutsTopo", kXi, kCascCosPa, kLow);
+            if (fCasc_V0CosPA < cutValTopo[kXi][kV0CosPa][kLow])
+                return kFALSE;
+            else
+                fHistos_eve->FillTH3("fHistCutsTopo", kXi, kV0CosPa, kLow);
         }
+
         if (fCasc_Pt >= ptXiBoundary_LowMid && fCasc_Pt < ptXiBoundary_MidHigh) /// mid pt range
         {
-            if (fCasc_CascCosPA < cutval_Casc[kCasc_CascCosPAMid])
+            /// check candidate's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_CascRad < cutValTopo[kXi][kCascTransDecayRadius][kMid])
                 return kFALSE;
 
-            if (fCasc_DcaV0Daught > cutval_Casc[kCasc_DcaV0DaughtMid])
+            /// check candidate V0 daughter's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_V0Rad < cutValTopo[kXi][kV0TransDecayRadius][kMid])
                 return kFALSE;
-            if (fCasc_DcaCascDaught > cutval_Casc[kCasc_DcaCascDaughtMid]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+
+            /// check candidate daughters' DCA to Primary Vertex (needs to be large because decay is far from the Primary Vertex)
+            if (fCasc_DcaBachToPV < cutValTopo[kXi][kDcaBachToPv][kMid])
+                return kFALSE;
+
+            if (fCasc_DcaV0ToPV < cutValTopo[kXi][kDcaV0ToPv][kMid])
+                return kFALSE;
+
+            /// check V0 daughters' DCA to Primary Vertex. Different cut for meson and baryon daughters, so different conditions for + and - candidates
+            if ((part == kxim) && (fCasc_DcaPosToPV < cutValTopo[kXi][kDcaBarV0ToPv][kMid] || fCasc_DcaNegToPV < cutValTopo[kXi][kDcaMesV0ToPv][kMid]))
+                return kFALSE; // in this case pos=p, neg=pi-, bach=pi- or K-
+
+            if ((part == kxip) && (fCasc_DcaPosToPV < cutValTopo[kXi][kDcaMesV0ToPv][kMid] || fCasc_DcaNegToPV < cutValTopo[kXi][kDcaBarV0ToPv][kMid]))
+                return kFALSE; // in this case pos=pi+, neg=anti-p, bach=pi+ or K+
+
+            /// check V0 daughter's daughters DCA between them (needs to be small because they have to come from the same secondary vertex)
+            if (fCasc_DcaV0Daught > cutValTopo[kXi][kDcaV0Daughters][kMid])
+                return kFALSE;
+
+            if (fCasc_DcaCascDaught > cutValTopo[kXi][kDcaBachToV0][kMid]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+                return kFALSE;
+
+            /// check the cosine of the Pointing Angle for both cascade and V0 (angle between candidate's momentum and vector connecting Primary and secondary vertices)
+            if (fCasc_CascCosPA < cutValTopo[kXi][kCascCosPa][kMid])
+                return kFALSE;
+
+            if (fCasc_V0CosPA < cutValTopo[kXi][kV0CosPa][kMid])
                 return kFALSE;
         }
+
         if (fCasc_Pt >= ptXiBoundary_MidHigh) /// high pt range
-        {
-            if (fCasc_CascCosPA < cutval_Casc[kCasc_CascCosPAHigh])
+        {                                     // check candidate V0 daughter's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+
+            /// check candidate's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_CascRad < cutValTopo[kXi][kCascTransDecayRadius][kHigh])
                 return kFALSE;
 
-            if (fCasc_DcaV0Daught > cutval_Casc[kCasc_DcaV0DaughtHigh])
+            /// check candidate V0 daughter's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_V0Rad < cutValTopo[kXi][kV0TransDecayRadius][kHigh])
                 return kFALSE;
-            if (fCasc_DcaCascDaught > cutval_Casc[kCasc_DcaCascDaughtHigh]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+
+            /// check candidate daughters' DCA to Primary Vertex (needs to be large because decay is far from the Primary Vertex)
+            if (fCasc_DcaBachToPV < cutValTopo[kXi][kDcaBachToPv][kHigh])
+                return kFALSE;
+
+            if (fCasc_DcaV0ToPV < cutValTopo[kXi][kDcaV0ToPv][kHigh])
+                return kFALSE;
+
+            /// check V0 daughters' DCA to Primary Vertex. Different cut for meson and baryon daughters, so different conditions for + and - candidates
+            if ((part == kxim) && (fCasc_DcaPosToPV < cutValTopo[kXi][kDcaBarV0ToPv][kHigh] || fCasc_DcaNegToPV < cutValTopo[kXi][kDcaMesV0ToPv][kHigh]))
+                return kFALSE; // in this case pos=p, neg=pi-, bach=pi- or K-
+
+            if ((part == kxip) && (fCasc_DcaPosToPV < cutValTopo[kXi][kDcaMesV0ToPv][kHigh] || fCasc_DcaNegToPV < cutValTopo[kXi][kDcaBarV0ToPv][kHigh]))
+                return kFALSE; // in this case pos=pi+, neg=anti-p, bach=pi+ or K+
+
+            /// check V0 daughter's daughters DCA between them (needs to be small because they have to come from the same secondary vertex)
+            if (fCasc_DcaV0Daught > cutValTopo[kXi][kDcaV0Daughters][kHigh])
+                return kFALSE;
+
+            if (fCasc_DcaCascDaught > cutValTopo[kXi][kDcaBachToV0][kHigh]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+                return kFALSE;
+
+            /// check the cosine of the Pointing Angle for both cascade and V0 (angle between candidate's momentum and vector connecting Primary and secondary vertices)
+            if (fCasc_CascCosPA < cutValTopo[kXi][kCascCosPa][kHigh])
+                return kFALSE;
+
+            if (fCasc_V0CosPA < cutValTopo[kXi][kV0CosPa][kHigh])
                 return kFALSE;
         }
     }
@@ -1128,70 +1569,140 @@ bool AliCascadeAnalysisMC_Ishaan::ApplyCuts(int part)
     if ((part == komp || part == komm))
     {
         /// check candidate's rapidity (particle hypothesis' dependent)
-        if (fCasc_yOm < cutval_Casc[kCasc_y] && fCasc_yOm > 0.)
+        if (fCasc_yOm < cutValEv[kRapidityIntervalMin] && fCasc_yOm > cutValEv[kRapidityIntervalMax])
             return kFALSE;
 
-        /// check candidate's 2D decay distance from PV (if it is too small, then it's not a weak decay)
-        if (fCasc_CascRad < cutval_Casc[kCasc_CascRadOm])
-            return kFALSE;
+        // /// check candidate's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+        // if (fCasc_CascRad < cutValTopo[kCasc_CascRadOm])
+        //     return kFALSE;
 
-        if (((1.67245 * fCasc_DistOverTotP) > (2.461 * cutval_Casc[kCasc_PropLifetOm])))
+        if (((1.67245 * fCasc_DistOverTotP) > (2.461 * cutValEv[kDeviationPropLifetime])))
             return kFALSE; /// 2.461 is the ctau of om in cm
 
         /// competing cascade rejection (only for omegas)
-        if ((part == komm) && ((TMath::Abs(fCasc_InvMassXiMin - 1.32171)) < cutval_Casc[kCasc_CompetingXiMass]))
+        if ((part == komm) && ((TMath::Abs(fCasc_InvMassXiMin - 1.32171)) < cutValEv[kCompetingCascRejectOm]))
             return kFALSE;
-        if ((part == komp) && ((TMath::Abs(fCasc_InvMassXiPlu - 1.32171)) < cutval_Casc[kCasc_CompetingXiMass]))
+        if ((part == komp) && ((TMath::Abs(fCasc_InvMassXiPlu - 1.32171)) < cutValEv[kCompetingCascRejectOm]))
             return kFALSE;
 
         if (fCasc_Pt > 0. && fCasc_Pt < ptOmBoundary_LowMid) /// low pt range
         {
-            if (fCasc_CascCosPA < cutval_Casc[kCasc_CascCosPALow])
+            /// check candidate's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_CascRad < cutValTopo[kOm][kCascTransDecayRadius][kLow])
                 return kFALSE;
 
-            if (fCasc_V0CosPA < cutval_Casc[kCasc_V0CosPAOmLow])
+            /// check candidate V0 daughter's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_V0Rad < cutValTopo[kOm][kV0TransDecayRadius][kLow])
                 return kFALSE;
+
+            /// check candidate daughters' DCA to Primary Vertex (needs to be large because decay is far from the Primary Vertex)
+            if (fCasc_DcaBachToPV < cutValTopo[kOm][kDcaBachToPv][kLow])
+                return kFALSE;
+
+            if (fCasc_DcaV0ToPV < cutValTopo[kOm][kDcaV0ToPv][kLow])
+                return kFALSE;
+
+            /// check V0 daughters' DCA to Primary Vertex. Different cut for meson and baryon daughters, so different conditions for + and - candidates
+            if ((part == komm) && (fCasc_DcaPosToPV < cutValTopo[kOm][kDcaBarV0ToPv][kLow] || fCasc_DcaNegToPV < cutValTopo[kOm][kDcaMesV0ToPv][kLow]))
+                return kFALSE; // in this case pos=p, neg=pi-, bach=pi- or K-
+
+            if ((part == komp) && (fCasc_DcaPosToPV < cutValTopo[kOm][kDcaMesV0ToPv][kLow] || fCasc_DcaNegToPV < cutValTopo[kOm][kDcaBarV0ToPv][kLow]))
+                return kFALSE; // in this case pos=pi+, neg=anti-p, bach=pi+ or K+
 
             /// check V0 daughter's daughters DCA between them (needs to be small because they have to come from the same secondary vertex)
-            if (fCasc_DcaV0Daught > cutval_Casc[kCasc_DcaV0DaughtLow])
+            if (fCasc_DcaV0Daught > cutValTopo[kOm][kDcaV0Daughters][kLow])
                 return kFALSE;
 
-            if (fCasc_DcaCascDaught > cutval_Casc[kCasc_DcaCascDaughtLow]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+            if (fCasc_DcaCascDaught > cutValTopo[kOm][kDcaBachToV0][kLow]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+                return kFALSE;
+
+            /// check the cosine of the Pointing Angle for both cascade and V0 (angle between candidate's momentum and vector connecting Primary and secondary vertices)
+            if (fCasc_CascCosPA < cutValTopo[kOm][kCascCosPa][kLow])
+                return kFALSE;
+
+            if (fCasc_V0CosPA < cutValTopo[kOm][kV0CosPa][kLow])
                 return kFALSE;
         }
+
         if (fCasc_Pt >= ptOmBoundary_LowMid && fCasc_Pt < ptOmBoundary_MidHigh) /// mid pt range
         {
-            if (fCasc_V0CosPA < cutval_Casc[kCasc_V0CosPAOmMid])
+            /// check candidate's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_CascRad < cutValTopo[kOm][kCascTransDecayRadius][kMid])
                 return kFALSE;
 
-            if (fCasc_CascCosPA < cutval_Casc[kCasc_CascCosPAMid])
+            /// check candidate V0 daughter's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_V0Rad < cutValTopo[kOm][kV0TransDecayRadius][kMid])
                 return kFALSE;
 
-            if (fCasc_DcaV0Daught > cutval_Casc[kCasc_DcaV0DaughtMid])
+            /// check candidate daughters' DCA to Primary Vertex (needs to be large because decay is far from the Primary Vertex)
+            if (fCasc_DcaBachToPV < cutValTopo[kOm][kDcaBachToPv][kMid])
                 return kFALSE;
 
-            if (fCasc_DcaCascDaught > cutval_Casc[kCasc_DcaCascDaughtMid]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+            if (fCasc_DcaV0ToPV < cutValTopo[kOm][kDcaV0ToPv][kMid])
+                return kFALSE;
+
+            /// check V0 daughters' DCA to Primary Vertex. Different cut for meson and baryon daughters, so different conditions for + and - candidates
+            if ((part == komm) && (fCasc_DcaPosToPV < cutValTopo[kOm][kDcaBarV0ToPv][kMid] || fCasc_DcaNegToPV < cutValTopo[kOm][kDcaMesV0ToPv][kMid]))
+                return kFALSE; // in this case pos=p, neg=pi-, bach=pi- or K-
+
+            if ((part == komp) && (fCasc_DcaPosToPV < cutValTopo[kOm][kDcaMesV0ToPv][kMid] || fCasc_DcaNegToPV < cutValTopo[kOm][kDcaBarV0ToPv][kMid]))
+                return kFALSE; // in this case pos=pi+, neg=anti-p, bach=pi+ or K+
+
+            /// check V0 daughter's daughters DCA between them (needs to be small because they have to come from the same secondary vertex)
+            if (fCasc_DcaV0Daught > cutValTopo[kOm][kDcaV0Daughters][kMid])
+                return kFALSE;
+
+            if (fCasc_DcaCascDaught > cutValTopo[kOm][kDcaBachToV0][kMid]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+                return kFALSE;
+
+            /// check the cosine of the Pointing Angle for both cascade and V0 (angle between candidate's momentum and vector connecting Primary and secondary vertices)
+            if (fCasc_CascCosPA < cutValTopo[kOm][kCascCosPa][kMid])
+                return kFALSE;
+
+            if (fCasc_V0CosPA < cutValTopo[kOm][kV0CosPa][kMid])
                 return kFALSE;
         }
+
         if (fCasc_Pt >= ptOmBoundary_MidHigh) /// high pt range
         {
-            if (fCasc_V0CosPA < cutval_Casc[kCasc_V0CosPAOmHigh])
+            /// check candidate's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_CascRad < cutValTopo[kOm][kCascTransDecayRadius][kHigh])
                 return kFALSE;
 
-            if (fCasc_CascCosPA < cutval_Casc[kCasc_CascCosPAHigh])
+            /// check candidate V0 daughter's 2D decay distance from PV (if it is too small, then it's not a weak decay)
+            if (fCasc_V0Rad < cutValTopo[kOm][kV0TransDecayRadius][kHigh])
                 return kFALSE;
 
-            if (fCasc_DcaV0Daught > cutval_Casc[kCasc_DcaV0DaughtHigh])
+            /// check candidate daughters' DCA to Primary Vertex (needs to be large because decay is far from the Primary Vertex)
+            if (fCasc_DcaBachToPV < cutValTopo[kOm][kDcaBachToPv][kHigh])
                 return kFALSE;
 
-            if (fCasc_DcaCascDaught > cutval_Casc[kCasc_DcaCascDaughtHigh]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+            if (fCasc_DcaV0ToPV < cutValTopo[kOm][kDcaV0ToPv][kHigh])
+                return kFALSE;
+
+            /// check V0 daughters' DCA to Primary Vertex. Different cut for meson and baryon daughters, so different conditions for + and - candidates
+            if ((part == komm) && (fCasc_DcaPosToPV < cutValTopo[kOm][kDcaBarV0ToPv][kHigh] || fCasc_DcaNegToPV < cutValTopo[kOm][kDcaMesV0ToPv][kHigh]))
+                return kFALSE; // in this case pos=p, neg=pi-, bach=pi- or K-
+
+            if ((part == komp) && (fCasc_DcaPosToPV < cutValTopo[kOm][kDcaMesV0ToPv][kHigh] || fCasc_DcaNegToPV < cutValTopo[kOm][kDcaBarV0ToPv][kHigh]))
+                return kFALSE; // in this case pos=pi+, neg=anti-p, bach=pi+ or K+
+
+            /// check V0 daughter's daughters DCA between them (needs to be small because they have to come from the same secondary vertex)
+            if (fCasc_DcaV0Daught > cutValTopo[kOm][kDcaV0Daughters][kHigh])
+                return kFALSE;
+
+            if (fCasc_DcaCascDaught > cutValTopo[kOm][kDcaBachToV0][kHigh]) /// check candidate daughter's DCA between them (needs to be small because they have to come from the same secondary vertex)
+                return kFALSE;
+
+            /// check the cosine of the Pointing Angle for both cascade and V0 (angle between candidate's momentum and vector connecting Primary and secondary vertices)
+            if (fCasc_CascCosPA < cutValTopo[kOm][kCascCosPa][kHigh])
+                return kFALSE;
+
+            if (fCasc_V0CosPA < cutValTopo[kOm][kV0CosPa][kHigh])
                 return kFALSE;
         }
     }
 
-    /// check candidate V0 daughter's mass difference from nominal Lambda mass
-    if (TMath::Abs(fCasc_InvMassLam - 1.115683) > cutval_Casc[kCasc_InvMassLam])
-        return kFALSE;
     /// check that none of daughters is a kink
     // if (fCasc_kinkidx > 0)
     //   return kFALSE;
@@ -1202,25 +1713,6 @@ bool AliCascadeAnalysisMC_Ishaan::ApplyCuts(int part)
     // check if at least one of candidate's daughter has a hit in the TOF or has ITSrefit flag (removes Out Of Bunch Pileup)
     // if (fCasc_ITSTOFtracks < cutval_Casc[kCasc_ITSTOFtracks] - 0.1)
     //     return kFALSE;
-
-    // TPC refit, should be already verified for Offline V0s
-    if (!(fCasc_PosTrackStatus & AliESDtrack::kTPCrefit) ||
-        !(fCasc_NegTrackStatus & AliESDtrack::kTPCrefit) ||
-        !(fCasc_BacTrackStatus & AliESDtrack::kTPCrefit))
-        return kFALSE;
-
-    /// check DCA bachelor-baryon. If it is too small --> bump structure in Inv Mass
-    if (fCasc_BacBarCosPA > cutval_Casc[kCasc_BacBarCosPA])
-        return kFALSE;
-    /// check PID for all daughters (particle hypothesis' dependent)
-    if ((part == kxip) && (TMath::Abs(fCasc_NSigPosPion) > cutval_Casc[kCasc_NSigPID] || TMath::Abs(fCasc_NSigNegProton) > cutval_Casc[kCasc_NSigPID] || TMath::Abs(fCasc_NSigBacPion) > cutval_Casc[kCasc_NSigPID]))
-        return kFALSE;
-    if ((part == kxim) && (TMath::Abs(fCasc_NSigNegPion) > cutval_Casc[kCasc_NSigPID] || TMath::Abs(fCasc_NSigPosProton) > cutval_Casc[kCasc_NSigPID] || TMath::Abs(fCasc_NSigBacPion) > cutval_Casc[kCasc_NSigPID]))
-        return kFALSE;
-    if ((part == komp) && (TMath::Abs(fCasc_NSigPosPion) > cutval_Casc[kCasc_NSigPID] || TMath::Abs(fCasc_NSigNegProton) > cutval_Casc[kCasc_NSigPID] || TMath::Abs(fCasc_NSigBacKaon) > cutval_Casc[kCasc_NSigPID]))
-        return kFALSE;
-    if ((part == komm) && (TMath::Abs(fCasc_NSigNegPion) > cutval_Casc[kCasc_NSigPID] || TMath::Abs(fCasc_NSigPosProton) > cutval_Casc[kCasc_NSigPID] || TMath::Abs(fCasc_NSigBacKaon) > cutval_Casc[kCasc_NSigPID]))
-        return kFALSE;
 
     AliInfo("All cuts passed!\n");
     return kTRUE; /// survived!
@@ -1294,55 +1786,208 @@ void AliCascadeAnalysisMC_Ishaan::DataPosting()
     }
 }
 
-///________________________________________________________________________
-// void AliCascadeAnalysisMC_Ishaan::FillHistCutVariations(bool iscasc, double perc, bool phypri, bool *associFlag, double ptassxi)
-// {
+/*
+void AliCascadeAnalysisMC_Ishaan::FillHistCutVariations(double perc, bool phypri, bool *associFlag)
+{
+    for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
+    {
+        if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kLeastCRows || iCutEv == kLeastCRowsOvF || iCutEv == kTrackLengthCut || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
+            continue;
+        for (int iVarEv = 0; iVarEv < kNumCutVars; iVarEv++)
+        {
+            if (var_cutValEv[iCutEv][iVarEv] == -1) // skip the variation if value == -1 -> unused variation
+                continue;
+            //             if (fisParametricBacBarCosPA && iCutEv != kCasc_BacBarCosPA && perc < fCentLimit_BacBarCosPA)
+            //             {
+            //                 if (fCasc_Pt >= fHist_PtBacBarCosPA->GetXaxis()->GetXmin() && fCasc_Pt <= fHist_PtBacBarCosPA->GetXaxis()->GetXmax())
+            //                 {
+            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fHist_PtBacBarCosPA->GetBinContent(fHist_PtBacBarCosPA->GetXaxis()->FindBin(fCasc_Pt)));
+            //                 }
+            //                 else
+            //                 {
+            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fCasc_Cuts[kCasc_BacBarCosPA]);
+            //                 }
+            //             }
+            //             if (fisParametricTrackLengthCut && iCutEv != kCasc_TrackLengthCut)
+            //             {
+            //                 if (perc >= fHist_CentTrackLengthCut->GetXaxis()->GetXmin() && perc <= fHist_CentTrackLengthCut->GetXaxis()->GetXmax())
+            //                 {
+            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_TrackLengthCut, fHist_CentTrackLengthCut->GetBinContent(fHist_CentTrackLengthCut->GetXaxis()->FindBin(perc)));
+            //                 }
+            //                 else
+            //                 {
+            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_TrackLengthCut, fCasc_Cuts[kCasc_TrackLengthCut]);
+            //                 }
+            //             }
+            // Xi filling
+            // if (iCutEv != kCasc_PropLifetOm && iCutEv != kCompetingCascRejectOm)
+            //             {
+            // if (fParticleAnalysisStatus[kxip])
+            // {
+            // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+            SetCutValue(false, iCutEv, var_cutValEv[iCutEv][iVarEv]);
 
-//     for (int i_cut = 0; i_cut < kCasccutsnum; i_cut++)
-//     {
-//         if (i_cut == kCasc_y || i_cut == kCasc_etaDaugh)
-//             continue;
-//         for (int i_var = 0; i_var < nvarcut_Casc[i_cut]; i_var++)
-//         {
-//             if (fisParametricBacBarCosPA && i_cut != kCasc_BacBarCosPA && perc < fCentLimit_BacBarCosPA)
-//             {
-//                 if (fCasc_Pt >= fHist_PtBacBarCosPA->GetXaxis()->GetXmin() && fCasc_Pt <= fHist_PtBacBarCosPA->GetXaxis()->GetXmax())
-//                 {
-//                     SetCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fHist_PtBacBarCosPA->GetBinContent(fHist_PtBacBarCosPA->GetXaxis()->FindBin(fCasc_Pt)));
-//                 }
-//                 else
-//                 {
-//                     SetCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fCasc_Cuts[kCasc_BacBarCosPA]);
-//                 }
-//             }
-//             ///Xi filling
-//             if (i_cut != kCasc_PropLifetOm)
-//             {
-//                 if (fParticleAnalysisStatus[kxip])
-//                 {
-//                     SetCutVal(kFALSE, kTRUE, i_cut, varlowcut_Casc[i_cut] + i_var * (varhighcut_Casc[i_cut] - varlowcut_Casc[i_cut]) / (nvarcut_Casc[i_cut] - 1));
-//                     if (phypri && associFlag[kxim] && ApplyCuts(kxim))
-//                         fHistos_XiMin->FillTH3(Form("h3_ptmasscent[%d][%d]", i_cut, i_var), fCasc_Pt, fCasc_InvMassXiMin, perc);
-//                     if (phypri && associFlag[kxip] && ApplyCuts(kxip))
-//                         fHistos_XiPlu->FillTH3(Form("h3_ptmasscent[%d][%d]", i_cut, i_var), fCasc_Pt, fCasc_InvMassXiPlu, perc);
-//                 }
-//             }
-//             ///Om filling
-//             if (i_cut != kCasc_PropLifetXi)
-//             {
-//                 if (fParticleAnalysisStatus[komp])
-//                 {
-//                     SetCutVal(kFALSE, kTRUE, i_cut, varlowcut_Casc[i_cut] + i_var * (varhighcut_Casc[i_cut] - varlowcut_Casc[i_cut]) / (nvarcut_Casc[i_cut] - 1));
-//                     if (phypri && associFlag[komm] && ApplyCuts(komm))
-//                         fHistos_OmMin->FillTH3(Form("h3_ptmasscent[%d][%d]", i_cut, i_var), fCasc_Pt, fCasc_InvMassOmMin, perc);
-//                     if (phypri && associFlag[komp] && ApplyCuts(komp))
-//                         fHistos_OmPlu->FillTH3(Form("h3_ptmasscent[%d][%d]", i_cut, i_var), fCasc_Pt, fCasc_InvMassOmPlu, perc);
-//                 }
-//             }
-//         }
-//         SetDefCutVals(); ///reset defaults
-//     }
-// }
+            if (fParticleAnalysisStatus[kxip])
+            {
+                if (phypri && associFlag[kxim] && ApplyCuts(kxim))
+                    fHistos_XiMin->FillTH3(TString::Format("h3Var_%s_%s[%d][%d]", cutNamesEv[iCutEv].Data(), cutVarNames[iVarEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassXiMin, perc);
+                if (phypri && associFlag[kxip] && ApplyCuts(kxip))
+                    fHistos_XiPlu->FillTH3(TString::Format("h3Var_%s_%s[%d][%d]", cutNamesEv[iCutEv].Data(), cutVarNames[iVarEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassXiPlu, perc);
+            }
+            if (fParticleAnalysisStatus[komp])
+            {
+                if (phypri && associFlag[komm] && ApplyCuts(komm))
+                    fHistos_OmMin->FillTH3(TString::Format("h3Var_%s_%s[%d][%d]", cutNamesEv[iCutEv].Data(), cutVarNames[iVarEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassOmMin, perc);
+                if (phypri && associFlag[komp] && ApplyCuts(komp))
+                    fHistos_OmPlu->FillTH3(TString::Format("h3Var_%s_%s[%d][%d]", cutNamesEv[iCutEv].Data(), cutVarNames[iVarEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassOmPlu, perc);
+            }
+        }
+        SetDefCuts(); // reset defaults
+    }
+
+    for (int iCutTopo = 0; iCutTopo < kNumCascTopoCuts; iCutTopo++)
+    {
+        for (int iVarTopo = 0; iVarTopo < kNumCutVars; iVarTopo++)
+        {
+            // if (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] == -1) // skip the variation if ptInterval values == -1 -> unused variation (including all pT intervals)
+            //     continue;
+
+            for (int iPtTopo = 0; iPtTopo < kNumPtInterval; iPtTopo++)
+            {
+                SetCutValue(true, iCutTopo, var_cutValTopo[kXi][iCutTopo][iPtTopo][iVarTopo], kXi, iPtTopo);
+                SetCutValue(true, iCutTopo, var_cutValTopo[kOm][iCutTopo][iPtTopo][iVarTopo], kOm, iPtTopo);
+            }
+
+            if (fParticleAnalysisStatus[kxip] && (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] != -1))
+            {
+                // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+                if (phypri && associFlag[kxim] && ApplyCuts(kxim))
+                    fHistos_XiMin->FillTH3(TString::Format("h3Var_%s_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), cutVarNames[iVarTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiMin, perc);
+                if (phypri && associFlag[kxip] && ApplyCuts(kxip))
+                    fHistos_XiPlu->FillTH3(TString::Format("h3Var_%s_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), cutVarNames[iVarTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiPlu, perc);
+            }
+
+            if (fParticleAnalysisStatus[komp] && (var_cutValTopo[kOm][iCutTopo][kMid][iVarTopo] != -1))
+            {
+                // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+                if (phypri && associFlag[komm] && ApplyCuts(komm))
+                    fHistos_OmMin->FillTH3(TString::Format("h3Var_%s_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), cutVarNames[iVarTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmMin, perc);
+                if (phypri && associFlag[komp] && ApplyCuts(komp))
+                    fHistos_OmPlu->FillTH3(TString::Format("h3Var_%s_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), cutVarNames[iVarTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmPlu, perc);
+            }
+        }
+        SetDefCuts(); // reset defaults
+    }
+}
+*/
+
+//________________________________________________________________________
+void AliCascadeAnalysisMC_Ishaan::FillHistCutVariations(double perc, bool phypri, bool *associFlag)
+{
+    int all = -1;
+
+    for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
+    {
+        if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kLeastCRows || iCutEv == kLeastCRowsOvF || iCutEv == kTrackLengthCut || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
+            continue;
+        if (nvarcut_Ev[iCutEv] == -1) // skip the cut if value == -1 -> unused variations
+            continue;
+        for (int iVarEv = 0; iVarEv < nvarcut_Ev[iCutEv]; iVarEv++)
+        {
+            //             if (fisParametricBacBarCosPA && iCutEv != kCasc_BacBarCosPA && perc < fCentLimit_BacBarCosPA)
+            //             {
+            //                 if (fCasc_Pt >= fHist_PtBacBarCosPA->GetXaxis()->GetXmin() && fCasc_Pt <= fHist_PtBacBarCosPA->GetXaxis()->GetXmax())
+            //                 {
+            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fHist_PtBacBarCosPA->GetBinContent(fHist_PtBacBarCosPA->GetXaxis()->FindBin(fCasc_Pt)));
+            //                 }
+            //                 else
+            //                 {
+            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fCasc_Cuts[kCasc_BacBarCosPA]);
+            //                 }
+            //             }
+            //             if (fisParametricTrackLengthCut && iCutEv != kCasc_TrackLengthCut)
+            //             {
+            //                 if (perc >= fHist_CentTrackLengthCut->GetXaxis()->GetXmin() && perc <= fHist_CentTrackLengthCut->GetXaxis()->GetXmax())
+            //                 {
+            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_TrackLengthCut, fHist_CentTrackLengthCut->GetBinContent(fHist_CentTrackLengthCut->GetXaxis()->FindBin(perc)));
+            //                 }
+            //                 else
+            //                 {
+            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_TrackLengthCut, fCasc_Cuts[kCasc_TrackLengthCut]);
+            //                 }
+            //             }
+
+            // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+            SetCutValue(kFALSE, iCutEv, (varlowcut_Ev[iCutEv] + iVarEv * (varhighcut_Ev[iCutEv] - varlowcut_Ev[iCutEv]) / (nvarcut_Ev[iCutEv] - 1)), all, all);
+
+            // Xi filling
+            if (iCutEv != kCompetingCascRejectOm)
+            {
+                if (fParticleAnalysisStatus[kxip])
+                {
+                    if (phypri && associFlag[kxim] && ApplyCuts(kxim))
+                        fHistos_XiMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassXiMin, perc);
+                    if (phypri && associFlag[kxip] && ApplyCuts(kxip))
+                        fHistos_XiPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassXiPlu, perc);
+                }
+            }
+
+            // Omega filling
+            if (fParticleAnalysisStatus[komp])
+            {
+                if (phypri && associFlag[komm] && ApplyCuts(komm))
+                    fHistos_OmMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassOmMin, perc);
+                if (phypri && associFlag[komp] && ApplyCuts(komp))
+                    fHistos_OmPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassOmPlu, perc);
+            }
+        }
+        SetDefCuts(); // reset defaults
+    }
+
+    for (int iCutTopo = 0; iCutTopo < kNumCascTopoCuts; iCutTopo++)
+    {
+        if (nvarcut_Topo[iCutTopo] == -1) // skip the cut if value == -1 -> unused variations
+            continue;
+
+        for (int iVarTopo = 0; iVarTopo < nvarcut_Topo[iCutTopo]; iVarTopo++)
+        {
+            // if (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] == -1) // skip the variation if ptInterval values == -1 -> unused variation (including all pT intervals)
+            //     continue;
+
+            // for (int iPtTopo = 0; iPtTopo < kNumPtInterval; iPtTopo++)
+            // {
+            //     SetCutValue(true, iCutTopo, var_cutValTopo[kXi][iCutTopo][iPtTopo][iVarTopo], kXi, iPtTopo);
+            //     SetCutValue(true, iCutTopo, var_cutValTopo[kOm][iCutTopo][iPtTopo][iVarTopo], kOm, iPtTopo);
+            // }
+
+            // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+            SetCutValue(kTRUE, iCutTopo, (varlowcut_Topo[iCutTopo] + iVarTopo * (varhighcut_Topo[iCutTopo] - varlowcut_Topo[iCutTopo]) / (nvarcut_Topo[iCutTopo] - 1)), all, all);
+
+            // if (fParticleAnalysisStatus[kxip] && (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] != -1))
+            // {
+            if (fParticleAnalysisStatus[kxip])
+            {
+                // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+                if (phypri && associFlag[kxim] && ApplyCuts(kxim))
+                    fHistos_XiMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiMin, perc);
+                if (phypri && associFlag[kxip] && ApplyCuts(kxip))
+                    fHistos_XiPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiPlu, perc);
+            }
+
+            // if (fParticleAnalysisStatus[komp] && (var_cutValTopo[kOm][iCutTopo][kMid][iVarTopo] != -1))
+            // {
+            if (fParticleAnalysisStatus[komp])
+            {
+                // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+                if (phypri && associFlag[komm] && ApplyCuts(komm))
+                    fHistos_OmMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmMin, perc);
+                if (phypri && associFlag[komp] && ApplyCuts(komp))
+                    fHistos_OmPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmPlu, perc);
+            }
+        }
+        SetDefCuts(); // reset defaults
+    }
+}
 
 void AliCascadeAnalysisMC_Ishaan::Terminate(Option_t *)
 {

@@ -1,5 +1,14 @@
 #include <TString.h>
 #include <TSystem.h>
+#include <TH1.h>
+#include <TF1.h>
+#include <TVirtualPad.h>
+#include <TStyle.h>
+#include <THStack.h>
+#include <TFile.h>
+#include <TCanvas.h>
+#include <TLine.h>
+#include <TROOT.h>
 
 void DrawAndSave(TH1 *peak, Double_t pPosition, Double_t pWidth, Bool_t saveImages, TString outputFolder, TString imageFormat);
 
@@ -290,14 +299,14 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
         // redChi2_xip[multBinXi] = new TH1D(TString::Format(("redChi2_xip[%d]"), multBinXi), TString::Format(("Mult: %.0f-%.0f%%"), multbins_Xi[multBinXi ], multbins_Xi[multBinXi+1]), nptbins_Xi, ptbins_Xi);
         for (Int_t ptBinXi = 0; ptBinXi < nptbins_Xi; ptBinXi++)
         {
-            rawPt_xim[multBinXi]->SetBinContent(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xim[multBinXi]->SetBinError(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+            rawPt_xim[multBinXi]->SetBinContent(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(1)  / ((rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xim[multBinXi]->SetBinError(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(1)   / ((rawPt_xim[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
 
-            rawPt_xip[multBinXi]->SetBinContent(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xip[multBinXi]->SetBinError(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+            rawPt_xip[multBinXi]->SetBinContent(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(1)  / ((rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xip[multBinXi]->SetBinError(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(1)   / ((rawPt_xip[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
 
-            rawPt_xiC[multBinXi]->SetBinContent(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xiC[multBinXi]->SetBinError(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+            rawPt_xiC[multBinXi]->SetBinContent(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(1)   / ((rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xiC[multBinXi]->SetBinError(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(1)  / ((rawPt_xiC[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
 
             if (fisMC)
             {
@@ -396,13 +405,13 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
         }
         for (Int_t ptBinOm = 0; ptBinOm < nptbins_Om; ptBinOm++)
         {
-            rawPt_omm[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omm[multBinOm]->SetBinError(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
-            rawPt_omp[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omp[multBinOm]->SetBinError(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+            rawPt_omm[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(1)  / ((rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omm[multBinOm]->SetBinError(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(1)  / ((rawPt_omm[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+            rawPt_omp[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(1)  / ((rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omp[multBinOm]->SetBinError(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(1)  / ((rawPt_omp[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
 
-            rawPt_omC[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omC[multBinOm]->SetBinError(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+            rawPt_omC[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(1)  / ((rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omC[multBinOm]->SetBinError(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(1)  / ((rawPt_omC[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
 
             if (fisMC)
             {
@@ -500,7 +509,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_xip->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_xip->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_xip->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c1->Modified();
     c1->ForceUpdate();
 
@@ -509,7 +518,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_omp->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_omp->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_omp->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c2->Modified();
     c2->ForceUpdate();
 
@@ -518,7 +527,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_xim->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_xim->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_xim->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c3->Modified();
     c3->ForceUpdate();
 
@@ -527,7 +536,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_omm->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_omm->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_omm->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c4->Modified();
     c4->ForceUpdate();
 
@@ -536,7 +545,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_xiC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_xiC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_xiC->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c5->Modified();
     c5->ForceUpdate();
 
@@ -545,7 +554,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
     gPad->SetLogy();
     gPad->BuildLegend(0.9, 0.6, 1., 1., "");
     hs_omC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
-    hs_omC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+    hs_omC->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
     c6->Modified();
     c6->ForceUpdate();
 
@@ -675,12 +684,12 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
         hs_xiC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
         hs_omC->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
 
-        hs_xip->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_xim->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_omp->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_omm->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_xiC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
-        hs_omC->GetYaxis()->SetTitle("#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_xip->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_xim->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_omp->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_omm->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_xiC->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
+        hs_omC->GetYaxis()->SetTitle( "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}");
 
         hs_xip_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
         hs_xim_eff->GetXaxis()->SetTitle("#it{p}_{T} (GeV/c)");
@@ -733,6 +742,7 @@ int MCDraw(std::string input = "AliCascadeAnalysisMC_Ishaan_Fitting.root", TStri
         {
             e1->cd();
             SaveImage(Form("%s/images/eff", outputFolder.Data()), "eff_xipN", imageFormat.Data());
+            
             e2->cd();
             SaveImage(Form("%s/images/eff", outputFolder.Data()), "eff_ompN", imageFormat.Data());
 

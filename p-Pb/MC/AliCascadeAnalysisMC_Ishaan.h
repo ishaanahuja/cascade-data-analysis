@@ -5,7 +5,7 @@
 #include "AliPIDResponse.h"
 #include "AliAnalysisTaskSE.h"
 #include "THistManager.h"
-
+#include "TString.h"
 #include "AliEventCuts.h"
 #include "AliESDtrackCuts.h"
 
@@ -16,46 +16,6 @@ public:
     AliCascadeAnalysisMC_Ishaan(const char *name, TString lExtraOptions = "");
     virtual ~AliCascadeAnalysisMC_Ishaan();
 
-    // enum and names.
-    enum cutnumb_Casc
-    {
-        kCasc_DcaCascDaughtMid,
-        kCasc_CascCosPALow,
-        kCasc_CascRadXi,
-        kCasc_NSigPID,
-        kCasc_LeastCRows,     // not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
-        kCasc_LeastCRowsOvF,  // not used --> USE -> (0.8)
-        kCasc_LeastTPCcls,    // --> DON'T USE
-        kCasc_TrackLengthCut, // not used --> USE
-        kCasc_MaxChi2perCls,  // not used
-        kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
-        kCasc_DcaV0DaughtMid,
-        kCasc_V0CosPAXi,
-        kCasc_DcaV0ToPV,
-        kCasc_DcaBachToPV,
-        kCasc_ITSTOFtracks, // not used
-        kCasc_y,
-        kCasc_etaDaugh,
-        kCasc_PropLifetXi,
-        kCasc_PropLifetOm,
-        kCasc_V0RadXi,
-        kCasc_DcaMesToPV,
-        kCasc_DcaBarToPV,
-        kCasc_BacBarCosPA, // not used --> USE
-        kCasc_CascRadOm,
-        kCasc_V0RadOm,
-        kCasc_DcaCascDaughtLow,
-        kCasc_DcaCascDaughtHigh,
-        kCasc_CascCosPAMid,
-        kCasc_CascCosPAHigh,
-        kCasc_DcaV0DaughtLow,
-        kCasc_DcaV0DaughtHigh,
-        kCasc_V0CosPAOmLow,
-        kCasc_V0CosPAOmMid,
-        kCasc_V0CosPAOmHigh,
-        kCasc_CompetingXiMass,
-        kCasccutsnum
-    }; // kCasc_etaPos, kCasc_etaNeg, kCasc_etaBac, kCasc_kinkidx,
     enum particles
     {
         kXi,
@@ -70,6 +30,81 @@ public:
         komm,
         ksignednumpart
     };
+    enum ptInterval
+    {
+        kLow,
+        kMid,
+        kHigh,
+        kNumPtInterval
+    };
+    enum cascEvCuts
+    {
+        kRapidityIntervalMin,   // kCasc_y
+        kRapidityIntervalMax,   // == 0
+        kTpcDedxPidSigma,       // kCasc_NSigPID
+        kDeviationPropLifetime, // kCasc_PropLifetXi
+        kLeastTpcClusters,      // kCasc_LeastTPCcls,    // --> DON'T USE
+        kCompetingCascRejectOm, // kCasc_CompetingXiMass
+        kLeastCRows,            // not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
+        kLeastCRowsOvF,         // not used --> USE -> (0.8)
+        kTrackLengthCut,        // not used --> USE
+        kEtaDaughter,           // kCasc_etaDaugh
+        kBacBarCosPa,           // kCasc_BacBarCosPA :: not used --> USE
+        kV0InvMassWindow,       // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
+        kNumCascEvCuts
+    };
+
+    enum cascTopoCuts
+    {
+        kCascTransDecayRadius, // kCasc_CascRad(XiMid)
+        kV0TransDecayRadius,   // kCasc_V0RadXi(Mid)
+        kDcaBachToPv,          // kCasc_DcaBachToPV
+        kDcaV0ToPv,            // kCasc_DcaV0ToPV
+        kDcaMesV0ToPv,         // kCasc_DcaMesToPV
+        kDcaBarV0ToPv,         // kCasc_DcaBarToPV
+        kDcaV0Daughters,       // kCasc_DcaV0Daught(Mid), // DCA V0 daughters (sigma)
+        kDcaBachToV0,          // kCasc_DcaCascDaught(Mid)
+        kCascCosPa,            // kCasc_CascCosPA(Low)
+        kV0CosPa,              // kCasc_V0CosPAXi(Mid)
+        kNumCascTopoCuts
+    };
+    enum cutVars
+    {
+        kVeryLoose,
+        kLoose,
+        kTight,
+        kVeryTight,
+        kNumCutVars
+    };
+
+    TString cutNamesEv[kNumCascEvCuts] = {"RapidityIntervalMin",
+                                          "RapidityIntervalMax",
+                                          "TpcDedxPidSigma",
+                                          "DeviationPropLifetime",
+                                          "LeastTpcClusters",
+                                          "CompetingCascRejectOm",
+                                          "LeastCRows",
+                                          "LeastCRowsOvF",
+                                          "TrackLengthCut",
+                                          "EtaDaughter",
+                                          "BacBarCosPa",
+                                          "V0InvMassWindow"};
+
+    TString cutNamesTopo[kNumCascTopoCuts] = {"CascTransDecayRadius",
+                                              "V0TransDecayRadius",
+                                              "DcaBachToPv",
+                                              "DcaV0ToPv",
+                                              "DcaMesV0ToPv",
+                                              "DcaBarV0ToPv",
+                                              "DcaV0Daughters",
+                                              "DcaBachToV0",
+                                              "CascCosPa",
+                                              "V0CosPa"};
+
+    TString cutVarNames[kNumCutVars] = {"VeryLoose",
+                                        "Loose",
+                                        "Tight",
+                                        "VeryTight"};
 
     virtual void UserCreateOutputObjects();
     virtual void UserExec(Option_t *option);
@@ -77,7 +112,10 @@ public:
 
     // cut values setter
     void SetDefOnly(bool);
-    void SetCutVal(bool, bool, int, double);
+    void SetEvCutVal(bool, bool, int, double);
+    void SetDefCutValue(bool, int, double, int, int);
+    void SetVarCutValue(bool, int, int, double, int, int);
+
     void SetParametricBacBarCosPA(int, float *, float *, int);
 
     // TrackLength Cut setters
@@ -128,8 +166,9 @@ private:
     bool fisMCassoc; //
 
     // Default cut configuration
-    bool fDefOnly;                   //
-    double fCasc_Cuts[kCasccutsnum]; //
+    bool fDefOnly; //
+    // double fCasc_Cuts[kCasccutsnum]; //
+    double fCascTopoCuts[kNumCascTopoCuts]; //
 
     // particles to be analysed
     bool fParticleAnalysisStatus[ksignednumpart]; //
@@ -192,10 +231,21 @@ private:
     double fCasc_TrackLength;
 
     // cut values to be set
-    double cutval_Casc[kCasccutsnum];     //
-    int nvarcut_Casc[kCasccutsnum];       //
-    double varlowcut_Casc[kCasccutsnum];  //
-    double varhighcut_Casc[kCasccutsnum]; //
+    // double cutval_Casc[kCasccutsnum];     //
+    double cutValTopo[knumpart][kNumCascTopoCuts][kNumPtInterval];
+    double cutValEv[kNumCascEvCuts];
+    double def_cutValTopo[knumpart][kNumCascTopoCuts][kNumPtInterval];
+    double def_cutValEv[kNumCascEvCuts];
+    double var_cutValTopo[knumpart][kNumCascTopoCuts][kNumPtInterval][kNumCutVars];
+    double var_cutValEv[kNumCascEvCuts][kNumCutVars];
+
+    int nvarcut_Ev[kNumCascEvCuts];                           //
+    double varlowcut_Ev[kNumCascEvCuts];                      //
+    double varhighcut_Ev[kNumCascEvCuts];                     //
+    int nvarcut_Topo[kNumCascTopoCuts];                           //
+    double varlowcut_Topo[kNumCascTopoCuts];                      //
+    double varhighcut_Topo[kNumCascTopoCuts];                     //
+
 
     // variables to handle binning
     int fncentbins[knumpart];            //
@@ -214,11 +264,14 @@ private:
     // functions to allow flushing part of code out of UserExec
     bool ApplyCuts(int);
     void DataPosting();
-    // void FillHistCutVariations(bool, double, bool, bool *, double);
+    void FillHistCutVariations(double, bool, bool *);
     // functions to allow the correct streaming of the cut variation
     void SetDefCutVals();
+    void SetDefCuts();
     void SetCutVariation(bool, int, int, double, double);
-    // void SetDefCutVariations();
+    // void SetCutVariation(int, int, double, double, double, double);
+    void SetDefCutVariations();
+    void SetCutValue(bool, int, double, int, int);
 
     AliCascadeAnalysisMC_Ishaan(const AliCascadeAnalysisMC_Ishaan &);            // not implemented
     AliCascadeAnalysisMC_Ishaan &operator=(const AliCascadeAnalysisMC_Ishaan &); // not implemented
