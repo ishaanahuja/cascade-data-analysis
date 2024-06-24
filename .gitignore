@@ -1,5 +1,5 @@
 .vscode
-p-Pb/*.root
+code/*.root
 *.pcm
 *.d
 *.so
@@ -11,14 +11,14 @@ p-Pb/*.root
 *.zip
 
 old_stuff_for_reference/
-orphan_results/
+orphaned_results/
 *myAnalysis.C
 *myTask_merge.C
 *stderr
 *stdout
 
-# ignore all rootResults ... 
-**/1_Root_Results/*    
+# ignore all .root results ... 
+**/results/*    
 
 # except... backup current results
-!**/1_Root_Results/0_current_best/
+!**/results/0_current_best/
