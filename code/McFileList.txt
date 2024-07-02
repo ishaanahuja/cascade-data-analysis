@@ -1,0 +1,5 @@
+/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/DPMJET+IR_LHC17l7a2_cent/061023_MC_LHC17l7a_cent_updatedCutsTL_Draw.root
+/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/EPOS_General_LHC17f3a/021023_MC_LHC17f3a_updatedCutsTL_Draw_Final.root
+/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/LHC18f3b_cent_2/071023_MC_LHC18f3b_cent_2_updatedCutsTL_Draw.root
+/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/Om_LHC17e1a_cent/091023_MC_Om_LHC17e1a_updatedCutsTL_Draw.root
+/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/Xi_LHC17e1b_cent/051023_MC_Xi_LHC17e1b_updatedCutsTL_Draw.root
