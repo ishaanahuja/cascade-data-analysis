@@ -4,13 +4,14 @@ void RunAnalysisTask_StrangeCascadesRun2()
 {
     // set if you want to run the analysis locally (kTRUE), or on grid (kFALSE)
     Bool_t local = kFALSE;
+    // TString outputFilename = "testLocal.root";
     // if you run on grid, specify test mode (kTRUE) or full grid model (kFALSE)
     Bool_t gridTest = kFALSE;
     // Set Cache
     // if (local)
     //     TFile::SetCacheFileDir(gSystem->HomeDirectory(), 1, 1);
     // create the analysis manager
-    AliAnalysisManager *mgr = new AliAnalysisManager("AnalysisTaskExample");
+    AliAnalysisManager *mgr = new AliAnalysisManager("StrangeCascadesAnalysisTask");
     AliAODInputHandler *aodH = new AliAODInputHandler();
     mgr->SetInputEventHandler(aodH);
 
@@ -29,7 +30,8 @@ void RunAnalysisTask_StrangeCascadesRun2()
 
     gInterpreter->LoadMacro("AliAnalysisTaskStrangeCascadesRun2.cxx++g");
 
-    AliAnalysisTaskStrangeCascadesRun2 *task = reinterpret_cast<AliAnalysisTaskStrangeCascadesRun2 *>(gInterpreter->ExecuteMacro("AddMyTask.C"));
+    // AliAnalysisTaskStrangeCascadesRun2 *task = reinterpret_cast<AliAnalysisTaskStrangeCascadesRun2 *>(gInterpreter->ExecuteMacro(TString::Format("AddTaskStrangeCascadesRun2.C'(\"%s\")'", outputFilename.Data())));
+    AliAnalysisTaskStrangeCascadesRun2 *task = reinterpret_cast<AliAnalysisTaskStrangeCascadesRun2 *>(gInterpreter->ExecuteMacro("AddTaskStrangeCascadesRun2.C"));
 
     if (!mgr->InitAnalysis())
         return;
@@ -43,11 +45,11 @@ void RunAnalysisTask_StrangeCascadesRun2()
         TChain *chain = new TChain("aodTree");
         // add a few files to the chain (change this so that your local files are added)
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC15o_pass5/AliAOD.root");
-        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/LHC17e1b_cent/265594/AOD202/0004/AliAOD.root"); // MC
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/LHC17e1b_cent/265594/AOD202/0004/AliAOD.root"); // MC
         // chain->Add("/var/home/ishaan/alice/sim/2017/LHC17d14_cent/265596/AOD202/0001/AliAOD.root"); // MC
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/alice/sim/2017/LHC17f3a_cent_fix/265594/AOD202/0002/AliAOD.root"); // MC
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/LHC17d14_cent/265594/AOD202/0008/AliAOD.root"); // MC
-        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/pPbLHC16r/000265596/pass1_CENT_wSDD/AOD190/0001/AliAOD.root"); // good
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/pPbLHC16r/000265596/pass1_CENT_wSDD/AOD190/0001/AliAOD.root"); // good
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/pPbLHC16r/000265596/pass1_CENT_wSDD/AOD190/0035/AliAOD.root"); // good
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/pPbLHC16r/000266076/pass1_CENT_wSDD/AOD190/0060/AliAOD.root"); // pileup
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/pPbLHC16r/000266076/pass1_CENT_wSDD/AOD190/0246/AliAOD.root"); // pileup
@@ -72,18 +74,20 @@ void RunAnalysisTask_StrangeCascadesRun2()
 
         alienHandler->SetAPIVersion("V1.1x");
 
-        // alienHandler->SetGridDataDir("/alice/data/2011/LHC11h_2");
-        // alienHandler->SetGridDataDir("/alice/sim/2017/LHC17f3b_cent");          // MC
+        // alienHandler->SetGridDataDir("/alice/sim/2018/LHC18f3b_cent_2");          // MC
         // alienHandler->SetGridDataDir("/alice/sim/2017/LHC17e1a_cent");          // MC
-        alienHandler->SetGridDataDir("/alice/data/2016/LHC16r");                //Data
+        // alienHandler->SetGridDataDir("/alice/sim/2017/LHC17e1b_cent");          // MC
+        alienHandler->SetGridDataDir("/alice/sim/2017/LHC17l7a2_cent");          // MC  <<<<<<<<<<<<<< NEXT
+        // alienHandler->SetGridDataDir("/alice/sim/2017/LHC17f3a_cent_fix");          // MC 
+        // alienHandler->SetGridDataDir("/alice/data/2016/LHC16r");                //Data
 
         // alienHandler->SetDataPattern("*ESDs/pass2/AOD145/*AOD.root");
         // alienHandler->SetDataPattern("*pass3/AOD252/*AOD.root");
-        // alienHandler->SetDataPattern("*AOD202/*AliAOD.root");                      // MC
-        alienHandler->SetDataPattern("*pass2_CENT_wSDD/AOD244/*AliAOD.root");   //Data
+        alienHandler->SetDataPattern("*AOD202/*AliAOD.root");                      // MC
+        // alienHandler->SetDataPattern("*pass2_CENT_wSDD/AOD244/*AliAOD.root");   //Data
 
         // MC has no prefix, data has prefix 000
-        alienHandler->SetRunPrefix("000");                                      //Data
+        // alienHandler->SetRunPrefix("000");                                      //Data
         // runnumber
         /// 6 good runs:
         alienHandler->AddRunNumber(265594);
@@ -137,15 +141,16 @@ void RunAnalysisTask_StrangeCascadesRun2()
         alienHandler->SetKeepLogs(kTRUE);
 
         alienHandler->SetMaxMergeStages(1);
-        alienHandler->SetMergeViaJDL(kFALSE);
+        // alienHandler->SetMergeViaJDL(kTRUE); //
+        alienHandler->SetMergeViaJDL(kFALSE); //
 
         // define the output folders
         // alienHandler->SetGridWorkingDir("081023_MC_LHC17f3b_cent_updatedCutsTL_WD");
-        // alienHandler->SetGridWorkingDir("091023_MC_Om_LHC17e1a_updatedCutsTL_WD");
-        alienHandler->SetGridWorkingDir("250424_cutVarNew_6Runs_WD");
+        alienHandler->SetGridWorkingDir("100824_updatedCutVar_MC_LHC17l7a2cent_WD"); 
+        // alienHandler->SetGridWorkingDir("090824_updatedCutVar_MC_LHC17e1bcent_WD");
         // alienHandler->SetGridOutputDir("081023_MC_LHC17f3b_cent_updatedCutsTL_OD");
-        // alienHandler->SetGridOutputDir("091023_MC_Om_LHC17e1a_updatedCutsTL_OD");
-        alienHandler->SetGridOutputDir("250424_cutVarNew_6Runs_OD");
+        alienHandler->SetGridOutputDir("100824_updatedCutVar_MC_LHC17l7a2cent_OD");
+        // alienHandler->SetGridOutputDir("090824_updatedCutVar_MC_LHC17e1bcent_OD");
         // connect the alien plugin to the manager
         mgr->SetGridHandler(alienHandler);
         if (gridTest)
@@ -159,6 +164,7 @@ void RunAnalysisTask_StrangeCascadesRun2()
         else
         {
             // else launch the full grid analysis
+            // alienHandler->SetRunMode("full"); //
             alienHandler->SetRunMode("terminate"); //
             mgr->StartAnalysis("grid");
         }

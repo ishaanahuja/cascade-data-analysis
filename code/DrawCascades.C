@@ -9,9 +9,9 @@
 
 void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TString outputFolder, TString imageFormat);
 
-int DrawCascades(std::string inputFilename = "~/Work/git/analysis/code/test/FitRefactored.root", TString outputFilename = "~/Work/git/analysis/code/test/2DrawRefactored.root", TString outputFolder = "/var/home/ishaan/Work/git/analysis/code/test/images", TString ptRatioFilename = "~/Work/git/analysis/results/0_current_best/0_DG_sameMass_parLmt_110624/DG_sameMass_parLmt_170624_draw.root", Bool_t fisMC = kFALSE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png", Int_t verbosity = kInfo)
+int DrawCascades(TString inputFilename = "030924_fitUpdatedCuts_def.root", TString outputFilename = "030924_drawUpdatedCuts_def.root", TString outputFolder = "030924_imagesUpdatedCuts_def", TString ptRatioFilename = "~/Work/git/analysis/results/0_current_best/0_DG_sameMass_parLmt_110624/DG_sameMass_parLmt_170624_draw.root", Bool_t fisMC = kFALSE, Bool_t saveImages = kTRUE, Bool_t saveStack = kTRUE, TString imageFormat = "png", Int_t verbosity = kInfo)
 {
-    gPrintViaErrorHandler = kTRUE;
+    // gPrintViaErrorHandler = kTRUE;
     gErrorIgnoreLevel = verbosity;
 
     outputFolder = SetOutputFolder(outputFolder);
@@ -758,24 +758,24 @@ int DrawCascades(std::string inputFilename = "~/Work/git/analysis/code/test/FitR
         PaintStack(*c[3], *hs_ratio_omm, kFALSE, yAxisTitle);
         PaintStack(*c[4], *hs_ratio_xiC, kFALSE, yAxisTitle);
         PaintStack(*c[5], *hs_ratio_omC, kFALSE, yAxisTitle);
-        {
-            /// Draw a line at y=1 for ratio histStack
-            TLine *lLineAt1 = new TLine(0.8, 1, 5.3, 1);
-            lLineAt1->SetLineColor(kRed);
 
-            c[0]->cd();
-            lLineAt1->Draw("same");
-            c[1]->cd();
-            lLineAt1->Draw("same");
-            c[2]->cd();
-            lLineAt1->Draw("same");
-            c[3]->cd();
-            lLineAt1->Draw("same");
-            c[4]->cd();
-            lLineAt1->Draw("same");
-            c[5]->cd();
-            lLineAt1->Draw("same");
-        }
+        /// Draw a line at y=1 for ratio histStack
+        TLine *lLineAt1 = new TLine(0.8, 1, 5.3, 1);
+        lLineAt1->SetLineColor(kRed);
+
+        c[0]->cd();
+        lLineAt1->Draw("same");
+        c[1]->cd();
+        lLineAt1->Draw("same");
+        c[2]->cd();
+        lLineAt1->Draw("same");
+        c[3]->cd();
+        lLineAt1->Draw("same");
+        c[4]->cd();
+        lLineAt1->Draw("same");
+        c[5]->cd();
+        lLineAt1->Draw("same");
+
         // hs_ratio_xim->SetMinimum(0.7);
         // hs_ratio_xip->SetMinimum(0.7);
         // hs_ratio_xiC->SetMinimum(0.7);

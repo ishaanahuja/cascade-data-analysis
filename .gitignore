@@ -16,6 +16,7 @@ orphaned_results/
 *myTask_merge.C
 *stderr
 *stdout
+*valgrind*
 
 # ignore all .root results ... 
 **/results/*    

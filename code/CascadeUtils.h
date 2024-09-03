@@ -203,6 +203,69 @@ inline Double_t ErrorInRatio(Double_t A, Double_t Aerr, Double_t B, Double_t Ber
     return err;
 }
 
+/// @brief Override ROOT's TF1 print function - for clarity
+/// @details In case of printing function parameters, skips the list of saved points when using verbose ("V") option. See commented part below.
+/// @param option "V": prints TF1 GetParameters()
+void TF1::Print(Option_t *option) const
+{
+    if (fType == EFType::kFormula)
+    {
+        printf("Formula based function:     %s \n", GetName());
+        assert(fFormula);
+        fFormula->Print(option);
+    }
+    else if (fType > 0)
+    {
+        if (fType == EFType::kInterpreted)
+            printf("Interpreted based function: %s(double *x, double *p).  Ndim = %d, Npar = %d  \n", GetName(), GetNdim(),
+                   GetNpar());
+        else if (fType == EFType::kCompositionFcn)
+        {
+            printf("Composition based function: %s. Ndim = %d, Npar = %d \n", GetName(), GetNdim(), GetNpar());
+            if (!fComposition)
+                printf("fComposition not found!\n"); // this would be bad
+        }
+        else
+        {
+            if (fFunctor)
+                printf("Compiled based function: %s  based on a functor object.  Ndim = %d, Npar = %d\n", GetName(),
+                       GetNdim(), GetNpar());
+            else
+            {
+                printf("Function based on a list of points from a compiled based function: %s.  Ndim = %d, Npar = %d, Npx "
+                       "= %zu\n",
+                       GetName(), GetNdim(), GetNpar(), fSave.size());
+                if (fSave.empty())
+                    Warning("Print", "Function %s is based on a list of points but list is empty", GetName());
+            }
+        }
+        TString opt(option);
+        opt.ToUpper();
+        if (opt.Contains("V"))
+        {
+            // print list of parameters
+            if (fNpar > 0)
+            {
+                printf("List of  Parameters: \n");
+                for (int i = 0; i < fNpar; ++i)
+                    printf(" %20s =  %10f \n", GetParName(i), GetParameter(i));
+            }
+            //  if (!fSave.empty()) {                                               /// skip printing list of saved points: 1000 points flood the output!
+            //     // print list of saved points
+            //     printf("List of  Saved points (N=%d): \n", int(fSave.size()));
+            //     for (auto &x : fSave)
+            //        printf("( %10f )  ", x);
+            //     printf("\n");
+            //  }
+        }
+    }
+    if (fHistogram)
+    {
+        printf("Contained histogram\n");
+        fHistogram->Print(option);
+    }
+}
+
 /// Get avg mean and sigma from both gaussians - adapted for both gaussians with same mean
 inline void GetMeanSigmaDG(TF1 *f_doubleGaus, TFitResultPtr lFitResultPtr, Double_t &mean, Double_t &mean_err, Double_t &sigma, Double_t &sigma_err)
 {
@@ -234,7 +297,7 @@ inline void GetMeanSigmaDG(TF1 *f_doubleGaus, TFitResultPtr lFitResultPtr, Doubl
     mean_err = mu_wa_err;
     sigma = sigma_wa;
     sigma_err = sigma_wa_err;
-    Info("GetMeanSigmaDG", "Avg Fit Mass = %f +/- %f; Avg Fit Sigma = %f +/- %f", mean, mean_err, sigma, sigma_err);
+    Info("GetMeanSigmaDG", "%s: Avg Fit Mass = %.3f +/- %.3f; Avg Fit Sigma = %.3f +/- %.3f", f_doubleGaus->GetName(), mean, mean_err, sigma, sigma_err);
 }
 
 #endif // CASCADEUTILS_H

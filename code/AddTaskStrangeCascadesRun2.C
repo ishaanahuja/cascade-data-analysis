@@ -24,7 +24,7 @@ AliAnalysisTaskStrangeCascadesRun2 *AddTaskStrangeCascadesRun2(bool Xi = true, b
   // TString outputFileName = "test_local_newCutsMC.root";
   // TString outputFileName = "300923_6runs_updatedTL.root";
   // TString outputFileName = "081023_MC_LHC17f3b_cent_updatedCutsTL.root";
-  TString outputFileName = "230424_cutVarNew_6Runs.root";
+  TString outputFileName = "100824_updatedCutVar_MC_LHC17l7a2cent.root";
 
   outputFileName += ":Cascade_analysis";
   printf("Set OutputFileName : \n %s\n", outputFileName.Data());
