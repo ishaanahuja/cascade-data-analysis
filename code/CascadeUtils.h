@@ -297,7 +297,7 @@ inline void GetMeanSigmaDG(TF1 *f_doubleGaus, TFitResultPtr lFitResultPtr, Doubl
     mean_err = mu_wa_err;
     sigma = sigma_wa;
     sigma_err = sigma_wa_err;
-    Info("GetMeanSigmaDG", "%s: Avg Fit Mass = %.3f +/- %.3f; Avg Fit Sigma = %.3f +/- %.3f", f_doubleGaus->GetName(), mean, mean_err, sigma, sigma_err);
+    Info("GetMeanSigmaDG", "%s: Avg Fit Mass = %.3f +/- %f; Avg Fit Sigma = %f +/- %f", f_doubleGaus->GetName(), mean, mean_err, sigma, sigma_err);
 }
 
 #endif // CASCADEUTILS_H

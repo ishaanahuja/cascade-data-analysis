@@ -41,6 +41,10 @@ int FitCascades(TString inputFilename = "050824_updatedCutVar_6Runs.root", TStri
     TString fitOptSig = "NMSL+QIE MULTITHREAD";
     TString fitOptBg = "NSB+QLI MULTITHREAD";
 
+    ///special cases where ROOT hangs while fitting variations with option 'E'
+    if (h3Name.EqualTo("h3Var_DcaV0Daughters[6][8]")) 
+        fitOptSig = "NMSL+QI MULTITHREAD";
+
     TFitter::SetMaxIterations(100000);
     TVirtualFitter::SetMaxIterations(100000);
     TFitter::SetPrecision(1E-2);
@@ -1132,7 +1136,7 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
         }
     }
 
-    Info("FitResults", "%s: Done. Adding peakFunc to hist list", peak->GetName());
+    Info("FitResults", "%s: Signal fit done. Adding peakFunc '%s' to hist list", peak->GetName(), peakFnc->GetName());
 
     peak->GetListOfFunctions()->Add(peakFnc);
 
@@ -1261,7 +1265,7 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
         }
         bgFnc->FixParameter(5, 0); // reject = off (set 1 or 0)
 
-        Info("FitResults", "%s: Done. Adding bg func '%s' to hist list", peak->GetName(), bgFnc->GetName());
+        Info("FitResults", "%s: Background fit done. Adding bg func '%s' to hist list", peak->GetName(), bgFnc->GetName());
 
         // add fit and background function to histogram so it is automatically drawn
         // with hist
