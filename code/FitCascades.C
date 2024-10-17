@@ -10,6 +10,10 @@
 
 #include "CascadeUtils.h"
 
+Double_t nSigma = 10.;
+Double_t sigmaXi = 0.0018;
+Double_t sigmaOm = 0.0020;
+
 TH1 *GenerateBg(bool bgTSpectrum, TH1 *h_source);
 TF1 *SetFitParametersGaus(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious);
 TF1 *SetFitParametersDG(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious);
@@ -18,14 +22,13 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
 
 TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC, bool isGausPol2);
 
-void GetYieldBinCounting(TH1 *h_bg, TH1 *h, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, bool fisMC, Double_t &val,
-                         Double_t &err, Double_t eps = 1e-2);
+void GetYieldBinCounting(TH1 *h_bg, TH1 *h, TFitResultPtr fFitResult_bg, Double_t minInt, Double_t maxInt, bool fisMC, Double_t &val,
+                         Double_t &err, Double_t &bgVal, Double_t &bgErr, Double_t eps = 1e-2);
 
 void GetYieldFitFunction(TH1 *h, TFitResultPtr fFitResult_sig, TFitResultPtr fFitResult_bg, Double_t minInt, Double_t maxInt, bool fisMC, Double_t &val,
                          Double_t &err, Double_t eps = 1e-2);
 
-
-int FitCascades(TString inputFilename = "050824_updatedCutVar_6Runs.root", TString outputFilename = "030924_fitUpdatedCuts_def.root", TString h3Name = "h3_ptmasscent_def", TString idAxis = "ye", bool fisMC = false, Int_t fitFunction = 2, bool xi = true, bool om = true, Int_t verbosity = kWarning)
+int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.root", TString outputFilename = "190924_fitUpdatedCuts_LHC18f3bcent2_new.root", TString h3Name = "h3_ptmasscent_def", bool fisMC = false, TString idAxis = "ye", Int_t fitFunction = 2, bool xi = true, bool om = true, Int_t verbosity = kInfo)
 {
     ROOT::EnableImplicitMT();
     ROOT::Math::IntegratorOneDimOptions::SetDefaultIntegrator("Adaptive");
@@ -38,12 +41,12 @@ int FitCascades(TString inputFilename = "050824_updatedCutVar_6Runs.root", TStri
     ROOT::Math::MinimizerOptions::SetDefaultPrintLevel(0); // Fit printing: -1 = no printing, 0 (minimal) to 3 (max)
     gStyle->SetOptFit(1111);
 
-    TString fitOptSig = "NMSL+QIE MULTITHREAD";
+    TString fitOptSig = "NSLM+QIE MULTITHREAD";
     TString fitOptBg = "NSB+QLI MULTITHREAD";
 
-    ///special cases where ROOT hangs while fitting variations with option 'E'
-    if (h3Name.EqualTo("h3Var_DcaV0Daughters[6][8]")) 
-        fitOptSig = "NMSL+QI MULTITHREAD";
+    /// special cases where ROOT hangs while fitting variations with option 'E'
+    if (h3Name.EqualTo("h3Var_DcaV0Daughters[6][8]"))
+        fitOptSig = "NSLM+QI MULTITHREAD";
 
     TFitter::SetMaxIterations(100000);
     TVirtualFitter::SetMaxIterations(100000);
@@ -148,16 +151,16 @@ int FitCascades(TString inputFilename = "050824_updatedCutVar_6Runs.root", TStri
 
     delete inputFile;
 
-    // if (MCGenXip && MCGenXim)
-    // {
-    //     MCGenXiC = (TH2D *)MCGenXip->Clone();
-    //     MCGenXiC->Add(MCGenXim);
-    // }
-    // if (MCGenOmp && MCGenOmm)
-    // {
-    //     MCGenOmC = (TH2D *)MCGenOmp->Clone();
-    //     MCGenOmC->Add(MCGenOmm);
-    // }
+    if (MCGenXip && MCGenXim)
+    {
+        MCGenXiC = (TH2D *)MCGenXip->Clone();
+        MCGenXiC->Add(MCGenXim);
+    }
+    if (MCGenOmp && MCGenOmm)
+    {
+        MCGenOmC = (TH2D *)MCGenOmp->Clone();
+        MCGenOmC->Add(MCGenOmm);
+    }
 
     Int_t binsMC[4] = {0};
 
@@ -192,10 +195,6 @@ int FitCascades(TString inputFilename = "050824_updatedCutVar_6Runs.root", TStri
     }
 
     /// BEGIN:
-
-    Double_t nSigma = 10.;
-    Double_t sigmaXi = 0.0018;
-    Double_t sigmaOm = 0.0020;
 
     // Double_t sigma = 0.0025;
     // Double_t sigmaXi = 0.001875;
@@ -522,9 +521,9 @@ int FitCascades(TString inputFilename = "050824_updatedCutVar_6Runs.root", TStri
 
                     // if (ptBinXi == 0)
                     // {
-                    f_Sig_Xip_pt_mult[ptBinXi][multBinXi] = SetFitParametersDG(f_Sig_Xip_pt_mult[ptBinXi][multBinXi], f_Sig_Xip_pt[ptBinXi]->GetParameters(), h_MassXip_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXip_pt[ptBinXi]->GetBinContent(4), kTRUE); // ptBin needs to be >1 in this case to ensure correct flow in SetFitParametersDG to not reset fn params
-                    f_Sig_Xim_pt_mult[ptBinXi][multBinXi] = SetFitParametersDG(f_Sig_Xim_pt_mult[ptBinXi][multBinXi], f_Sig_Xim_pt[ptBinXi]->GetParameters(), h_MassXim_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXim_pt[ptBinXi]->GetBinContent(4), kTRUE);
-                    f_Sig_XiC_pt_mult[ptBinXi][multBinXi] = SetFitParametersDG(f_Sig_XiC_pt_mult[ptBinXi][multBinXi], f_Sig_XiC_pt[ptBinXi]->GetParameters(), h_MassXiC_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXiC_pt[ptBinXi]->GetBinContent(4), kTRUE);
+                    f_Sig_Xip_pt_mult[ptBinXi][multBinXi] = SetFitParametersDG(f_Sig_Xip_pt_mult[ptBinXi][multBinXi], f_Sig_Xip_pt[ptBinXi]->GetParameters(), h_MassXip_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXip_pt[ptBinXi]->GetBinContent(5), kTRUE); // ptBin needs to be >1 in this case to ensure correct flow in SetFitParametersDG to not reset fn params
+                    f_Sig_Xim_pt_mult[ptBinXi][multBinXi] = SetFitParametersDG(f_Sig_Xim_pt_mult[ptBinXi][multBinXi], f_Sig_Xim_pt[ptBinXi]->GetParameters(), h_MassXim_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXim_pt[ptBinXi]->GetBinContent(5), kTRUE);
+                    f_Sig_XiC_pt_mult[ptBinXi][multBinXi] = SetFitParametersDG(f_Sig_XiC_pt_mult[ptBinXi][multBinXi], f_Sig_XiC_pt[ptBinXi]->GetParameters(), h_MassXiC_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXiC_pt[ptBinXi]->GetBinContent(5), kTRUE);
                     // }
                     // else
                     // {
@@ -799,9 +798,9 @@ int FitCascades(TString inputFilename = "050824_updatedCutVar_6Runs.root", TStri
                     f_Sig_OmC_pt_mult[ptBinOm][multBinOm]->SetNpx(1000);
                     // if (ptBinOm == 0)
                     // {
-                    f_Sig_Omp_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_Omp_pt_mult[ptBinOm][multBinOm], f_Sig_Omp_pt[ptBinOm]->GetParameters(), h_MassOmp_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmp_pt[ptBinOm]->GetBinContent(4), kTRUE);
-                    f_Sig_Omm_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_Omm_pt_mult[ptBinOm][multBinOm], f_Sig_Omm_pt[ptBinOm]->GetParameters(), h_MassOmm_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmm_pt[ptBinOm]->GetBinContent(4), kTRUE);
-                    f_Sig_OmC_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_OmC_pt_mult[ptBinOm][multBinOm], f_Sig_OmC_pt[ptBinOm]->GetParameters(), h_MassOmC_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmC_pt[ptBinOm]->GetBinContent(4), kTRUE);
+                    f_Sig_Omp_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_Omp_pt_mult[ptBinOm][multBinOm], f_Sig_Omp_pt[ptBinOm]->GetParameters(), h_MassOmp_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmp_pt[ptBinOm]->GetBinContent(5), kTRUE);
+                    f_Sig_Omm_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_Omm_pt_mult[ptBinOm][multBinOm], f_Sig_Omm_pt[ptBinOm]->GetParameters(), h_MassOmm_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmm_pt[ptBinOm]->GetBinContent(5), kTRUE);
+                    f_Sig_OmC_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_OmC_pt_mult[ptBinOm][multBinOm], f_Sig_OmC_pt[ptBinOm]->GetParameters(), h_MassOmC_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmC_pt[ptBinOm]->GetBinContent(5), kTRUE);
                     // }
                     // else
                     // {
@@ -1000,15 +999,14 @@ TF1 *SetFitParametersDG(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *pea
 
     // TF1 *bgFnc = new TF1("bgFnc_Pol2", Pol2Exclude, mass - 15 * sigma, mass + 15 * sigma, 6);
     bgFnc->SetParNames("p[0]", "p[1]", "p[2]", "initMass", "initFourSigma", "rejectBgFlag");
-    bgFnc->SetParameter(2, peak->GetMaximum() * 0.05); 
-    bgFnc->FixParameter(3, mass);                      // "mass = mean of fit"
-    bgFnc->FixParameter(4, (4 * sigma));               // "4*sigma"
+    bgFnc->SetParameter(2, peak->GetMaximum() * 0.05);
+    bgFnc->FixParameter(3, mass);        // "mass = mean of fit"
+    bgFnc->FixParameter(4, (4 * sigma)); // "4*sigma"
 
     bgFnc->FixParameter(5, 1); // "reject" (set 1 or 0)
 
     for (int iFitBg = 0; iFitBg < 3; iFitBg++)
         peak->Fit(bgFnc, optBg.Data(), "", peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)));
-
 
     bgFnc->FixParameter(5, 0); // reject = off (set 1 or 0)
 
@@ -1062,6 +1060,12 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
 {
     TH1 *resultParams;
 
+    if (peak->GetEntries() < 90)
+    {
+        Warning("FitResults", "Low statistics ! '%s' entries : %.1f, will try to fit with option 'LL' instead of 'L' ... ", peak->GetName(), peak->GetEntries());
+        fitOptSig = "NSLLM+QIE MULTITHREAD";
+    }
+
     // if (!peakFnc)
     // {
     //     Error("FitResults", "Cannot fit: function is null, check histogram statistics! '%s' entries : %f", peak->GetName(), peak->GetEntries());
@@ -1071,7 +1075,8 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
 
     Double_t peakFitMass = 0.;
     Double_t peakFitSigma = 0.;
-    Double_t peakFitMass_err, peakFitSigma_err = 0.;
+    Double_t peakFitMass_err = 0.;
+    Double_t peakFitSigma_err = 0.;
 
     Double_t bgReject = 0.;
 
@@ -1116,8 +1121,25 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
 
                     if (!fFitResult->IsValid())
                     {
-                        Error("FitResults", "\e[1;31m%s\e[0m: Peak fit STILL \e[1;31mNOT\e[0m converged. Fit status: %d, Fit Options: '%s'. Avg mass = %.3f+/-%.3f, sigma = %.3f+/-%.3f. \e[1;31mGiving up\e[0m ...", peak->GetName(), fFitResult->Status(), fitOptSig.Data(), peakFitMass, peakFitMass_err, peakFitSigma, peakFitSigma_err);
-                        peakFnc->Print("V");
+
+                        if (fitOptSig.Contains("M+"))
+                        {
+                            Error("FitResults", "%s: Peak fit STILL not converged. Fit status: %d, Fit Options: '%s'. Trying again a non-quiet fit without option \"M\" : ", peak->GetName(), fFitResult->Status(), fitOptSig.Data());
+                            fitOptSig.ReplaceAll("M+", "+");
+                            fFitResult = peak->Fit(peakFnc, fitOptSig.Data(), "", fitMinSig, fitMaxSig);
+
+                            if (!fFitResult->IsValid())
+                            {
+                                Error("FitResults", "\e[1;31m%s\e[0m: Peak fit STILL \e[1;31mNOT\e[0m converged. Fit status: %d, Fit Options: '%s'. Avg mass = %.3f+/-%.3f, sigma = %.3f+/-%.3f. \e[1;31mGiving up\e[0m ...", peak->GetName(), fFitResult->Status(), fitOptSig.Data(), peakFitMass, peakFitMass_err, peakFitSigma, peakFitSigma_err);
+                                peakFnc->Print("V");
+                            }
+                        }
+
+                        else
+                        {
+                            Error("FitResults", "\e[1;31m%s\e[0m: Peak fit STILL \e[1;31mNOT\e[0m converged. Fit status: %d, Fit Options: '%s'. Avg mass = %.3f+/-%.3f, sigma = %.3f+/-%.3f. \e[1;31mGiving up\e[0m ...", peak->GetName(), fFitResult->Status(), fitOptSig.Data(), peakFitMass, peakFitMass_err, peakFitSigma, peakFitSigma_err);
+                            peakFnc->Print("V");
+                        }
                     }
                 }
 
@@ -1150,16 +1172,15 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
     else
         GetMeanSigmaDG(peakFnc, fFitResult, peakFitMass, peakFitMass_err, peakFitSigma, peakFitSigma_err);
 
-    Double_t bgFitMin = peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.));
-    Double_t bgFitMax = peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.));
-    // Double_t bgFitMin = peakFitMass - 15 * peakFitSigma; // Mean - 15*sigma (approx.)
-    // Double_t bgFitMax = peakFitMass + 15 * peakFitSigma; // Mean + 15*sigma (approx.)
-    bgReject = 4 * peakFitSigma; // 4*sigma region to be excluded from bg fit
-
     TFitResultPtr fFitResult_bg;
-
     if (!fisMC)
     {
+        Double_t bgFitMin = peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.));
+        Double_t bgFitMax = peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.));
+        // Double_t bgFitMin = peakFitMass - 15 * peakFitSigma; // Mean - 15*sigma (approx.)
+        // Double_t bgFitMax = peakFitMass + 15 * peakFitSigma; // Mean + 15*sigma (approx.)
+        bgReject = 4 * peakFitSigma; // 4*sigma region to be excluded from bg fit
+
         TString bgFncName = peakFnc->GetName();
         bgFncName.ReplaceAll("GausPol2", "_bgPol2Exclude");
 
@@ -1273,9 +1294,33 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
     }
 
     /// getting min/max for deciding signal's fit range for integral calculation
-    Double_t minInt = peakFitMass - bgReject; /// mean - 4*sigma
-    Double_t maxInt = peakFitMass + bgReject; /// mean + 4*sigma
-    Info("FitResults", "%s: Fitting successful! Peak region = [%f, %f]. Filling parameters ...", peak->GetName(), minInt, maxInt);
+    Double_t minInt, maxInt;
+    if (fisMC && (peak->GetEntries() < 50) && !fFitResult->IsValid())
+    {
+        TString histname = peak->GetName();
+        /// special case for MCs with very low stats where fit cannot be done.
+        /// set integration region by approximating sigma to  default values:
+        if (histname.Contains("Xi"))
+        {
+            minInt = fMass_Xi - (4 * sigmaXi); /// mean - 4*sigma
+            maxInt = fMass_Xi + (4 * sigmaXi); /// mean + 4*sigma
+        }
+        else
+        {
+            minInt = fMass_Om - (4 * sigmaOm); /// mean - 4*sigma
+            maxInt = fMass_Om + (4 * sigmaOm); /// mean + 4*sigma
+        }
+
+        // minInt = peakFitMass - (4 * ((peakFitMass - fitMinSig) / nSigma)); /// mean - 4*sigma
+        // maxInt = peakFitMass + (4 * ((fitMaxSig - peakFitMass) / nSigma)); /// mean + 4*sigma
+        Warning("FitResults", "%s: Fitting unsuccessful! Approximated peak region = [%f, %f]. Filling parameters ...", peak->GetName(), minInt, maxInt);
+    }
+    else
+    {
+        minInt = peakFitMass - (4 * peakFitSigma); /// mean - 4*sigma
+        maxInt = peakFitMass + (4 * peakFitSigma); /// mean + 4*sigma
+        Info("FitResults", "%s: Fitting successful! Peak region = [%f, %f]. Filling parameters ...", peak->GetName(), minInt, maxInt);
+    }
 
     resultParams = FillParams(h_bg, fFitResult_bg, peakFnc, peak, fFitResult, minInt, maxInt, MCgen, binsMC, fisMC, isGausPol2);
     peak->SetOption("X0E1");
@@ -1290,9 +1335,20 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
 
 TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC, bool isGausPol2)
 {
-    Double_t val, err, gen, genErr;
-    Double_t val_intBC, err_intBC, val_intFF, err_intFF, eff, effErr;
-    Double_t peakFitMass, peakFitSigma, peakFitMass_err, peakFitSigma_err = 0.;
+    Double_t val = 0.;
+    Double_t err = 0.;
+    Double_t bgVal = 0.;
+    Double_t bgErr = 0.;
+    Double_t gen = 0.;
+    Double_t genErr = 0.;
+    Double_t eff = 0.;
+    Double_t effErr = 0.;
+    Double_t peakFitMass = 0.;
+    Double_t peakFitSigma = 0.;
+    Double_t peakFitMass_err = 0.;
+    Double_t peakFitSigma_err = 0.;
+    Double_t val_intBC, err_intBC, val_intFF, err_intFF;
+
     if (isGausPol2)
     {
         peakFitMass = sigBgFnc->GetParameter(1); // getting peak (mass) from peakFnc to be used for excluding bg
@@ -1304,7 +1360,7 @@ TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak
         GetMeanSigmaDG(sigBgFnc, fFitResult, peakFitMass, peakFitMass_err, peakFitSigma, peakFitSigma_err);
 
     Int_t nPar = sigBgFnc->GetNpar();
-    const Int_t nBins = 10 + nPar;
+    const Int_t nBins = 11 + nPar;
     Double_t par[nPar];
     Double_t parErr[nPar];
     sigBgFnc->GetParameters(par);
@@ -1316,7 +1372,7 @@ TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak
     TH1 *resultParams = new TH1D("resultParams", peak->GetTitle(), nBins, 0, nBins);
     Int_t iBin = 1;
 
-    GetYieldBinCounting(h_bg, peak, fFitResult_bg, minInt, maxInt, fisMC, val, err);
+    GetYieldBinCounting(h_bg, peak, fFitResult_bg, minInt, maxInt, fisMC, val, err, bgVal, bgErr);
     val_intBC = val;
     err_intBC = err;
     if (TMath::IsNaN(val_intBC) || TMath::IsNaN(err_intBC))
@@ -1326,9 +1382,19 @@ TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak
         return nullptr;
     }
 
+    if (val_intBC == 0.0)
+    {
+        Error("FillParams", "%s: IntBC = %.1f!", peak->GetName(), val_intBC);
+    }
+
     resultParams->SetBinContent(iBin, val_intBC);
     resultParams->SetBinError(iBin, err_intBC);
     resultParams->GetXaxis()->SetBinLabel(iBin, "IntBC");
+    iBin++;
+
+    resultParams->SetBinContent(iBin, bgVal);
+    resultParams->SetBinError(iBin, bgErr);
+    resultParams->GetXaxis()->SetBinLabel(iBin, "IntBg");
     iBin++;
 
     val = 0;
@@ -1368,18 +1434,20 @@ TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak
         iBin++;
         Info("FillParams: fisMC", "%s: IntGen = %f +/- %f", peak->GetName(), gen, genErr);
 
-        if (gen != 0 && genErr != 0)
+        if (val_intBC != 0 && gen != 0 && genErr != 0)
         {
             eff = val_intBC / gen;
             // effErr = err_intBC / genErr; /// ask if it should be computed like this?
 
             effErr = ErrorInRatio(val_intBC, err_intBC, gen, genErr);
-            Info("FillParams: fisMC", "%s: Efficiency = %f; Error = %f", peak->GetName(), eff, effErr);
+            Info("FillParams: fisMC", "%s: Efficiency = %f +/- %f", peak->GetName(), eff, effErr);
             resultParams->SetBinContent(iBin, eff);
             resultParams->SetBinError(iBin, effErr);
             resultParams->GetXaxis()->SetBinLabel(iBin, "Efficiency");
             iBin++;
         }
+        else
+            Error("FillParams: fisMC", "%s: Zero value(s): Cannot calculate efficiency! IntBC = %f, IntGen = %f +/- %f", peak->GetName(), val_intBC, gen, genErr);
     }
 
     resultParams->SetBinContent(iBin, GetChi2(fFitResult));
@@ -1419,11 +1487,19 @@ TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak
 }
 
 void GetYieldBinCounting(TH1 *h_bg, TH1 *h, TFitResultPtr fFitResult_bg, Double_t minInt, Double_t maxInt, bool fisMC, Double_t &val,
-                         Double_t &err, Double_t eps)
+                         Double_t &err, Double_t &bgVal, Double_t &bgErr, Double_t eps)
 {
 
+    val = 0.;
+    err = 0.;
+    bgVal = 0.;
+    bgErr = 0.;
+
     if (!h)
+    {
+        Error("GetYieldBinCounting", "Histogram is NULL! Cannot calculate IntBC!");
         return;
+    }
 
     Int_t bin_minSig = h->GetXaxis()->FindBin(minInt);
     Int_t bin_maxSig = h->GetXaxis()->FindBin(maxInt);
@@ -1435,15 +1511,14 @@ void GetYieldBinCounting(TH1 *h_bg, TH1 *h, TFitResultPtr fFitResult_bg, Double_
 
     // if (h->GetEntries() > 50)
     // {
-        val = h->IntegralAndError(bin_minSig, bin_maxSig, err);
+    val = h->IntegralAndError(bin_minSig, bin_maxSig, err);
     // }
     // else
-        // Error("GetYieldBinCounting", "Unable to calculate signal IntBC because of low statistics! '%s' entries : %f ", h->GetName(), h->GetEntries());
+    // Error("GetYieldBinCounting", "Unable to calculate signal IntBC because of low statistics! '%s' entries : %f ", h->GetName(), h->GetEntries());
 
     if (!fisMC)
     {
-        Double_t bgVal = 0;
-        Double_t bgErr = 0;
+
         if (h_bg == nullptr)
         {
             TF1 *bgFnc = (TF1 *)h->GetListOfFunctions()->At(1);
@@ -1461,15 +1536,15 @@ void GetYieldBinCounting(TH1 *h_bg, TH1 *h, TFitResultPtr fFitResult_bg, Double_
 
             // if (h->GetEntries() > 50)
             // {
-                bgVal = bgFnc->Integral(fnIntMin, fnIntMax, eps);
-                // bgErr = bgFnc->IntegralError(fnIntMin, fnIntMax, bgFncPar, covMatrixSub_bg.GetMatrixArray(), eps);
-                bgErr = bgFnc->IntegralError(fnIntMin, fnIntMax, bgFnc->GetParameters(), fFitResult_bg->GetCovarianceMatrix().GetMatrixArray(), eps);
+            bgVal = bgFnc->Integral(fnIntMin, fnIntMax, eps);
+            // bgErr = bgFnc->IntegralError(fnIntMin, fnIntMax, bgFncPar, covMatrixSub_bg.GetMatrixArray(), eps);
+            bgErr = bgFnc->IntegralError(fnIntMin, fnIntMax, bgFnc->GetParameters(), fFitResult_bg->GetCovarianceMatrix().GetMatrixArray(), eps);
 
-                bgVal /= histWidth;
-                bgErr /= histWidth;
+            bgVal /= histWidth;
+            bgErr /= histWidth;
             // }
             // else
-                // Error("GetYieldBinCounting", "Unable to calculate bg integral because of low statistics! '%s' entries : %f ", h->GetName(), h->GetEntries());
+            // Error("GetYieldBinCounting", "Unable to calculate bg integral because of low statistics! '%s' entries : %f ", h->GetName(), h->GetEntries());
 
             if (!(bgVal && bgErr && val && err))
                 Error("GetYieldBinCounting", "IntBC: %s: [%.2f, %.2f], bins:[%d, %d]: bg(%s) = %.3f +/- %.3f, sig(%s) = %.3f +/- %.3f", h->GetName(), fnIntMin, fnIntMax, bin_minSig, bin_maxSig, bgFnc->GetName(), bgVal, bgErr, h->GetListOfFunctions()->At(0)->GetName(), val, err);
@@ -1495,6 +1570,8 @@ void GetYieldBinCounting(TH1 *h_bg, TH1 *h, TFitResultPtr fFitResult_bg, Double_
         val -= bgVal;
         err = TMath::Sqrt(TMath::Power(err, 2) + TMath::Power(bgErr, 2));
     }
+    else
+        Info("GetYieldBinCounting", "IntBC: %s: [%.2f, %.2f], bins:[%d, %d]: sig(%s) = %.3f +/- %.3f", h->GetName(), fnIntMin, fnIntMax, bin_minSig, bin_maxSig, h->GetListOfFunctions()->At(0)->GetName(), val, err);
 }
 
 void GetYieldFitFunction(TH1 *h, TFitResultPtr fFitResult_sig, TFitResultPtr fFitResult_bg, Double_t minInt, Double_t maxInt, bool fisMC, Double_t &val,
@@ -1502,8 +1579,16 @@ void GetYieldFitFunction(TH1 *h, TFitResultPtr fFitResult_sig, TFitResultPtr fFi
 {
 
     if (!h)
+    {
+        Error("GetYieldFitFunction", "Histogram is NULL! Cannot calculate IntFF.");
         return;
+    }
 
+    if (!fFitResult_sig->IsValid())
+    {
+        Error("GetYieldFitFunction", "%s: Fit result invalid: %d. Skipping FF integral ...", h->GetName(), fFitResult_sig->Status());
+        return;
+    }
     // if (h->GetEntries() < 100)
     //     return;
 

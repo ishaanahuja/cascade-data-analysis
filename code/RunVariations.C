@@ -4,7 +4,7 @@
 
 #include "CascadeUtils.h"
 
-int RunVariations(TString inputFilename = "050824_updatedCutVar_6Runs.root", TString outputFilePrefix = "140824", Bool_t fisMC = kFALSE, Int_t verbosity = kInfo)
+int RunVariations(TString inputFilename = "050824_updatedCutVar_6Runs.root", TString outputFolder = "230924_results_6Runs", TString outputFilePrefix = "230924_6Runs", bool fisMC = false, Int_t verbosity = kInfo)
 {
 
   ROOT::EnableImplicitMT();
@@ -17,24 +17,31 @@ int RunVariations(TString inputFilename = "050824_updatedCutVar_6Runs.root", TSt
   TString histSuffix = "";
   Int_t errorCode = 0;
   TString outputFileName;
+  outputFolder = SetOutputFolder(outputFolder);
 
   Int_t iRun = 0;
+
   /// Begin input
   TH1::AddDirectory(0);
   TFile *inputFile = OpenFile(inputFilename);
-
   THashList *list_Omp = (THashList *)inputFile->FindObjectAny("chists_Omp_");
+  inputFile->Close();
+  delete inputFile;
+
   Int_t nVar = list_Omp->GetEntries();
   Info("RunVariations_chists_Omp_", "Max TH3 histograms per particle = \e[1;32m%d\e[0m", nVar);
   Double_t execTime[nVar][2];
 
   /// DEFAULT:
 
-  Info("RunVariations_\e[1;32mDEFAULT\e[0m", "Starting analysis with default cuts - \e[1;32m%s\e[0m", histName.Data());
+  if (fisMC)
+    Info("RunVariations_\e[1;32mDEFAULT\e[0m", "Starting MC analysis with default cuts - \e[1;32m%s\e[0m", histName.Data());
+  else
+    Info("RunVariations_\e[1;32mDEFAULT\e[0m", "Starting analysis with default cuts - \e[1;32m%s\e[0m", histName.Data());
 
-  outputFileName = outputFilePrefix + "_" + histName + ".root";
+  outputFileName = outputFolder + "/" + outputFilePrefix + "_" + histName + ".root";
   macroTimer.Start();
-  gROOT->Macro(TString::Format("FitCascades.C+O(\"%s\", \"%s\", \"%s\")", inputFilename.Data(), outputFileName.Data(), histName.Data()), &errorCode);
+  gROOT->Macro(TString::Format("FitCascades.C+O(\"%s\", \"%s\", \"%s\", %d)", inputFilename.Data(), outputFileName.Data(), histName.Data(), fisMC), &errorCode);
   macroTimer.Stop();
   Printf("TIMER: <RUN_DEFAULT> Real =%7.3fs, CPU =%7.3fs", macroTimer.RealTime(), macroTimer.CpuTime());
   if (!errorCode)
@@ -60,10 +67,10 @@ int RunVariations(TString inputFilename = "050824_updatedCutVar_6Runs.root", TSt
       histSuffix.ReplaceAll("[", "_");
       histSuffix.ReplaceAll("]", "");
 
-      outputFileName = outputFilePrefix + "_" + histSuffix + ".root";
+      outputFileName = outputFolder + "/" + outputFilePrefix + "_" + histSuffix + ".root";
 
       macroTimer.Start();
-      gROOT->Macro(TString::Format("FitCascades.C+O(\"%s\", \"%s\", \"%s\")", inputFilename.Data(), outputFileName.Data(), histName.Data()), &errorCode);
+      gROOT->Macro(TString::Format("FitCascades.C+O(\"%s\", \"%s\", \"%s\", %d)", inputFilename.Data(), outputFileName.Data(), histName.Data(), fisMC), &errorCode);
       macroTimer.Stop();
       Printf("TIMER: <RUN_%d> Real =%7.3fs, CPU =%7.3fs", iRun, macroTimer.RealTime(), macroTimer.CpuTime());
 
@@ -86,5 +93,6 @@ int RunVariations(TString inputFilename = "050824_updatedCutVar_6Runs.root", TSt
     Printf("    <Run_%d>                        %7.3f                           %7.3f", iTime, execTime[iTime][0], execTime[iTime][1]);
   Printf("    <Total>                        %7.3f                          %7.3f", totalTimer.RealTime(), totalTimer.CpuTime());
 
+  delete list_Omp;
   return 0;
 }
