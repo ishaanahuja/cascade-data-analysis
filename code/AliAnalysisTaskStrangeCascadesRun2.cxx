@@ -19,7 +19,7 @@ class AliAODcascade;
 #include "AliAODEvent.h"
 #include "AliAODTrack.h"
 #include "AliAODVertex.h"
-#include "AliPID.h"
+// #include "AliPID.h"
 #include "AliInputEventHandler.h"
 #include "AliAnalysisManager.h"
 #include "AliMultSelection.h"
@@ -30,7 +30,7 @@ class AliAODcascade;
 #include "AliAnalysisTaskESDfilter.h"
 #include "AliAnalysisUtils.h"
 #include "AliAODMCHeader.h"
-#include "AliEventCuts.h"
+// #include "AliEventCuts.h"
 #include "AliESDtrackCuts.h"
 #include "TError.h"
 
@@ -41,182 +41,182 @@ class AliAODcascade;
 ClassImp(AliAnalysisTaskStrangeCascadesRun2)
 
     AliAnalysisTaskStrangeCascadesRun2::AliAnalysisTaskStrangeCascadesRun2() : AliAnalysisTaskSE(),
-                                                                 /// outputs
-                                                                 fHistos_eve(nullptr),
-                                                                 fHistos_XiMin(nullptr),
-                                                                 fHistos_XiPlu(nullptr),
-                                                                 fHistos_OmMin(nullptr),
-                                                                 fHistos_OmPlu(nullptr),
-                                                                 /// objects from the manager
-                                                                 fPIDResponse(0),
-                                                                 fTriggerMask(0),
+                                                                               /// outputs
+                                                                               fHistos_eve(nullptr),
+                                                                               fHistos_XiMin(nullptr),
+                                                                               fHistos_XiPlu(nullptr),
+                                                                               fHistos_OmMin(nullptr),
+                                                                               fHistos_OmPlu(nullptr),
+                                                                               /// objects from the manager
+                                                                               fPIDResponse(0),
+                                                                               fTriggerMask(0),
 
-                                                                 // AliEventCuts object
-                                                                 fEventCuts(0),
-                                                                 // pile-up rejection flag
-                                                                 fPileupCut(0),
+                                                                               // AliEventCuts object
+                                                                               fEventCuts(0),
+                                                                               // pile-up rejection flag
+                                                                               fPileupCut(0),
 
-                                                                 // MC-related variables
-                                                                 fisMC(kFALSE),
-                                                                 fisMCassoc(kFALSE),
+                                                                               // MC-related variables
+                                                                               fisMC(kFALSE),
+                                                                               fisMCassoc(kFALSE),
 
-                                                                 /// default cuts configuration
-                                                                 fDefOnly(kFALSE),
-                                                                 //  fCasc_Cuts{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                                 /// particle to be analysed
-                                                                 fParticleAnalysisStatus{true, true, true, true},
-                                                                 // geometrical cut usage
-                                                                 fESDTrackCuts(0),
-                                                                 /// variables for Cascade analysis
-                                                                 fCasc_DcaCascDaught(0),
-                                                                 fCasc_CascCosPA(0),
-                                                                 fCasc_CascRad(0),
-                                                                 fCasc_etaPos(0),
-                                                                 fCasc_etaNeg(0),
-                                                                 fCasc_etaBac(0),
-                                                                 fCasc_kinkidx(0),
-                                                                 fCasc_NSigPosProton(0),
-                                                                 fCasc_NSigPosPion(0),
-                                                                 fCasc_NSigNegProton(0),
-                                                                 fCasc_NSigNegPion(0),
-                                                                 fCasc_NSigBacPion(0),
-                                                                 fCasc_NSigBacKaon(0),
-                                                                 fCasc_LeastCRows(0),
-                                                                 fCasc_LeastCRowsOvF(0),
-                                                                 fCasc_LeastTPCcls(0),
-                                                                 fCasc_TrackLengthCut(0),
-                                                                 fCasc_MaxChi2perCls(0),
+                                                                               /// default cuts configuration
+                                                                               fDefOnly(kFALSE),
+                                                                               //  fCasc_Cuts{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                                                                               /// particle to be analysed
+                                                                               fParticleAnalysisStatus{true, true, true, true},
+                                                                               // geometrical cut usage
+                                                                               fESDTrackCuts(0),
+                                                                               /// variables for Cascade analysis
+                                                                               fCasc_DcaCascDaught(0),
+                                                                               fCasc_CascCosPA(0),
+                                                                               fCasc_CascRad(0),
+                                                                               fCasc_etaPos(0),
+                                                                               fCasc_etaNeg(0),
+                                                                               fCasc_etaBac(0),
+                                                                               fCasc_kinkidx(0),
+                                                                               fCasc_NSigPosProton(0),
+                                                                               fCasc_NSigPosPion(0),
+                                                                               fCasc_NSigNegProton(0),
+                                                                               fCasc_NSigNegPion(0),
+                                                                               fCasc_NSigBacPion(0),
+                                                                               fCasc_NSigBacKaon(0),
+                                                                               fCasc_LeastCRows(0),
+                                                                               fCasc_LeastCRowsOvF(0),
+                                                                               fCasc_LeastTPCcls(0),
+                                                                               fCasc_TrackLengthCut(0),
+                                                                               fCasc_MaxChi2perCls(0),
 
-                                                                 fCasc_InvMassLam(0),
-                                                                 fCasc_DcaV0Daught(0),
-                                                                 fCasc_V0CosPA(0),
-                                                                 fCasc_DcaV0ToPV(0),
-                                                                 fCasc_DcaBachToPV(0),
-                                                                 fCasc_ITSTOFtracks(0),
-                                                                 fCasc_yXi(0),
-                                                                 fCasc_yOm(0),
-                                                                 fCasc_charge(0),
-                                                                 fCasc_Pt(0),
-                                                                 fCasc_DistOverTotP(0),
-                                                                 fCasc_InvMassXiMin(0),
-                                                                 fCasc_InvMassXiPlu(0),
-                                                                 fCasc_InvMassOmMin(0),
-                                                                 fCasc_InvMassOmPlu(0),
-                                                                 fCasc_V0Rad(0),
-                                                                 fCasc_DcaPosToPV(0),
-                                                                 fCasc_DcaNegToPV(0),
-                                                                 fCasc_NegTrackStatus(0),
-                                                                 fCasc_PosTrackStatus(0),
-                                                                 fCasc_BacTrackStatus(0),
-                                                                 fCasc_BacBarCosPA(0),
-                                                                 fisParametricBacBarCosPA(kFALSE),
-                                                                 fHist_PtBacBarCosPA(0),
-                                                                 ptXiBoundary_LowMid(0),
-                                                                 ptXiBoundary_MidHigh(0),
-                                                                 ptOmBoundary_LowMid(0),
-                                                                 ptOmBoundary_MidHigh(0),
-                                                                 fCentLimit_BacBarCosPA(0),
-                                                                 fisParametricTrackLengthCut(kFALSE),
-                                                                 fHist_CentTrackLengthCut(0),
-                                                                 //  fHistCutsEv(0),
-                                                                 //  fHistCutsTopo(0),
-                                                                 fDeadZoneWidth_GeoCut(0),
-                                                                 fNcrNclLength_GeoCut(0),
-                                                                 fTPCsignalNCut(0),
-                                                                 fCasc_TrackLength(0) /*,
-                                                                  fncentbins[](0)*/
+                                                                               fCasc_InvMassLam(0),
+                                                                               fCasc_DcaV0Daught(0),
+                                                                               fCasc_V0CosPA(0),
+                                                                               fCasc_DcaV0ToPV(0),
+                                                                               fCasc_DcaBachToPV(0),
+                                                                               fCasc_ITSTOFtracks(0),
+                                                                               fCasc_yXi(0),
+                                                                               fCasc_yOm(0),
+                                                                               fCasc_charge(0),
+                                                                               fCasc_Pt(0),
+                                                                               fCasc_DistOverTotP(0),
+                                                                               fCasc_InvMassXiMin(0),
+                                                                               fCasc_InvMassXiPlu(0),
+                                                                               fCasc_InvMassOmMin(0),
+                                                                               fCasc_InvMassOmPlu(0),
+                                                                               fCasc_V0Rad(0),
+                                                                               fCasc_DcaPosToPV(0),
+                                                                               fCasc_DcaNegToPV(0),
+                                                                               fCasc_NegTrackStatus(0),
+                                                                               fCasc_PosTrackStatus(0),
+                                                                               fCasc_BacTrackStatus(0),
+                                                                               fCasc_BacBarCosPA(0),
+                                                                               fisParametricBacBarCosPA(kFALSE),
+                                                                               fHist_PtBacBarCosPA(0),
+                                                                               ptXiBoundary_LowMid(0),
+                                                                               ptXiBoundary_MidHigh(0),
+                                                                               ptOmBoundary_LowMid(0),
+                                                                               ptOmBoundary_MidHigh(0),
+                                                                               fCentLimit_BacBarCosPA(0),
+                                                                               fisParametricTrackLengthCut(kFALSE),
+                                                                               fHist_CentTrackLengthCut(0),
+                                                                               //  fHistCutsEv(0),
+                                                                               //  fHistCutsTopo(0),
+                                                                               fDeadZoneWidth_GeoCut(0),
+                                                                               fNcrNclLength_GeoCut(0),
+                                                                               fTPCsignalNCut(0)
+                                                                            //    fCasc_TrackLength(0) /*,
+                                                                                // fncentbins[](0)
 
 {
     ////default constructor
 }
 
 AliAnalysisTaskStrangeCascadesRun2::AliAnalysisTaskStrangeCascadesRun2(const char *name, TString lExtraOptions) : AliAnalysisTaskSE(name),
-                                                                                                    ////outputs
-                                                                                                    fHistos_eve(nullptr),
+                                                                                                                  ////outputs
+                                                                                                                  fHistos_eve(nullptr),
 
-                                                                                                    fHistos_XiMin(nullptr),
-                                                                                                    fHistos_XiPlu(nullptr),
-                                                                                                    fHistos_OmMin(nullptr),
-                                                                                                    fHistos_OmPlu(nullptr),
-                                                                                                    ////objects from the manager
-                                                                                                    fPIDResponse(0),
-                                                                                                    fTriggerMask(0),
+                                                                                                                  fHistos_XiMin(nullptr),
+                                                                                                                  fHistos_XiPlu(nullptr),
+                                                                                                                  fHistos_OmMin(nullptr),
+                                                                                                                  fHistos_OmPlu(nullptr),
+                                                                                                                  ////objects from the manager
+                                                                                                                  fPIDResponse(0),
+                                                                                                                  fTriggerMask(0),
 
-                                                                                                    // AliEventCuts object
-                                                                                                    fEventCuts(0),
-                                                                                                    // pile-up rejection flag
-                                                                                                    fPileupCut(1),
+                                                                                                                  // AliEventCuts object
+                                                                                                                  fEventCuts(0),
+                                                                                                                  // pile-up rejection flag
+                                                                                                                  fPileupCut(1),
 
-                                                                                                    ////MC-related variables - make true for MC only
-                                                                                                    fisMC(kFALSE),
-                                                                                                    fisMCassoc(kFALSE),
+                                                                                                                  ////MC-related variables - make true for MC only
+                                                                                                                  fisMC(kTRUE),
+                                                                                                                  fisMCassoc(kTRUE),
 
-                                                                                                    ////default cuts configuration
-                                                                                                    fDefOnly(kFALSE),
-                                                                                                    // fCasc_Cuts{1.5, 0.96, 0.6, 4., 70., 0.8, 70., 1., 2.5, 0.008, 1.6, 0.98, 0.06, 0.04, 1., -0.5, 0.8, 3., 3., 1.2, 0.04, 0.03, 1., 0.5, 1.1, 1.6, 1.4, 0.97, 0.97, 1.7, 1.5, 0.97, 0.98, 0.98, 0.008, 0.98, 0.98, 0.6, 0.6, 1.2, 1.2},
-                                                                                                    ////particle to be analysed
-                                                                                                    fParticleAnalysisStatus{true, true, true, true},
+                                                                                                                  ////default cuts configuration
+                                                                                                                  fDefOnly(kFALSE),
+                                                                                                                  // fCasc_Cuts{1.5, 0.96, 0.6, 4., 70., 0.8, 70., 1., 2.5, 0.008, 1.6, 0.98, 0.06, 0.04, 1., -0.5, 0.8, 3., 3., 1.2, 0.04, 0.03, 1., 0.5, 1.1, 1.6, 1.4, 0.97, 0.97, 1.7, 1.5, 0.97, 0.98, 0.98, 0.008, 0.98, 0.98, 0.6, 0.6, 1.2, 1.2},
+                                                                                                                  ////particle to be analysed
+                                                                                                                  fParticleAnalysisStatus{true, true, true, true},
 
-                                                                                                    // geometrical cut usage
-                                                                                                    fESDTrackCuts(0),
-                                                                                                    ////variables for Cascade analysis
-                                                                                                    fCasc_DcaCascDaught(0),
-                                                                                                    fCasc_CascCosPA(0),
-                                                                                                    fCasc_CascRad(0),
-                                                                                                    fCasc_etaPos(0),
-                                                                                                    fCasc_etaNeg(0),
-                                                                                                    fCasc_etaBac(0),
-                                                                                                    fCasc_kinkidx(0),
-                                                                                                    fCasc_NSigPosProton(0),
-                                                                                                    fCasc_NSigPosPion(0),
-                                                                                                    fCasc_NSigNegProton(0),
-                                                                                                    fCasc_NSigNegPion(0),
-                                                                                                    fCasc_NSigBacPion(0),
-                                                                                                    fCasc_NSigBacKaon(0),
-                                                                                                    fCasc_LeastCRows(0),
-                                                                                                    fCasc_LeastCRowsOvF(0),
-                                                                                                    fCasc_LeastTPCcls(0),
-                                                                                                    fCasc_TrackLengthCut(0),
-                                                                                                    fCasc_MaxChi2perCls(0),
+                                                                                                                  // geometrical cut usage
+                                                                                                                  fESDTrackCuts(0),
+                                                                                                                  ////variables for Cascade analysis
+                                                                                                                  fCasc_DcaCascDaught(0),
+                                                                                                                  fCasc_CascCosPA(0),
+                                                                                                                  fCasc_CascRad(0),
+                                                                                                                  fCasc_etaPos(0),
+                                                                                                                  fCasc_etaNeg(0),
+                                                                                                                  fCasc_etaBac(0),
+                                                                                                                  fCasc_kinkidx(0),
+                                                                                                                  fCasc_NSigPosProton(0),
+                                                                                                                  fCasc_NSigPosPion(0),
+                                                                                                                  fCasc_NSigNegProton(0),
+                                                                                                                  fCasc_NSigNegPion(0),
+                                                                                                                  fCasc_NSigBacPion(0),
+                                                                                                                  fCasc_NSigBacKaon(0),
+                                                                                                                  fCasc_LeastCRows(0),
+                                                                                                                  fCasc_LeastCRowsOvF(0),
+                                                                                                                  fCasc_LeastTPCcls(0),
+                                                                                                                  fCasc_TrackLengthCut(0),
+                                                                                                                  fCasc_MaxChi2perCls(0),
 
-                                                                                                    fCasc_InvMassLam(0),
-                                                                                                    fCasc_DcaV0Daught(0),
-                                                                                                    fCasc_V0CosPA(0),
-                                                                                                    fCasc_DcaV0ToPV(0),
-                                                                                                    fCasc_DcaBachToPV(0),
-                                                                                                    fCasc_ITSTOFtracks(0),
-                                                                                                    fCasc_yXi(0),
-                                                                                                    fCasc_yOm(0),
-                                                                                                    fCasc_charge(0),
-                                                                                                    fCasc_Pt(0),
-                                                                                                    fCasc_DistOverTotP(0),
-                                                                                                    fCasc_InvMassXiMin(0),
-                                                                                                    fCasc_InvMassXiPlu(0),
-                                                                                                    fCasc_InvMassOmMin(0),
-                                                                                                    fCasc_InvMassOmPlu(0),
-                                                                                                    fCasc_V0Rad(0),
-                                                                                                    fCasc_DcaPosToPV(0),
-                                                                                                    fCasc_DcaNegToPV(0),
-                                                                                                    fCasc_NegTrackStatus(0),
-                                                                                                    fCasc_PosTrackStatus(0),
-                                                                                                    fCasc_BacTrackStatus(0),
-                                                                                                    fCasc_BacBarCosPA(0),
-                                                                                                    fisParametricBacBarCosPA(kFALSE),
-                                                                                                    fHist_PtBacBarCosPA(0),
-                                                                                                    ptXiBoundary_LowMid(0),
-                                                                                                    ptXiBoundary_MidHigh(0),
-                                                                                                    ptOmBoundary_LowMid(0),
-                                                                                                    ptOmBoundary_MidHigh(0),
-                                                                                                    fCentLimit_BacBarCosPA(0),
-                                                                                                    fisParametricTrackLengthCut(kFALSE),
-                                                                                                    fHist_CentTrackLengthCut(0),
-                                                                                                    // fHistCutsEv(0),
-                                                                                                    // fHistCutsTopo(0),
-                                                                                                    fDeadZoneWidth_GeoCut(0),
-                                                                                                    fNcrNclLength_GeoCut(0),
-                                                                                                    fTPCsignalNCut(50),
-                                                                                                    fCasc_TrackLength(90) /*,
-                                                                                                    fncentbins[](0)*/
+                                                                                                                  fCasc_InvMassLam(0),
+                                                                                                                  fCasc_DcaV0Daught(0),
+                                                                                                                  fCasc_V0CosPA(0),
+                                                                                                                  fCasc_DcaV0ToPV(0),
+                                                                                                                  fCasc_DcaBachToPV(0),
+                                                                                                                  fCasc_ITSTOFtracks(0),
+                                                                                                                  fCasc_yXi(0),
+                                                                                                                  fCasc_yOm(0),
+                                                                                                                  fCasc_charge(0),
+                                                                                                                  fCasc_Pt(0),
+                                                                                                                  fCasc_DistOverTotP(0),
+                                                                                                                  fCasc_InvMassXiMin(0),
+                                                                                                                  fCasc_InvMassXiPlu(0),
+                                                                                                                  fCasc_InvMassOmMin(0),
+                                                                                                                  fCasc_InvMassOmPlu(0),
+                                                                                                                  fCasc_V0Rad(0),
+                                                                                                                  fCasc_DcaPosToPV(0),
+                                                                                                                  fCasc_DcaNegToPV(0),
+                                                                                                                  fCasc_NegTrackStatus(0),
+                                                                                                                  fCasc_PosTrackStatus(0),
+                                                                                                                  fCasc_BacTrackStatus(0),
+                                                                                                                  fCasc_BacBarCosPA(0),
+                                                                                                                  fisParametricBacBarCosPA(kFALSE),
+                                                                                                                  fHist_PtBacBarCosPA(0),
+                                                                                                                  ptXiBoundary_LowMid(0),
+                                                                                                                  ptXiBoundary_MidHigh(0),
+                                                                                                                  ptOmBoundary_LowMid(0),
+                                                                                                                  ptOmBoundary_MidHigh(0),
+                                                                                                                  fCentLimit_BacBarCosPA(0),
+                                                                                                                  fisParametricTrackLengthCut(kFALSE),
+                                                                                                                  fHist_CentTrackLengthCut(0),
+                                                                                                                  // fHistCutsEv(0),
+                                                                                                                  // fHistCutsTopo(0),
+                                                                                                                  fDeadZoneWidth_GeoCut(3.),
+                                                                                                                  fNcrNclLength_GeoCut(90.),
+                                                                                                                  fTPCsignalNCut(50)
+                                                                                                                //   fCasc_TrackLength(90) /*,
+                                                                                                                //   fncentbins[](0)*/
 
 {
 
@@ -229,10 +229,6 @@ AliAnalysisTaskStrangeCascadesRun2::AliAnalysisTaskStrangeCascadesRun2(const cha
     Int_t ncentbins_Xi = sizeof(centbins_Xi) / sizeof(Double_t) - 1;
     Int_t ncentbins_Om = sizeof(centbins_Om) / sizeof(Double_t) - 1;
 
-    // for (int ipart = 0; ipart < knumpart; ipart++)
-    // {
-    //     SetCentbinning(ipart, 11, centbins);
-    // }
     SetCentbinning(kXi, ncentbins_Xi, centbins_Xi);
     SetCentbinning(kOm, ncentbins_Om, centbins_Om);
 
@@ -244,19 +240,6 @@ AliAnalysisTaskStrangeCascadesRun2::AliAnalysisTaskStrangeCascadesRun2(const cha
     {
         SetMassbinning(ipart, massbins[ipart], minmass[ipart], maxmass[ipart]);
     }
-    ////setting default pt binning
-    // double ptbins[4][251];
-    // int nptbins[4] = {250, 250, 75, 75};
-
-    // double maxpt[4] = {25., 25., 15., 15.};
-    // for (int ipart = 0; ipart < knumpart; ipart++)
-    // {
-    //     for (int ipt = 0; ipt < nptbins[ipart] + 1; ipt++)
-    //     {
-    //         ptbins[ipart][ipt] = ipt * maxpt[ipart] / nptbins[ipart];
-    //     }
-    //     SetPtbinning(ipart, nptbins[ipart], ptbins[ipart]);
-    // }
 
     Double_t ptbins_Xi[] = {0.8, 1.1, 1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.5, 2.7, 2.9, 3.1, 3.5, 4, 5.5};
     Double_t ptbins_Om[] = {0.9, 1.6, 2., 2.4, 2.9, 3.5, 5};
@@ -279,12 +262,6 @@ AliAnalysisTaskStrangeCascadesRun2::~AliAnalysisTaskStrangeCascadesRun2()
     ////------------------------------------------------
     //// DESTRUCTOR
     ////------------------------------------------------
-
-    ////Destroy output objects if present
-    ///     if (fListHist) {
-    ///         delete fListHist;
-    ///         fListHist = 0x0;
-    ///     }
 }
 
 //_____________________________________________________________________________
@@ -296,12 +273,6 @@ void AliAnalysisTaskStrangeCascadesRun2::UserCreateOutputObjects()
 
     fHistos_eve->CreateTH1("hcent", "Multiplicity Distribution", 100, 0, 100, "s"); ////storing #events in bins of centrality
     fHistos_eve->CreateTH1("henum", "", 4, -0.5, 3.5);                              ////storing total #events
-    // fHistos_eve->CreateTH1("hCheckCuts", "", 200, -1, 4);                          ////storing total #events
-
-    /// test
-    fHistos_eve->CreateTH1("hTrackLengthP", "pTrack Length (cm)", 200, 0, 200, "s"); ////check track length for cut
-    fHistos_eve->CreateTH1("hTrackLengthN", "nTrack Length (cm)", 200, 0, 200, "s"); ////check track length for cut
-    fHistos_eve->CreateTH1("hTrackLengthB", "bTrack Length (cm)", 200, 0, 200, "s"); ////check track length for cut
 
     const char *labels[4] = {"Total", "MultSelection", "AliEventCuts", "Pile-up rejection"};
     for (int iLab = 1; iLab <= 4; iLab++)
@@ -386,7 +357,7 @@ void AliAnalysisTaskStrangeCascadesRun2::UserCreateOutputObjects()
 
         for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
         {
-            if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kLeastCRows || iCutEv == kLeastCRowsOvF || iCutEv == kTrackLengthCut || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
+            if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
                 continue;
             if (nvarcut_Ev[iCutEv] == -1) // skip the cut if value == -1 -> unused variations
                 continue;
@@ -454,6 +425,8 @@ void AliAnalysisTaskStrangeCascadesRun2::UserCreateOutputObjects()
         fEventCuts.SetRejectTPCPileupWithITSTPCnCluCorr(kTRUE);
     if (fPileupCut == 2)
         fEventCuts.SetRejectTPCPileupWithV0CentTPCnTracksCorr(kTRUE);
+  // geometrical cut Setup
+    fESDTrackCuts.SetCutGeoNcrNcl(fDeadZoneWidth_GeoCut, fNcrNclLength_GeoCut, 1.5, 0.85, 0.7);
 
     ////Output posting
     DataPosting();
@@ -520,7 +493,7 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
             return;
         }
         MCTrackArray = dynamic_cast<TClonesArray *>(lAODevent->FindListObject(AliAODMCParticle::StdBranchName()));
-        if (MCTrackArray == NULL)
+        if (MCTrackArray == nullptr)
         {
             AliWarning("No MC track array found.");
             DataPosting();
@@ -580,14 +553,19 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
             DataPosting();
             return;
         }
-        if (fisMC)
-        {
-            if (AliAnalysisUtils::IsPileupInGeneratedEvent(header, "ijing")) // reject HIJING (Heavy Ion Jet INteraction Generator)
-            {
-                DataPosting();
-                return;
-            }
-        }
+        // if (fisMC)
+        // {
+            /// Get name of mc generator - for test purposes.
+            // TString McClassName = header->GetCocktailHeaders()->At(0)->ClassName();
+            // AliInfo(TString::Format("MC header class name = %s", McClassName.Data()));
+
+            /// NO NEED TO RUN THE FOLLOWING CODE FOR THE SELECTED PRODUCTION'S MC: LHC16r - no HIJING MC exists
+            // if (AliAnalysisUtils::IsPileupInGeneratedEvent(header, "ijing")) // reject HIJING (Heavy Ion Jet INteraction Generator)
+            // {
+            //     DataPosting();
+            //     return;
+            // }
+        // }
     }
 
     // fill number of events after pile-up rejection
@@ -596,13 +574,13 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
     /// Inel>0 in the |eta|<1 range
     // check validity of this step (i.e. if it is needed)?
     const AliMultiplicity *mult = (AliMultiplicity *)lAODevent->GetMultiplicity();
-    Bool_t inelgt0 = kFALSE;
+    // Bool_t inelgt0 = kFALSE;
     Int_t counterTracklets = 0;
     for (Int_t i = 0; i < mult->GetNumberOfTracklets(); ++i)
     {
         if (TMath::Abs(mult->GetEta(i)) < 1.)
         {
-            inelgt0 = kTRUE;
+            // inelgt0 = kTRUE;
             counterTracklets++;
         }
     }
@@ -645,6 +623,7 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
     const AliVVertex *lBestPrimVtx = lVevent->GetPrimaryVertex();
     if (!((TMath::Abs(lBestPrimVtx->GetZ())) < cutPrimVertex)) /// vertex_z<10cm
     {
+        lBestPrimVtx->Print();
         DataPosting();
         return;
     }
@@ -760,23 +739,19 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
             /// New: check effectiveness?
             // track length cut
             fCasc_TrackLengthCut = (pTrackCasc->GetTPCsignalN() > fTPCsignalNCut && nTrackCasc->GetTPCsignalN() > fTPCsignalNCut && bTrackCasc->GetTPCsignalN() > fTPCsignalNCut) ? 1 : 0;
-            // if (fESDTrackCuts.AcceptVTrack(pTrackCasc) && fESDTrackCuts.AcceptVTrack(nTrackCasc) && fESDTrackCuts.AcceptVTrack(bTrackCasc))
-            //     fCasc_TrackLengthCut = fCasc_TrackLengthCut + 2;
-            Float_t lTrackLengthPos, lTrackLengthNeg, lTrackLengthBac = 0;
-            lTrackLengthPos = GetLengthInActiveZone(pTrackCasc, 2.0, 220.0, lMagField);
-            lTrackLengthNeg = GetLengthInActiveZone(nTrackCasc, 2.0, 220.0, lMagField);
-            lTrackLengthBac = GetLengthInActiveZone(bTrackCasc, 2.0, 220.0, lMagField);
-
-            /// test:
-            fHistos_eve->FillTH1("hTrackLengthP", lTrackLengthPos);
-            fHistos_eve->FillTH1("hTrackLengthN", lTrackLengthNeg);
-            fHistos_eve->FillTH1("hTrackLengthB", lTrackLengthBac);
-
-            if ((lTrackLengthPos > fCasc_TrackLength) && (lTrackLengthNeg > fCasc_TrackLength))
-            {
+            if (fESDTrackCuts.AcceptVTrack(pTrackCasc) && fESDTrackCuts.AcceptVTrack(nTrackCasc) && fESDTrackCuts.AcceptVTrack(bTrackCasc))
                 fCasc_TrackLengthCut = fCasc_TrackLengthCut + 2;
-                fHistos_eve->FillTH1("fCuts", 5.5);
-            }
+            Float_t lTrackLengthPos, lTrackLengthNeg, lTrackLengthBac = 0;
+            // lTrackLengthPos = GetLengthInActiveZone(pTrackCasc, 2.0, 220.0, lMagField);
+            // lTrackLengthNeg = GetLengthInActiveZone(nTrackCasc, 2.0, 220.0, lMagField);
+            // lTrackLengthBac = GetLengthInActiveZone(bTrackCasc, 2.0, 220.0, lMagField);
+
+
+            // if ((lTrackLengthPos > fCasc_TrackLength) && (lTrackLengthNeg > fCasc_TrackLength))
+            // {
+            //     fCasc_TrackLengthCut = fCasc_TrackLengthCut + 2;
+            //     fHistos_eve->FillTH1("fCuts", 5.5);
+            // }
 
             // chi^2 per TPC cluster
             // double_t lChi2perTPCclsPos = pTrackCasc->GetTPCchi2() / pTrackCasc->GetNcls(1);
@@ -872,31 +847,31 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
             }
 
             /// Apply parametric BacBarCosPA cut, if requested
-            if (fisParametricBacBarCosPA)
-            {
-                if (fCasc_Pt >= fHist_PtBacBarCosPA->GetXaxis()->GetXmin() && fCasc_Pt <= fHist_PtBacBarCosPA->GetXaxis()->GetXmax() && lPercentile < fCentLimit_BacBarCosPA)
-                {
-                    SetEvCutVal(kFALSE, kTRUE, kBacBarCosPa, fHist_PtBacBarCosPA->GetBinContent(fHist_PtBacBarCosPA->GetXaxis()->FindBin(fCasc_Pt)));
-                }
-                else
-                {
-                    if ((fParticleAnalysisStatus[kxip] || fParticleAnalysisStatus[komp]))
-                        SetEvCutVal(kFALSE, kTRUE, kBacBarCosPa, def_cutValEv[kBacBarCosPa]);
-                }
-            }
+            // if (fisParametricBacBarCosPA)
+            // {
+            //     if (fCasc_Pt >= fHist_PtBacBarCosPA->GetXaxis()->GetXmin() && fCasc_Pt <= fHist_PtBacBarCosPA->GetXaxis()->GetXmax() && lPercentile < fCentLimit_BacBarCosPA)
+            //     {
+            //         SetEvCutVal(kFALSE, kTRUE, kBacBarCosPa, fHist_PtBacBarCosPA->GetBinContent(fHist_PtBacBarCosPA->GetXaxis()->FindBin(fCasc_Pt)));
+            //     }
+            //     else
+            //     {
+            //         if ((fParticleAnalysisStatus[kxip] || fParticleAnalysisStatus[komp]))
+            //             SetEvCutVal(kFALSE, kTRUE, kBacBarCosPa, def_cutValEv[kBacBarCosPa]);
+            //     }
+            // }
 
-            // Apply parametric TrackLengthCut cut, if requested
-            if (fisParametricTrackLengthCut)
-            {
-                if (lPercentile >= fHist_CentTrackLengthCut->GetXaxis()->GetXmin() && lPercentile <= fHist_CentTrackLengthCut->GetXaxis()->GetXmax())
-                {
-                    SetEvCutVal(kFALSE, kTRUE, kTrackLengthCut, fHist_CentTrackLengthCut->GetBinContent(fHist_CentTrackLengthCut->GetXaxis()->FindBin(lPercentile)));
-                }
-                else
-                {
-                    SetEvCutVal(kFALSE, kTRUE, kTrackLengthCut, cutValEv[kTrackLengthCut]);
-                }
-            }
+            // // Apply parametric TrackLengthCut cut, if requested
+            // if (fisParametricTrackLengthCut)
+            // {
+            //     if (lPercentile >= fHist_CentTrackLengthCut->GetXaxis()->GetXmin() && lPercentile <= fHist_CentTrackLengthCut->GetXaxis()->GetXmax())
+            //     {
+            //         SetEvCutVal(kFALSE, kTRUE, kTrackLengthCut, fHist_CentTrackLengthCut->GetBinContent(fHist_CentTrackLengthCut->GetXaxis()->FindBin(lPercentile)));
+            //     }
+            //     else
+            //     {
+            //         SetEvCutVal(kFALSE, kTRUE, kTrackLengthCut, cutValEv[kTrackLengthCut]);
+            //     }
+            // }
 
             // fills TH3 with default cuts
             if (fParticleAnalysisStatus[kxip])
@@ -947,19 +922,19 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
     DataPosting();
 }
 
-Float_t AliAnalysisTaskStrangeCascadesRun2::GetLengthInActiveZone(AliAODTrack *gt, Float_t deltaY, Float_t deltaZ, Float_t b)
-{
-    // Input parameters:
-    //   deltaY - user defined "dead region" in cm
-    //   deltaZ - user defined "active region" in cm (250 cm drift lenght - 14 cm L1 delay
-    //   b     - magnetic field
-    AliESDtrack esdTrack(gt);
-    esdTrack.SetESDEvent((AliESDEvent *)gt->GetEvent());
-    AliExternalTrackParam etp;
-    etp.CopyFromVTrack(gt);
-    esdTrack.ResetTrackParamIp(&etp);
-    return esdTrack.GetLengthInActiveZone(1, deltaY, deltaZ, b);
-}
+// Float_t AliAnalysisTaskStrangeCascadesRun2::GetLengthInActiveZone(AliAODTrack *gt, Float_t deltaY, Float_t deltaZ, Float_t b)
+// {
+//     // Input parameters:
+//     //   deltaY - user defined "dead region" in cm
+//     //   deltaZ - user defined "active region" in cm (250 cm drift lenght - 14 cm L1 delay
+//     //   b     - magnetic field
+//     AliESDtrack esdTrack(gt);
+//     esdTrack.SetESDEvent((AliESDEvent *)gt->GetEvent());
+//     AliExternalTrackParam etp;
+//     etp.CopyFromVTrack(gt);
+//     esdTrack.ResetTrackParamIp(&etp);
+//     return esdTrack.GetLengthInActiveZone(1, deltaY, deltaZ, b);
+// }
 
 void AliAnalysisTaskStrangeCascadesRun2::SetCutValue(bool isTopo, int cutName, double cutVal, int particle = -1, int ptInterval = -1)
 {
@@ -1283,14 +1258,19 @@ void AliAnalysisTaskStrangeCascadesRun2::SetDefCutVariations()
     std::fill_n(nvarcut_Topo, kNumCascTopoCuts, -1);
 
     /// event selection cuts
-    // SetVarCutValue(kFALSE, kRapidityIntervalMin, -0.5);    // kCasc_y
-    // SetVarCutValue(kFALSE, kRapidityIntervalMax, 0.0);     // == 0
+    // SetVarCutValue(kFALSE, kRapidityIntervalMin, -0.5);          // kCasc_y
+    // SetVarCutValue(kFALSE, kRapidityIntervalMax, 0.0);           // == 0
     SetCutVariation(kFALSE, kTpcDedxPidSigma, 6, 2, 7);             // kCasc_NSigPID
-    SetCutVariation(kFALSE, kDeviationPropLifetime, 7, 2, 5);       // kCasc_PropLifetXi
-    SetCutVariation(kFALSE, kLeastTpcClusters, 5, 65, 85);          // kCasc_LeastTPCcls,    // --> DON'T USE
-    SetCutVariation(kFALSE, kCompetingCascRejectOm, 6, 0.0, 0.010); // kCasc_CompetingXiMass
+    SetCutVariation(kFALSE, kDeviationPropLifetime, 4, 2, 5);       // kCasc_PropLifetXi
+    SetCutVariation(kFALSE, kLeastTpcClusters, 3, 75, 85);          // kCasc_LeastTPCcls,    // --> DON'T USE
+    SetCutVariation(kFALSE, kCompetingCascRejectOm, 3, 0.0, 0.010); // kCasc_CompetingXiMass
+    SetCutVariation(kFALSE, kLeastCRows, 4, 60, 90);                // kCasc_LeastCRaws: not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
 
-    // SetVarCutValue(kFALSE, kLeastCRows, 70);               // not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
+    SetCutVariation(kFALSE, kLeastCRowsOvF, 4, 0.75, 0.9); // not used --> USE -> (0.8)
+
+    SetCutVariation(kFALSE, kTrackLengthCut, 4, 0, 3);
+    
+
     // SetVarCutValue(kFALSE, kLeastCRowsOvF, 0.8);           // not used --> USE -> (0.8)
     // SetVarCutValue(kFALSE, kTrackLengthCut, 1.0);          // not used --> USE
     // SetVarCutValue(kFALSE, kEtaDaughter, 0.8);             // kCasc_etaDaugh
@@ -1298,32 +1278,32 @@ void AliAnalysisTaskStrangeCascadesRun2::SetDefCutVariations()
     SetCutVariation(kFALSE, kV0InvMassWindow, 4, 0.003, 0.012); // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
 
     /// topological cuts
-    SetCutVariation(kTRUE, kV0CosPa, 21, 0.94, 0.999);
-    SetCutVariation(kTRUE, kCascCosPa, 21, 0.94, 0.999);
-    SetCutVariation(kTRUE, kDcaBachToV0, 19, 0.3, 2.1);
-    SetCutVariation(kTRUE, kDcaV0Daughters, 19, 0.3, 2.1);
-    SetCutVariation(kTRUE, kCascTransDecayRadius, 11, 0.5, 1.5);
-    SetCutVariation(kTRUE, kV0TransDecayRadius, 13, 1., 7.);
-    SetCutVariation(kTRUE, kDcaBachToPv, 19, 0.02, 0.2);
-    SetCutVariation(kTRUE, kDcaV0ToPv, 19, 0.02, 0.2);
-    SetCutVariation(kTRUE, kDcaMesV0ToPv, 24, 0.02, 0.5);
-    SetCutVariation(kTRUE, kDcaBarV0ToPv, 15, 0.01, 0.15);
+    SetCutVariation(kTRUE, kV0CosPa, 10, 0.95, 0.995);
+    SetCutVariation(kTRUE, kCascCosPa, 10, 0.95, 0.995);
+    SetCutVariation(kTRUE, kDcaBachToV0, 9, 0.4, 2.);
+    SetCutVariation(kTRUE, kDcaV0Daughters, 9, 0.4, 2.);
+    SetCutVariation(kTRUE, kCascTransDecayRadius, 9, 0.4, 2.);  
+    SetCutVariation(kTRUE, kV0TransDecayRadius, 13, 1., 7.);   
+    SetCutVariation(kTRUE, kDcaBachToPv, 10, 0.02, 0.2);
+    SetCutVariation(kTRUE, kDcaV0ToPv, 10, 0.02, 0.2);
+    SetCutVariation(kTRUE, kDcaMesV0ToPv, 15, 0.02, 0.3);
+    SetCutVariation(kTRUE, kDcaBarV0ToPv, 15, 0.02, 0.3);
 }
 
 //________________________________________________________________________
-void AliAnalysisTaskStrangeCascadesRun2::SetCutVariation(bool isTopo, int cutnum, int nvar, double lowval, double highval)
+void AliAnalysisTaskStrangeCascadesRun2::SetCutVariation(bool isTopo, int cutNum, int nVar, double lowVal, double highVal)
 {
     if (!isTopo)
     {
-        nvarcut_Ev[cutnum] = nvar;
-        varlowcut_Ev[cutnum] = lowval;
-        varhighcut_Ev[cutnum] = highval;
+        nvarcut_Ev[cutNum] = nVar;
+        varlowcut_Ev[cutNum] = lowVal;
+        varhighcut_Ev[cutNum] = highVal;
     }
     else
     {
-        nvarcut_Topo[cutnum] = nvar;
-        varlowcut_Topo[cutnum] = lowval;
-        varhighcut_Topo[cutnum] = highval;
+        nvarcut_Topo[cutNum] = nVar;
+        varlowcut_Topo[cutNum] = lowVal;
+        varhighcut_Topo[cutNum] = highVal;
     }
 }
 
@@ -1714,7 +1694,7 @@ bool AliAnalysisTaskStrangeCascadesRun2::ApplyCuts(int part)
     // if (fCasc_ITSTOFtracks < cutval_Casc[kCasc_ITSTOFtracks] - 0.1)
     //     return kFALSE;
 
-    AliInfo("All cuts passed!\n");
+    // AliInfo("All cuts passed!\n");
     return kTRUE; /// survived!
 }
 
@@ -1888,10 +1868,11 @@ void AliAnalysisTaskStrangeCascadesRun2::FillHistCutVariations(double perc, bool
 
     for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
     {
-        if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kLeastCRows || iCutEv == kLeastCRowsOvF || iCutEv == kTrackLengthCut || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
-            continue;
         if (nvarcut_Ev[iCutEv] == -1) // skip the cut if value == -1 -> unused variations
             continue;
+        if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
+            continue;
+
         for (int iVarEv = 0; iVarEv < nvarcut_Ev[iCutEv]; iVarEv++)
         {
             //             if (fisParametricBacBarCosPA && iCutEv != kCasc_BacBarCosPA && perc < fCentLimit_BacBarCosPA)
@@ -1919,6 +1900,9 @@ void AliAnalysisTaskStrangeCascadesRun2::FillHistCutVariations(double perc, bool
 
             // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
             SetCutValue(kFALSE, iCutEv, (varlowcut_Ev[iCutEv] + iVarEv * (varhighcut_Ev[iCutEv] - varlowcut_Ev[iCutEv]) / (nvarcut_Ev[iCutEv] - 1)), all, all);
+
+            if (cutValEv[iCutEv] == def_cutValEv[iCutEv]) // skip the variation if it is the default value
+                continue;
 
             // Xi filling
             if (iCutEv != kCompetingCascRejectOm)
@@ -1967,22 +1951,28 @@ void AliAnalysisTaskStrangeCascadesRun2::FillHistCutVariations(double perc, bool
             // {
             if (fParticleAnalysisStatus[kxip])
             {
-                // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
-                if (phypri && associFlag[kxim] && ApplyCuts(kxim))
-                    fHistos_XiMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiMin, perc);
-                if (phypri && associFlag[kxip] && ApplyCuts(kxip))
-                    fHistos_XiPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiPlu, perc);
+                if (!((cutValTopo[kXi][iCutTopo][kLow] == def_cutValTopo[kXi][iCutTopo][kLow]) && (cutValTopo[kXi][iCutTopo][kMid] == def_cutValTopo[kXi][iCutTopo][kMid]) && (cutValTopo[kXi][iCutTopo][kHigh] == def_cutValTopo[kXi][iCutTopo][kHigh]))) // skip the variation if it is exact same as the default value across pt intervals
+                {
+                    // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+                    if (phypri && associFlag[kxim] && ApplyCuts(kxim))
+                        fHistos_XiMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiMin, perc);
+                    if (phypri && associFlag[kxip] && ApplyCuts(kxip))
+                        fHistos_XiPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiPlu, perc);
+                }
             }
 
             // if (fParticleAnalysisStatus[komp] && (var_cutValTopo[kOm][iCutTopo][kMid][iVarTopo] != -1))
             // {
             if (fParticleAnalysisStatus[komp])
             {
-                // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
-                if (phypri && associFlag[komm] && ApplyCuts(komm))
-                    fHistos_OmMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmMin, perc);
-                if (phypri && associFlag[komp] && ApplyCuts(komp))
-                    fHistos_OmPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmPlu, perc);
+                if (!((cutValTopo[kOm][iCutTopo][kLow] == def_cutValTopo[kOm][iCutTopo][kLow]) && (cutValTopo[kOm][iCutTopo][kMid] == def_cutValTopo[kOm][iCutTopo][kMid]) && (cutValTopo[kOm][iCutTopo][kHigh] == def_cutValTopo[kOm][iCutTopo][kHigh]))) // skip the variation if it is exact same as the default value across pt intervals
+                {
+                    // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+                    if (phypri && associFlag[komm] && ApplyCuts(komm))
+                        fHistos_OmMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmMin, perc);
+                    if (phypri && associFlag[komp] && ApplyCuts(komp))
+                        fHistos_OmPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmPlu, perc);
+                }
             }
         }
         SetDefCuts(); // reset defaults

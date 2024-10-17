@@ -1,6 +1,7 @@
 #ifndef CASCADEUTILS_H
 #define CASCADEUTILS_H
 
+#include <fstream>
 #include <TFile.h>
 #include <TSystem.h>
 #include <TMath.h>
@@ -34,6 +35,38 @@ const Int_t fNptbins_Om = sizeof(fPtbins_Om) / sizeof(double) - 1;
 // chosen marker style palette
 Int_t markerStyles[] = {4, 21, 22, 23, 29, 33, 34, 43, 47, 41, 20};
 
+/// @brief Function to get all file names from a text file and return them as a vector of strings
+/// @param inputFilePath Full path to .txt file containing file names/paths
+/// @return Returns vector containing file contents by line
+std::vector<std::string> GetFileList(const std::string &inputFilePath)
+{
+    std::vector<std::string> fileList;
+    std::ifstream inputFile(inputFilePath);
+    std::string line;
+
+    // Check if the file is open and can be read
+    if (!inputFile.is_open())
+    {
+        Error("Utils: GetFileList", "Cannot open file '%s' !", inputFilePath.c_str());
+        return fileList; // Return an empty vector in case of error
+    }
+
+    // Read the file line by line
+    while (std::getline(inputFile, line))
+    {
+        // Avoid adding empty lines (if any)
+        if (!line.empty())
+        {
+            fileList.push_back(line);
+        }
+    }
+
+    // Close the file
+    inputFile.close();
+
+    return fileList;
+}
+
 /// @brief Open a root file and return the TFile's handle.
 /// @param fileName Full path to the file, appends .root if absent
 /// @param options Open a file in Read, Write, Recreate mode etc. Check options in TFile::Open
@@ -61,7 +94,6 @@ inline TFile *OpenFile(TString fileName, TString options = "READ")
         SysError("Utils: OpenFile", "Error: Cannot open file '%s' for %sING!", fileName.Data(), options.Data());
         return nullptr;
     }
-
     else
         return fileHandle;
 }
@@ -114,10 +146,13 @@ inline void PaintStack(TCanvas &c, THStack &hs, Bool_t setLogY = kTRUE, TString 
 /// @param imageFolder Sub-directory for image groups
 /// @param imageName name of the image file
 /// @param imageFormat image format, e.g. png, pdf, jpg ...
-inline void SaveImage(TString outputFolder, TString imageFolder, TString imageName, TString imageFormat)
+inline void SaveImage(TString outputFolder, TString imageFolder, TString imageName, TString imageFormat, TCanvas *c = nullptr)
 {
     TString imagePath = SetOutputFolder(outputFolder + "/" + imageFolder);
-    gPad->Print(TString::Format("%s/%s.%s", imagePath.Data(), imageName.Data(), imageFormat.Data()), imageFormat.Data());
+    if (c)
+        c->Print(TString::Format("%s/%s.%s", imagePath.Data(), imageName.Data(), imageFormat.Data()), imageFormat.Data());
+    else
+        gPad->Print(TString::Format("%s/%s.%s", imagePath.Data(), imageName.Data(), imageFormat.Data()), imageFormat.Data());
     gSystem->Chmod(TString::Format("%s/%s.%s", imagePath.Data(), imageName.Data(), imageFormat.Data()), 0755);
 }
 
@@ -203,6 +238,69 @@ inline Double_t ErrorInRatio(Double_t A, Double_t Aerr, Double_t B, Double_t Ber
     return err;
 }
 
+/// @brief Override ROOT's TF1 print function - for clarity
+/// @details In case of printing function parameters, skips the list of saved points when using verbose ("V") option. See commented part below.
+/// @param option "V": prints TF1 GetParameters()
+void TF1::Print(Option_t *option) const
+{
+    if (fType == EFType::kFormula)
+    {
+        printf("Formula based function:     %s \n", GetName());
+        assert(fFormula);
+        fFormula->Print(option);
+    }
+    else if (fType > 0)
+    {
+        if (fType == EFType::kInterpreted)
+            printf("Interpreted based function: %s(double *x, double *p).  Ndim = %d, Npar = %d  \n", GetName(), GetNdim(),
+                   GetNpar());
+        else if (fType == EFType::kCompositionFcn)
+        {
+            printf("Composition based function: %s. Ndim = %d, Npar = %d \n", GetName(), GetNdim(), GetNpar());
+            if (!fComposition)
+                printf("fComposition not found!\n"); // this would be bad
+        }
+        else
+        {
+            if (fFunctor)
+                printf("Compiled based function: %s  based on a functor object.  Ndim = %d, Npar = %d\n", GetName(),
+                       GetNdim(), GetNpar());
+            else
+            {
+                printf("Function based on a list of points from a compiled based function: %s.  Ndim = %d, Npar = %d, Npx "
+                       "= %zu\n",
+                       GetName(), GetNdim(), GetNpar(), fSave.size());
+                if (fSave.empty())
+                    Warning("Print", "Function %s is based on a list of points but list is empty", GetName());
+            }
+        }
+        TString opt(option);
+        opt.ToUpper();
+        if (opt.Contains("V"))
+        {
+            // print list of parameters
+            if (fNpar > 0)
+            {
+                printf("List of  Parameters: \n");
+                for (int i = 0; i < fNpar; ++i)
+                    printf(" %20s =  %10f \n", GetParName(i), GetParameter(i));
+            }
+            //  if (!fSave.empty()) {                                               /// skip printing list of saved points: 1000 points flood the output!
+            //     // print list of saved points
+            //     printf("List of  Saved points (N=%d): \n", int(fSave.size()));
+            //     for (auto &x : fSave)
+            //        printf("( %10f )  ", x);
+            //     printf("\n");
+            //  }
+        }
+    }
+    if (fHistogram)
+    {
+        printf("Contained histogram\n");
+        fHistogram->Print(option);
+    }
+}
+
 /// Get avg mean and sigma from both gaussians - adapted for both gaussians with same mean
 inline void GetMeanSigmaDG(TF1 *f_doubleGaus, TFitResultPtr lFitResultPtr, Double_t &mean, Double_t &mean_err, Double_t &sigma, Double_t &sigma_err)
 {
@@ -220,21 +318,36 @@ inline void GetMeanSigmaDG(TF1 *f_doubleGaus, TFitResultPtr lFitResultPtr, Doubl
     // Double_t mu_wa = (mu1a + mu2a)/2;
     Double_t sigma_wa = (N1a * sigma1a + N2a * sigma2a) / (N1a + N2a);
 
+    Double_t mu_wa_err = 0.;
+    Double_t sigma_wa_err = 0.;
+
     Double_t sa = N1a + N2a;
     Double_t wa_mu = N1a * mu1a + N2a * mu2a;
     Double_t wa_sigma = N1a * sigma1a + N2a * sigma2a;
 
-    Double_t mu_wa_step = pow((mu1a - mu2a), 2) * (pow(N1a, 2) * cova(3, 3) + pow(N2a, 2) * cova(0, 0)) + 2 * cova(0, 3) * (wa_mu - sa * mu1a) * (wa_mu - sa * mu2a) + pow(sa, 2) * (pow(N1a, 2) * cova(1, 1) + pow(N2a, 2) * cova(4, 4) + 2 * N1a * N2a * cova(1, 4)) - 2 * sa * (N1a * (cova(0, 1) * (wa_mu - sa * mu1a) + cova(3, 1) * (wa_mu - sa * mu2a)) + N2a * (cova(0, 4) * (wa_mu - sa * mu1a) + cova(3, 4) * (wa_mu - sa * mu2a)));
-    Double_t mu_wa_err = sqrt(mu_wa_step / pow(sa, 4));
+    if (cova.NonZeros() > 0)
+    {
+        Double_t mu_wa_step = pow((mu1a - mu2a), 2) * (pow(N1a, 2) * cova(3, 3) + pow(N2a, 2) * cova(0, 0)) + 2 * cova(0, 3) * (wa_mu - sa * mu1a) * (wa_mu - sa * mu2a) + pow(sa, 2) * (pow(N1a, 2) * cova(1, 1) + pow(N2a, 2) * cova(4, 4) + 2 * N1a * N2a * cova(1, 4)) - 2 * sa * (N1a * (cova(0, 1) * (wa_mu - sa * mu1a) + cova(3, 1) * (wa_mu - sa * mu2a)) + N2a * (cova(0, 4) * (wa_mu - sa * mu1a) + cova(3, 4) * (wa_mu - sa * mu2a)));
+        mu_wa_err = sqrt(mu_wa_step / pow(sa, 4));
 
-    Double_t sigma_wa_step = pow((sigma1a - sigma2a), 2) * (pow(N1a, 2) * cova(3, 3) + pow(N2a, 2) * cova(0, 0)) + 2 * cova(0, 3) * (wa_sigma - sa * sigma1a) * (wa_sigma - sa * sigma2a) + pow(sa, 2) * (pow(N1a, 2) * cova(2, 2) + pow(N2a, 2) * cova(5, 5) + 2 * N1a * N2a * cova(2, 5)) - 2 * sa * (N1a * (cova(0, 2) * (wa_sigma - sa * sigma1a) + cova(3, 2) * (wa_sigma - sa * sigma2a)) + N2a * (cova(0, 5) * (wa_sigma - sa * sigma1a) + cova(3, 5) * (wa_sigma - sa * sigma2a)));
-    Double_t sigma_wa_err = sqrt(sigma_wa_step / pow(sa, 4));
-
+        Double_t sigma_wa_step = pow((sigma1a - sigma2a), 2) * (pow(N1a, 2) * cova(3, 3) + pow(N2a, 2) * cova(0, 0)) + 2 * cova(0, 3) * (wa_sigma - sa * sigma1a) * (wa_sigma - sa * sigma2a) + pow(sa, 2) * (pow(N1a, 2) * cova(2, 2) + pow(N2a, 2) * cova(5, 5) + 2 * N1a * N2a * cova(2, 5)) - 2 * sa * (N1a * (cova(0, 2) * (wa_sigma - sa * sigma1a) + cova(3, 2) * (wa_sigma - sa * sigma2a)) + N2a * (cova(0, 5) * (wa_sigma - sa * sigma1a) + cova(3, 5) * (wa_sigma - sa * sigma2a)));
+        sigma_wa_err = sqrt(sigma_wa_step / pow(sa, 4));
+        Info("GetMeanSigmaDG", "%s: Avg Fit Mass = %.3f +/- %f; Avg Fit Sigma = %f +/- %f", f_doubleGaus->GetName(), mu_wa, mu_wa_err, sigma_wa, sigma_wa_err);
+    }
+    else
+    {
+        Double_t mu1e = f_doubleGaus->GetParError(1);
+        Double_t mu2e = f_doubleGaus->GetParError(1);
+        Double_t sigma1e = f_doubleGaus->GetParError(2);
+        Double_t sigma2e = f_doubleGaus->GetParError(4);
+        mu_wa_err = sqrt(pow((N1a * mu1e), 2) + pow((N2a * mu2e), 2)) / sa;
+        sigma_wa_err = sqrt(pow((N1a * sigma1e), 2) + pow((N2a * sigma2e), 2)) / sa;
+        Warning("GetMeanSigmaDG", "%s: Covariance matrix not available! Approximating errors. Avg Fit Mass = %.3f +/- %f; Avg Fit Sigma = %f +/- %f", f_doubleGaus->GetName(), mu_wa, mu_wa_err, sigma_wa, sigma_wa_err);
+    }
     mean = mu_wa;
     mean_err = mu_wa_err;
     sigma = sigma_wa;
     sigma_err = sigma_wa_err;
-    Info("GetMeanSigmaDG", "Avg Fit Mass = %f +/- %f; Avg Fit Sigma = %f +/- %f", mean, mean_err, sigma, sigma_err);
 }
 
 #endif // CASCADEUTILS_H

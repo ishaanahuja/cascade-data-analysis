@@ -228,7 +228,7 @@ private:
     float fDeadZoneWidth_GeoCut;      //
     float fNcrNclLength_GeoCut;       //
     int fTPCsignalNCut;               //
-    double fCasc_TrackLength;
+    // double fCasc_TrackLength;
 
     // cut values to be set
     // double cutval_Casc[kCasccutsnum];     //

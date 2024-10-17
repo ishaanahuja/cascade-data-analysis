@@ -9,9 +9,9 @@
 
 void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TString outputFolder, TString imageFormat);
 
-int DrawCascades(std::string inputFilename = "~/Work/git/analysis/code/test/FitRefactored.root", TString outputFilename = "~/Work/git/analysis/code/test/2DrawRefactored.root", TString outputFolder = "/var/home/ishaan/Work/git/analysis/code/test/images", TString ptRatioFilename = "~/Work/git/analysis/results/0_current_best/0_DG_sameMass_parLmt_110624/DG_sameMass_parLmt_170624_draw.root", Bool_t fisMC = kFALSE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png", Int_t verbosity = kInfo)
+int DrawCascades(TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root", TString outputFilename = "300924_drawUpdatedCuts_def.root", TString outputFolder = "300924_imagesUpdatedCuts_def", TString ptRatioFilename = "~/Work/git/analysis/results/0_current_best/0_DG_sameMass_parLmt_110624/DG_sameMass_parLmt_170624_draw.root", Bool_t fisMC = kFALSE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png", Int_t verbosity = kInfo)
 {
-    gPrintViaErrorHandler = kTRUE;
+    // gPrintViaErrorHandler = kTRUE;
     gErrorIgnoreLevel = verbosity;
 
     outputFolder = SetOutputFolder(outputFolder);
@@ -232,13 +232,13 @@ int DrawCascades(std::string inputFilename = "~/Work/git/analysis/code/test/FitR
 
         for (Int_t ptBinXi = 0; ptBinXi < fNptbins_Xi; ptBinXi++)
         {
-            eff_pt_xim->SetBinContent(ptBinXi + 1, resultParXim_pt[ptBinXi]->GetBinContent(6));
-            eff_pt_xip->SetBinContent(ptBinXi + 1, resultParXip_pt[ptBinXi]->GetBinContent(6));
-            eff_pt_xiC->SetBinContent(ptBinXi + 1, resultParXiC_pt[ptBinXi]->GetBinContent(6));
+            eff_pt_xim->SetBinContent(ptBinXi + 1, resultParXim_pt[ptBinXi]->GetBinContent(7));
+            eff_pt_xip->SetBinContent(ptBinXi + 1, resultParXip_pt[ptBinXi]->GetBinContent(7));
+            eff_pt_xiC->SetBinContent(ptBinXi + 1, resultParXiC_pt[ptBinXi]->GetBinContent(7));
 
-            eff_pt_xim->SetBinError(ptBinXi + 1, resultParXim_pt[ptBinXi]->GetBinError(6));
-            eff_pt_xip->SetBinError(ptBinXi + 1, resultParXip_pt[ptBinXi]->GetBinError(6));
-            eff_pt_xiC->SetBinError(ptBinXi + 1, resultParXiC_pt[ptBinXi]->GetBinError(6));
+            eff_pt_xim->SetBinError(ptBinXi + 1, resultParXim_pt[ptBinXi]->GetBinError(7));
+            eff_pt_xip->SetBinError(ptBinXi + 1, resultParXip_pt[ptBinXi]->GetBinError(7));
+            eff_pt_xiC->SetBinError(ptBinXi + 1, resultParXiC_pt[ptBinXi]->GetBinError(7));
         }
 
         eff_pt_xim->SetMarkerStyle(markerStyles[10]);
@@ -258,13 +258,13 @@ int DrawCascades(std::string inputFilename = "~/Work/git/analysis/code/test/FitR
 
         for (Int_t ptBinOm = 0; ptBinOm < fNptbins_Om; ptBinOm++)
         {
-            eff_pt_omm->SetBinContent(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinContent(6));
-            eff_pt_omp->SetBinContent(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinContent(6));
-            eff_pt_omC->SetBinContent(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinContent(6));
+            eff_pt_omm->SetBinContent(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinContent(7));
+            eff_pt_omp->SetBinContent(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinContent(7));
+            eff_pt_omC->SetBinContent(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinContent(7));
 
-            eff_pt_omm->SetBinError(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinError(6));
-            eff_pt_omp->SetBinError(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinError(6));
-            eff_pt_omC->SetBinError(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinError(6));
+            eff_pt_omm->SetBinError(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinError(7));
+            eff_pt_omp->SetBinError(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinError(7));
+            eff_pt_omC->SetBinError(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinError(7));
         }
 
         eff_pt_omm->SetMarkerStyle(markerStyles[10]);
@@ -333,14 +333,14 @@ int DrawCascades(std::string inputFilename = "~/Work/git/analysis/code/test/FitR
 
             if (fisMC)
             {
-                eff_xim[multBinXi]->SetBinContent(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
-                eff_xim[multBinXi]->SetBinError(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(6));
+                eff_xim[multBinXi]->SetBinContent(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(7)); // Bin 7 in resultparams is MC efficiency
+                eff_xim[multBinXi]->SetBinError(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(7));
 
-                eff_xip[multBinXi]->SetBinContent(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
-                eff_xip[multBinXi]->SetBinError(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(6));
+                eff_xip[multBinXi]->SetBinContent(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(7)); // Bin 7 in resultparams is MC efficiency
+                eff_xip[multBinXi]->SetBinError(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(7));
 
-                eff_xiC[multBinXi]->SetBinContent(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
-                eff_xiC[multBinXi]->SetBinError(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(6));
+                eff_xiC[multBinXi]->SetBinContent(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(7)); // Bin 7 in resultparams is MC efficiency
+                eff_xiC[multBinXi]->SetBinError(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(7));
             }
 
             /// Scale for bin width: N->dN/dpt
@@ -460,14 +460,14 @@ int DrawCascades(std::string inputFilename = "~/Work/git/analysis/code/test/FitR
 
             if (fisMC)
             {
-                eff_omm[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
-                eff_omm[multBinOm]->SetBinError(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(6));
+                eff_omm[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(7)); // Bin 7 in resultparams is MC efficiency
+                eff_omm[multBinOm]->SetBinError(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(7));
 
-                eff_omp[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
-                eff_omp[multBinOm]->SetBinError(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(6));
+                eff_omp[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(7)); // Bin 7 in resultparams is MC efficiency
+                eff_omp[multBinOm]->SetBinError(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(7));
 
-                eff_omC[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(6)); // Bin 6 in resultparams is MC efficiency
-                eff_omC[multBinOm]->SetBinError(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(6));
+                eff_omC[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(7)); // Bin 7 in resultparams is MC efficiency
+                eff_omC[multBinOm]->SetBinError(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(7));
             }
             /// Scale for bin width: N->dN/dpt
             // rawPt_omm[multBinOm]->Scale(1, "width");
@@ -727,8 +727,8 @@ int DrawCascades(std::string inputFilename = "~/Work/git/analysis/code/test/FitR
 
             /// generate ratio hists
             ratioPt_omm[multBinOm] = new TH1D(TString::Format(("ratioPt_omm[%d]"), multBinOm), "", fNptbins_Om, fPtbins_Om);
-            ratioPt_omp[multBinOm] = new TH1D(TString::Format(("ratioPt_omm[%d]"), multBinOm), "", fNptbins_Om, fPtbins_Om);
-            ratioPt_omC[multBinOm] = new TH1D(TString::Format(("ratioPt_omm[%d]"), multBinOm), "", fNptbins_Om, fPtbins_Om);
+            ratioPt_omp[multBinOm] = new TH1D(TString::Format(("ratioPt_omp[%d]"), multBinOm), "", fNptbins_Om, fPtbins_Om);
+            ratioPt_omC[multBinOm] = new TH1D(TString::Format(("ratioPt_omC[%d]"), multBinOm), "", fNptbins_Om, fPtbins_Om);
 
             ratioPt_omm[multBinOm]->Divide(rawPt_omm[multBinOm], rawPt_omm_compare[multBinOm]);
             outputFile->cd("dirRawPt_omm");
@@ -752,43 +752,48 @@ int DrawCascades(std::string inputFilename = "~/Work/git/analysis/code/test/FitR
             hs_ratio_omC->Add(ratioPt_omC[multBinOm]);
         }
 
+        Double_t yAxisMin_Xi = 0.7;
+        Double_t yAxisMax_Xi = 1.3;
+        Double_t yAxisMin_Om = 0.6;
+        Double_t yAxisMax_Om = 1.2;
+
         PaintStack(*c[0], *hs_ratio_xip, kFALSE, yAxisTitle);
         PaintStack(*c[1], *hs_ratio_omp, kFALSE, yAxisTitle);
         PaintStack(*c[2], *hs_ratio_xim, kFALSE, yAxisTitle);
         PaintStack(*c[3], *hs_ratio_omm, kFALSE, yAxisTitle);
         PaintStack(*c[4], *hs_ratio_xiC, kFALSE, yAxisTitle);
         PaintStack(*c[5], *hs_ratio_omC, kFALSE, yAxisTitle);
-        {
-            /// Draw a line at y=1 for ratio histStack
-            TLine *lLineAt1 = new TLine(0.8, 1, 5.3, 1);
-            lLineAt1->SetLineColor(kRed);
 
-            c[0]->cd();
-            lLineAt1->Draw("same");
-            c[1]->cd();
-            lLineAt1->Draw("same");
-            c[2]->cd();
-            lLineAt1->Draw("same");
-            c[3]->cd();
-            lLineAt1->Draw("same");
-            c[4]->cd();
-            lLineAt1->Draw("same");
-            c[5]->cd();
-            lLineAt1->Draw("same");
-        }
-        // hs_ratio_xim->SetMinimum(0.7);
-        // hs_ratio_xip->SetMinimum(0.7);
-        // hs_ratio_xiC->SetMinimum(0.7);
-        // hs_ratio_omm->SetMinimum(0.5);
-        // hs_ratio_omp->SetMinimum(0.5);
-        // hs_ratio_omC->SetMinimum(0.5);
+        hs_ratio_xim->SetMinimum(yAxisMin_Xi);
+        hs_ratio_xip->SetMinimum(yAxisMin_Xi);
+        hs_ratio_xiC->SetMinimum(yAxisMin_Xi);
+        hs_ratio_omm->SetMinimum(yAxisMin_Om);
+        hs_ratio_omp->SetMinimum(yAxisMin_Om);
+        hs_ratio_omC->SetMinimum(yAxisMin_Om);
 
-        // hs_ratio_xim->SetMaximum(1.1);
-        // hs_ratio_xip->SetMaximum(1.1);
-        // hs_ratio_xiC->SetMaximum(1.1);
-        // hs_ratio_omm->SetMaximum(1.2);
-        // hs_ratio_omp->SetMaximum(1.2);
-        // hs_ratio_omC->SetMaximum(1.2);
+        hs_ratio_xim->SetMaximum(yAxisMax_Xi);
+        hs_ratio_xip->SetMaximum(yAxisMax_Xi);
+        hs_ratio_xiC->SetMaximum(yAxisMax_Xi);
+        hs_ratio_omm->SetMaximum(yAxisMax_Om);
+        hs_ratio_omp->SetMaximum(yAxisMax_Om);
+        hs_ratio_omC->SetMaximum(yAxisMax_Om);
+
+        /// Draw a line at y=1 for ratio histStack
+        TLine *lLineAt1 = new TLine(0.8, 1, 5.3, 1);
+        lLineAt1->SetLineColor(kRed);
+
+        c[0]->cd();
+        lLineAt1->Draw("same");
+        c[1]->cd();
+        lLineAt1->Draw("same");
+        c[2]->cd();
+        lLineAt1->Draw("same");
+        c[3]->cd();
+        lLineAt1->Draw("same");
+        c[4]->cd();
+        lLineAt1->Draw("same");
+        c[5]->cd();
+        lLineAt1->Draw("same");
 
         outputFile->cd();
         hs_ratio_xip->Write();
@@ -838,13 +843,13 @@ void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TStri
     TCanvas *cDraw = new TCanvas(peak->GetName(), peak->GetTitle(), 1920, 1080);
     cDraw->cd();
 
-    Double_t pPosition = resultParams->GetBinContent(3); // avg mean for DGaus fit is stored in resultParams bin 3
-    Double_t pWidth = resultParams->GetBinContent(4);    // avg sigma for DGaus fit is stored in resultParams bin 4
+    Double_t pPosition = resultParams->GetBinContent(4); // avg mean for DGaus fit is stored in resultParams bin 4
+    Double_t pWidth = resultParams->GetBinContent(5);    // avg sigma for DGaus fit is stored in resultParams bin 5
     auto legend = new TLegend(0.1, 0.7, 0.28, 0.9);
     legend->SetHeader("Fit Stats", "C"); // option "C" allows to center the header
     legend->AddEntry(peak->GetListOfFunctions()->At(0), "", "l");
-    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit mean = %f +/- %f", pPosition, resultParams->GetBinError(3)), "l");
-    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit sigma = %f +/- %f", pWidth, resultParams->GetBinError(4)), "l");
+    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit mean = %f +/- %f", pPosition, resultParams->GetBinError(4)), "l");
+    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit sigma = %f +/- %f", pWidth, resultParams->GetBinError(5)), "l");
     // legend->AddEntry(peak->GetListOfFunctions()->At(1), "", "lpf");
     legend->AddEntry(peak, TString::Format("Sig - Bg (BC-FF) = %f +/- %f", resultParams->GetBinContent(1), resultParams->GetBinError(1)), "pe");
 
