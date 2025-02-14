@@ -4,12 +4,11 @@ class TVector3;
 
 class AliESDVertex;
 class AliESDv0;
-/// class AliESDcascade;
 class AliAODVertex;
 class AliAODv0;
 class AliAODcascade;
 
-#include <Riostream.h>
+#include "Riostream.h"
 #include "TH3.h"
 #include "TFile.h"
 #include "TCanvas.h"
@@ -37,6 +36,8 @@ class AliAODcascade;
 #include "AliAnalysisTaskStrangeCascadesRun2.h"
 
 #include "TMath.h"
+#include "TRandom.h"
+#include "TRandomGen.h"
 
 ClassImp(AliAnalysisTaskStrangeCascadesRun2)
 
@@ -52,16 +53,16 @@ ClassImp(AliAnalysisTaskStrangeCascadesRun2)
                                                                                fTriggerMask(0),
 
                                                                                // AliEventCuts object
-                                                                               fEventCuts(0),
+                                                                               fEventCuts(nullptr),
                                                                                // pile-up rejection flag
                                                                                fPileupCut(0),
 
                                                                                // MC-related variables
-                                                                               fisMC(kFALSE),
-                                                                               fisMCassoc(kFALSE),
+                                                                               fisMC(false),
+                                                                               fisMCassoc(false),
 
                                                                                /// default cuts configuration
-                                                                               fDefOnly(kFALSE),
+                                                                               fDefOnly(false),
                                                                                //  fCasc_Cuts{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                                                                                /// particle to be analysed
                                                                                fParticleAnalysisStatus{true, true, true, true},
@@ -109,22 +110,22 @@ ClassImp(AliAnalysisTaskStrangeCascadesRun2)
                                                                                fCasc_PosTrackStatus(0),
                                                                                fCasc_BacTrackStatus(0),
                                                                                fCasc_BacBarCosPA(0),
-                                                                               fisParametricBacBarCosPA(kFALSE),
+                                                                               fisParametricBacBarCosPA(false),
                                                                                fHist_PtBacBarCosPA(0),
                                                                                ptXiBoundary_LowMid(0),
                                                                                ptXiBoundary_MidHigh(0),
                                                                                ptOmBoundary_LowMid(0),
                                                                                ptOmBoundary_MidHigh(0),
                                                                                fCentLimit_BacBarCosPA(0),
-                                                                               fisParametricTrackLengthCut(kFALSE),
+                                                                               fisParametricTrackLengthCut(false),
                                                                                fHist_CentTrackLengthCut(0),
                                                                                //  fHistCutsEv(0),
                                                                                //  fHistCutsTopo(0),
                                                                                fDeadZoneWidth_GeoCut(0),
                                                                                fNcrNclLength_GeoCut(0),
                                                                                fTPCsignalNCut(0)
-                                                                            //    fCasc_TrackLength(0) /*,
-                                                                                // fncentbins[](0)
+//    fCasc_TrackLength(0) /*,
+// fncentbins[](0)
 
 {
     ////default constructor
@@ -143,13 +144,13 @@ AliAnalysisTaskStrangeCascadesRun2::AliAnalysisTaskStrangeCascadesRun2(const cha
                                                                                                                   fTriggerMask(0),
 
                                                                                                                   // AliEventCuts object
-                                                                                                                  fEventCuts(0),
+                                                                                                                  fEventCuts(nullptr),
                                                                                                                   // pile-up rejection flag
                                                                                                                   fPileupCut(1),
 
                                                                                                                   ////MC-related variables - make true for MC only
-                                                                                                                  fisMC(kTRUE),
-                                                                                                                  fisMCassoc(kTRUE),
+                                                                                                                  fisMC(true),
+                                                                                                                  fisMCassoc(true),
 
                                                                                                                   ////default cuts configuration
                                                                                                                   fDefOnly(kFALSE),
@@ -215,14 +216,14 @@ AliAnalysisTaskStrangeCascadesRun2::AliAnalysisTaskStrangeCascadesRun2(const cha
                                                                                                                   fDeadZoneWidth_GeoCut(3.),
                                                                                                                   fNcrNclLength_GeoCut(90.),
                                                                                                                   fTPCsignalNCut(50)
-                                                                                                                //   fCasc_TrackLength(90) /*,
-                                                                                                                //   fncentbins[](0)*/
+//   fCasc_TrackLength(90) /*,
+//   fncentbins[](0)*/
 
 {
 
     ////setting default cuts
     SetDefCuts();
-    SetDefCutVariations();
+    // SetDefCutVariations();
     ////setting default centrality binning
     Double_t centbins_Xi[11] = {0, 5, 10, 15, 20, 30, 40, 50, 60, 80, 100}; // V0A
     Double_t centbins_Om[6] = {0, 5, 15, 30, 60, 100};                      // V0A
@@ -265,6 +266,8 @@ AliAnalysisTaskStrangeCascadesRun2::~AliAnalysisTaskStrangeCascadesRun2()
 }
 
 //_____________________________________________________________________________
+/// This function is used to create the output objects for the analysis task.
+/// It initializes histograms and other objects that will be used to store the results of the analysis.
 void AliAnalysisTaskStrangeCascadesRun2::UserCreateOutputObjects()
 {
 
@@ -352,67 +355,80 @@ void AliAnalysisTaskStrangeCascadesRun2::UserCreateOutputObjects()
     }
 
     /// creating histograms for cut variations
+
     if (!fDefOnly && (fParticleAnalysisStatus[kxip] || fParticleAnalysisStatus[komp]))
     {
+        int nVars = 500;
+        fHistos_eve->CreateTH2("h2CutVarVals", "h2CutVarVals", nVars, 0, nVars, 18, 0, 18);
 
-        for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
+        for (int iVar = 0; iVar < nVars; iVar++)
         {
-            if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
-                continue;
-            if (nvarcut_Ev[iCutEv] == -1) // skip the cut if value == -1 -> unused variations
-                continue;
-            for (int iVarEv = 0; iVarEv < nvarcut_Ev[iCutEv]; iVarEv++)
-            {
-                if (iCutEv != kCompetingCascRejectOm)
-                {
-                    if (fParticleAnalysisStatus[kxip])
-                    {
-                        // if (icut != kCasc_PropLifetOm)
-                        // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
-                        fHistos_XiMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
-                        // if (icut != kCasc_PropLifetOm)
-                        // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
-                        fHistos_XiPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
-                    }
-                }
-                if (fParticleAnalysisStatus[komp])
-                {
-                    // if (icut != kCasc_PropLifetXi)
-                    fHistos_OmMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-                    // if (icut != kCasc_PropLifetXi)
-                    fHistos_OmPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-                }
-            }
-        }
 
-        for (int iCutTopo = 0; iCutTopo < kNumCascTopoCuts; iCutTopo++)
-        {
-            if (nvarcut_Topo[iCutTopo] == -1) // skip the cut if value == -1 -> unused variations
-                continue;
-            for (int iVarTopo = 0; iVarTopo < nvarcut_Topo[iCutTopo]; iVarTopo++)
-            {
+            fHistos_XiMin->CreateTH3(TString::Format("h3Var_%d", iVar), TString::Format("h3Var_%d", iVar), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+            fHistos_XiPlu->CreateTH3(TString::Format("h3Var_%d", iVar), TString::Format("h3Var_%d", iVar), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+            fHistos_OmMin->CreateTH3(TString::Format("h3Var_%d", iVar), TString::Format("h3Var_%d", iVar), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+            fHistos_OmPlu->CreateTH3(TString::Format("h3Var_%d", iVar), TString::Format("h3Var_%d", iVar), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
 
-                // if (fParticleAnalysisStatus[kxip] && (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] != -1))
-                // {
-                if (fParticleAnalysisStatus[kxip])
-                {
-                    // if (icut != kCasc_PropLifetOm)
-                    // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
-                    fHistos_XiMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
-                    // if (icut != kCasc_PropLifetOm)
-                    // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
-                    fHistos_XiPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
-                }
-                //
-                if (fParticleAnalysisStatus[komp])
-                {
-                    // if (icut != kCasc_PropLifetXi)
-                    fHistos_OmMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-                    // if (icut != kCasc_PropLifetXi)
-                    fHistos_OmPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-                }
-            }
+            /// TODO: To store the value of cuts applied for each variation, create TH1 x nVars OR create a THnSparse with nVars axes
         }
+        // for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
+        // {
+        //     if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
+        //         continue;
+        //     if (nvarcut_Ev[iCutEv] == -1) // skip the cut if value == -1 -> unused variations
+        //         continue;
+        //     for (int iVarEv = 0; iVarEv < nvarcut_Ev[iCutEv]; iVarEv++)
+        //     {
+        //         if (iCutEv != kCompetingCascRejectOm)
+        //         {
+        //             if (fParticleAnalysisStatus[kxip])
+        //             {
+        //                 // if (icut != kCasc_PropLifetOm)
+        //                 // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
+        //                 fHistos_XiMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+        //                 // if (icut != kCasc_PropLifetOm)
+        //                 // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
+        //                 fHistos_XiPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+        //             }
+        //         }
+        //         if (fParticleAnalysisStatus[komp])
+        //         {
+        //             // if (icut != kCasc_PropLifetXi)
+        //             fHistos_OmMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+        //             // if (icut != kCasc_PropLifetXi)
+        //             fHistos_OmPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+        //         }
+        //     }
+        // }
+
+        // for (int iCutTopo = 0; iCutTopo < kNumCascTopoCuts; iCutTopo++)
+        // {
+        //     if (nvarcut_Topo[iCutTopo] == -1) // skip the cut if value == -1 -> unused variations
+        //         continue;
+        //     for (int iVarTopo = 0; iVarTopo < nvarcut_Topo[iCutTopo]; iVarTopo++)
+        //     {
+
+        //         // if (fParticleAnalysisStatus[kxip] && (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] != -1))
+        //         // {
+        //         if (fParticleAnalysisStatus[kxip])
+        //         {
+        //             // if (icut != kCasc_PropLifetOm)
+        //             // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
+        //             fHistos_XiMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+        //             // if (icut != kCasc_PropLifetOm)
+        //             // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
+        //             fHistos_XiPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
+        //         }
+        //         //
+        //         if (fParticleAnalysisStatus[komp])
+        //         {
+        //             // if (icut != kCasc_PropLifetXi)
+        //             fHistos_OmMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+        //             // if (icut != kCasc_PropLifetXi)
+        //             fHistos_OmPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
+        //         }
+        //     }
+        // }
     }
     //// PID Setup
     AliAnalysisManager *man = AliAnalysisManager::GetAnalysisManager();
@@ -425,17 +441,29 @@ void AliAnalysisTaskStrangeCascadesRun2::UserCreateOutputObjects()
         fEventCuts.SetRejectTPCPileupWithITSTPCnCluCorr(kTRUE);
     if (fPileupCut == 2)
         fEventCuts.SetRejectTPCPileupWithV0CentTPCnTracksCorr(kTRUE);
-  // geometrical cut Setup
+    // geometrical cut Setup
     fESDTrackCuts.SetCutGeoNcrNcl(fDeadZoneWidth_GeoCut, fNcrNclLength_GeoCut, 1.5, 0.85, 0.7);
 
     ////Output posting
     DataPosting();
 }
+
 //_____________________________________________________________________________
+
+/**
+ * @brief Main function to process each event.
+ *
+ * This function is called for each event in the analysis. It performs event selection,
+ * retrieves necessary event and track information, applies various cuts, and fills histograms.
+ *
+ * @param option Not used.
+ */
 void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
 {
     // ignore all warnings
     gErrorIgnoreLevel = kError;
+
+    // ROOT::EnableImplicitMT();
 
     // get event from the input handler and cast it into the desired type of event
     AliVEvent *lVevent = dynamic_cast<AliVEvent *>(InputEvent());
@@ -555,16 +583,16 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
         }
         // if (fisMC)
         // {
-            /// Get name of mc generator - for test purposes.
-            // TString McClassName = header->GetCocktailHeaders()->At(0)->ClassName();
-            // AliInfo(TString::Format("MC header class name = %s", McClassName.Data()));
+        /// Get name of mc generator - for test purposes.
+        // TString McClassName = header->GetCocktailHeaders()->At(0)->ClassName();
+        // AliInfo(TString::Format("MC header class name = %s", McClassName.Data()));
 
-            /// NO NEED TO RUN THE FOLLOWING CODE FOR THE SELECTED PRODUCTION'S MC: LHC16r - no HIJING MC exists
-            // if (AliAnalysisUtils::IsPileupInGeneratedEvent(header, "ijing")) // reject HIJING (Heavy Ion Jet INteraction Generator)
-            // {
-            //     DataPosting();
-            //     return;
-            // }
+        /// NO NEED TO RUN THE FOLLOWING CODE FOR THE SELECTED PRODUCTION'S MC: LHC16r - no HIJING MC exists
+        // if (AliAnalysisUtils::IsPileupInGeneratedEvent(header, "ijing")) // reject HIJING (Heavy Ion Jet INteraction Generator)
+        // {
+        //     DataPosting();
+        //     return;
+        // }
         // }
     }
 
@@ -745,7 +773,6 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
             // lTrackLengthPos = GetLengthInActiveZone(pTrackCasc, 2.0, 220.0, lMagField);
             // lTrackLengthNeg = GetLengthInActiveZone(nTrackCasc, 2.0, 220.0, lMagField);
             // lTrackLengthBac = GetLengthInActiveZone(bTrackCasc, 2.0, 220.0, lMagField);
-
 
             // if ((lTrackLengthPos > fCasc_TrackLength) && (lTrackLengthNeg > fCasc_TrackLength))
             // {
@@ -936,7 +963,7 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
 //     return esdTrack.GetLengthInActiveZone(1, deltaY, deltaZ, b);
 // }
 
-void AliAnalysisTaskStrangeCascadesRun2::SetCutValue(bool isTopo, int cutName, double cutVal, int particle = -1, int ptInterval = -1)
+Double_t AliAnalysisTaskStrangeCascadesRun2::SetCutValue(bool isTopo, int cutName, double cutVal, int particle = -1, int ptInterval = -1)
 {
     if (!isTopo)
         cutValEv[cutName] = cutVal;
@@ -972,6 +999,8 @@ void AliAnalysisTaskStrangeCascadesRun2::SetCutValue(bool isTopo, int cutName, d
             cutValTopo[particle][cutName][ptInterval] = cutVal;
         }
     }
+
+    return cutVal;
 }
 
 void AliAnalysisTaskStrangeCascadesRun2::SetDefCutValue(bool isTopo, int cutName, double cutVal, int particle = -1, int ptInterval = -1)
@@ -1115,143 +1144,62 @@ void AliAnalysisTaskStrangeCascadesRun2::SetDefCuts()
     SetDefCutValue(kTRUE, kV0CosPa, 0.98, kOm, kMid); // kCasc_V0CosPAXi(Mid)
     SetDefCutValue(kTRUE, kV0CosPa, 0.98, kOm, kHigh);
 }
+///________________________________________________________________________
+void AliAnalysisTaskStrangeCascadesRun2::RandomiseCuts(Int_t seed = 1)
+
+{
+    TRandomMixMax17 randGen(seed);
+
+    TH2 *temp_h2CutVarVals = (TH2 *)fHistos_eve->FindObject("h2CutVarVals");
+
+    /// event selection cuts
+    temp_h2CutVarVals->SetBinContent(seed, kTpcDedxPidSigma, SetCutValue(kFALSE, kTpcDedxPidSigma, randGen.Uniform(2, 6)));                   // kCasc_NSigPID
+    temp_h2CutVarVals->SetBinContent(seed, kDeviationPropLifetime, SetCutValue(kFALSE, kDeviationPropLifetime, randGen.Uniform(2, 7)));       // kCasc_PropLifetXi
+    temp_h2CutVarVals->SetBinContent(seed, kLeastTpcClusters, SetCutValue(kFALSE, kLeastTpcClusters, randGen.Uniform(50, 90)));               // kCasc_LeastTPCcls,    // --> DON'T USE
+    temp_h2CutVarVals->SetBinContent(seed, kCompetingCascRejectOm, SetCutValue(kFALSE, kCompetingCascRejectOm, randGen.Uniform(0.0, 0.012))); // kCasc_CompetingXiMass
+    temp_h2CutVarVals->SetBinContent(seed, kLeastCRows, SetCutValue(kFALSE, kLeastCRows, randGen.Uniform(60, 90)));                           // kCasc_LeastCRaws: not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
+    temp_h2CutVarVals->SetBinContent(seed, kLeastCRowsOvF, SetCutValue(kFALSE, kLeastCRowsOvF, randGen.Uniform(0.7, 0.9)));                   // not used --> USE -> (0.8)
+    temp_h2CutVarVals->SetBinContent(seed, kTrackLengthCut, SetCutValue(kFALSE, kTrackLengthCut, randGen.Uniform(0, 3)));
+    temp_h2CutVarVals->SetBinContent(seed, kV0InvMassWindow, SetCutValue(kFALSE, kV0InvMassWindow, randGen.Uniform(0.005, 0.011))); // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
+
+    /// topological cuts
+    temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kV0CosPa, SetCutValue(kTRUE, kV0CosPa, randGen.Uniform(0.95, 0.999)));
+    temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kCascCosPa, SetCutValue(kTRUE, kCascCosPa, randGen.Uniform(0.95, 0.999)));
+    temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kDcaBachToV0, SetCutValue(kTRUE, kDcaBachToV0, randGen.Uniform(0.6, 2.)));
+    temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kDcaV0Daughters, SetCutValue(kTRUE, kDcaV0Daughters, randGen.Uniform(0.6, 2.)));
+    temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kCascTransDecayRadius, SetCutValue(kTRUE, kCascTransDecayRadius, randGen.Uniform(0.3, 2.)));
+    temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kV0TransDecayRadius, SetCutValue(kTRUE, kV0TransDecayRadius, randGen.Uniform(1., 5.)));
+    temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kDcaBachToPv, SetCutValue(kTRUE, kDcaBachToPv, randGen.Uniform(0.02, 0.2)));
+    temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kDcaV0ToPv, SetCutValue(kTRUE, kDcaV0ToPv, randGen.Uniform(0.02, 0.12)));
+    temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kDcaMesV0ToPv, SetCutValue(kTRUE, kDcaMesV0ToPv, randGen.Uniform(0.02, 0.3)));
+    temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kDcaBarV0ToPv, SetCutValue(kTRUE, kDcaBarV0ToPv, randGen.Uniform(0.02, 0.12)));
+
+    // SetCutValue(kFALSE, kTpcDedxPidSigma, randGen.Uniform(2, 6));
+    // SetCutValue(kFALSE, kDeviationPropLifetime, randGen.Uniform(2, 7));       // kCasc_PropLifetXi
+    // SetCutValue(kFALSE, kLeastTpcClusters, randGen.Uniform(50, 90));          // kCasc_LeastTPCcls,    // --> DON'T USE
+    // SetCutValue(kFALSE, kCompetingCascRejectOm, randGen.Uniform(0.0, 0.012)); // kCasc_CompetingXiMass
+    // SetCutValue(kFALSE, kLeastCRows, randGen.Uniform(60, 90));                // kCasc_LeastCRaws: not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
+    // SetCutValue(kFALSE, kLeastCRowsOvF, randGen.Uniform(0.7, 0.9));           // not used --> USE -> (0.8)
+    // SetCutValue(kFALSE, kTrackLengthCut, randGen.Uniform(0, 3));
+    // SetCutValue(kFALSE, kV0InvMassWindow, randGen.Uniform(0.005, 0.011)); // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
+
+    // /// topological cuts
+    // SetCutValue(kTRUE, kV0CosPa, randGen.Uniform(0.95, 0.999));
+    // SetCutValue(kTRUE, kCascCosPa, randGen.Uniform(0.95, 0.999));
+    // SetCutValue(kTRUE, kDcaBachToV0, randGen.Uniform(0.6, 2.));
+    // SetCutValue(kTRUE, kDcaV0Daughters, randGen.Uniform(0.6, 2.));
+    // SetCutValue(kTRUE, kCascTransDecayRadius, randGen.Uniform(0.3, 2.));
+    // SetCutValue(kTRUE, kV0TransDecayRadius, randGen.Uniform(1., 5.));
+    // SetCutValue(kTRUE, kDcaBachToPv, randGen.Uniform(0.02, 0.2));
+    // SetCutValue(kTRUE, kDcaV0ToPv, randGen.Uniform(0.02, 0.12));
+    // SetCutValue(kTRUE, kDcaMesV0ToPv, randGen.Uniform(0.02, 0.3));
+    // SetCutValue(kTRUE, kDcaBarV0ToPv, randGen.Uniform(0.02, 0.12));
+
+    /// store values of cut variation in h2CutVarVals
+}
 
 ///________________________________________________________________________
 void AliAnalysisTaskStrangeCascadesRun2::SetDefCutVariations()
-// {
-
-//     /// Initialise all elements of var array to -1 to skip unused indices
-//     // CAUTION: make sure none of the var values are -1: this value is ignored for applying cuts
-//     std::fill_n(*var_cutValEv, kNumCascEvCuts * kNumCutVars, -1.);
-//     std::fill_n(***var_cutValTopo, knumpart * kNumCascTopoCuts * kNumPtInterval * kNumCutVars, -1.);
-
-//     Int_t all = -1;
-
-//     /// event selection cuts
-//     // SetVarCutValue(kFALSE, kRapidityIntervalMin, -0.5);    // kCasc_y
-//     // SetVarCutValue(kFALSE, kRapidityIntervalMax, 0.0);     // == 0
-//     SetVarCutValue(kFALSE, kTpcDedxPidSigma, kLoose, 5);         // kCasc_NSigPID
-//     SetVarCutValue(kFALSE, kTpcDedxPidSigma, kTight, 3.5);       // kCasc_NSigPID
-//     SetVarCutValue(kFALSE, kDeviationPropLifetime, kLoose, 4);   // kCasc_PropLifetXi
-//     SetVarCutValue(kFALSE, kDeviationPropLifetime, kTight, 2);   // kCasc_PropLifetXi
-//     SetVarCutValue(kFALSE, kLeastTpcClusters, kTight, 75);       // kCasc_LeastTPCcls,    // --> DON'T USE
-//     SetVarCutValue(kFALSE, kLeastTpcClusters, kVeryTight, 80);   // kCasc_LeastTPCcls,    // --> DON'T USE
-//     SetVarCutValue(kFALSE, kCompetingCascRejectOm, kLoose, 0.0); // kCasc_CompetingXiMass
-
-//     // SetVarCutValue(kFALSE, kLeastCRows, 70);               // not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
-//     // SetVarCutValue(kFALSE, kLeastCRowsOvF, 0.8);           // not used --> USE -> (0.8)
-//     // SetVarCutValue(kFALSE, kTrackLengthCut, 1.0);          // not used --> USE
-//     // SetVarCutValue(kFALSE, kEtaDaughter, 0.8);             // kCasc_etaDaugh
-//     // SetVarCutValue(kFALSE, kBacBarCosPa, 1.0);             // kCasc_BacBarCosPA :: not used --> USE
-//     SetVarCutValue(kFALSE, kV0InvMassWindow, kLoose, 0.009); // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
-//     SetVarCutValue(kFALSE, kV0InvMassWindow, kTight, 0.006); // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
-
-//     /// topological cuts
-//     SetVarCutValue(kTRUE, kV0CosPa, kVeryLoose, 0.95, all, all);
-//     SetVarCutValue(kTRUE, kV0CosPa, kLoose, 0.96, all, all);
-//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.985, kXi, kLow);
-//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.996, kXi, kMid);
-//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.998, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.975, kOm, kLow);
-//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.994, kOm, kMid);
-//     SetVarCutValue(kTRUE, kV0CosPa, kTight, 0.996, kOm, kHigh);
-//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.99, kXi, kLow);
-//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.998, kXi, kMid);
-//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.999, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.98, kOm, kLow);
-//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.994, kOm, kMid);
-//     SetVarCutValue(kTRUE, kV0CosPa, kVeryTight, 0.996, kOm, kHigh);
-
-//     SetVarCutValue(kTRUE, kCascCosPa, kVeryLoose, 0.95, all, all);
-//     SetVarCutValue(kTRUE, kCascCosPa, kLoose, 0.95, all, kLow);
-//     SetVarCutValue(kTRUE, kCascCosPa, kLoose, 0.96, all, kMid);
-//     SetVarCutValue(kTRUE, kCascCosPa, kLoose, 0.96, all, kHigh);
-//     SetVarCutValue(kTRUE, kCascCosPa, kTight, 0.965, all, kLow);
-//     SetVarCutValue(kTRUE, kCascCosPa, kTight, 0.985, all, kMid);
-//     SetVarCutValue(kTRUE, kCascCosPa, kTight, 0.985, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kCascCosPa, kTight, 0.98, kOm, kHigh);
-//     SetVarCutValue(kTRUE, kCascCosPa, kVeryTight, 0.97, all, kLow);
-//     SetVarCutValue(kTRUE, kCascCosPa, kVeryTight, 0.992, all, kMid);
-//     SetVarCutValue(kTRUE, kCascCosPa, kVeryTight, 0.992, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kCascCosPa, kVeryTight, 0.985, kOm, kHigh);
-
-//     SetVarCutValue(kTRUE, kDcaBachToV0, kVeryLoose, 2.0, all, all);
-//     SetVarCutValue(kTRUE, kDcaBachToV0, kLoose, 1.8, all, all);
-//     SetVarCutValue(kTRUE, kDcaBachToV0, kTight, 1.4, all, kLow);
-//     SetVarCutValue(kTRUE, kDcaBachToV0, kTight, 1.0, all, kMid);
-//     SetVarCutValue(kTRUE, kDcaBachToV0, kTight, 0.9, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kDcaBachToV0, kTight, 1.0, kOm, kHigh);
-//     SetVarCutValue(kTRUE, kDcaBachToV0, kVeryTight, 1.2, all, kLow);
-//     SetVarCutValue(kTRUE, kDcaBachToV0, kVeryTight, 0.8, all, kMid);
-//     SetVarCutValue(kTRUE, kDcaBachToV0, kVeryTight, 0.7, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kDcaBachToV0, kVeryTight, 0.8, kOm, kHigh);
-
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryLoose, 2.0, all, all);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kLoose, 1.9, all, kLow);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kLoose, 1.8, all, kMid);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kLoose, 1.8, all, kHigh);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kTight, 1.5, all, kLow);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kTight, 0.9, kXi, kMid);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kTight, 0.6, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kTight, 1.4, kOm, kMid);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kTight, 1.4, kOm, kHigh);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryTight, 1.3, all, kLow);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryTight, 0.8, kXi, kMid);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryTight, 0.4, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryTight, 1.2, kOm, kMid);
-//     SetVarCutValue(kTRUE, kDcaV0Daughters, kVeryTight, 1.2, kOm, kHigh);
-
-//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kLoose, 0.5, all, all);
-//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 1.0, kXi, kLow);
-//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 1.4, kXi, kMid);
-//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 2.0, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 0.6, kOm, kLow);
-//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 0.9, kOm, kMid);
-//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kTight, 1.0, kOm, kHigh);
-//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kVeryTight, 1.4, kXi, kLow);
-//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kVeryTight, 2, kXi, kMid);
-//     SetVarCutValue(kTRUE, kCascTransDecayRadius, kVeryTight, 3, kXi, kHigh);
-
-//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kLoose, 1.1, all, all);
-//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 3.0, kXi, kLow);
-//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 5.5, kXi, kMid);
-//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 7.0, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 2.0, kOm, kLow);
-//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 2.5, kOm, kMid);
-//     SetVarCutValue(kTRUE, kV0TransDecayRadius, kTight, 5.0, kOm, kHigh);
-
-//     SetVarCutValue(kTRUE, kDcaBachToPv, kLoose, 0.03, all, all);
-//     SetVarCutValue(kTRUE, kDcaBachToPv, kTight, 0.11, kXi, all);
-//     SetVarCutValue(kTRUE, kDcaBachToPv, kTight, 0.06, kOm, all);
-//     SetVarCutValue(kTRUE, kDcaBachToPv, kVeryTight, 0.19, kXi, all);
-//     SetVarCutValue(kTRUE, kDcaBachToPv, kVeryTight, 0.09, kOm, all);
-
-//     SetVarCutValue(kTRUE, kDcaV0ToPv, kLoose, 0.05, all, all);
-//     SetVarCutValue(kTRUE, kDcaV0ToPv, kTight, 0.09, kXi, all);
-//     SetVarCutValue(kTRUE, kDcaV0ToPv, kTight, 0.08, kOm, all);
-//     SetVarCutValue(kTRUE, kDcaV0ToPv, kVeryTight, 0.14, kXi, kLow);
-//     SetVarCutValue(kTRUE, kDcaV0ToPv, kVeryTight, 0.13, kXi, kMid);
-//     SetVarCutValue(kTRUE, kDcaV0ToPv, kVeryTight, 0.11, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kDcaV0ToPv, kVeryTight, 0.1, kOm, all);
-
-//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kVeryLoose, 0.02, all, all);
-//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kLoose, 0.03, all, all);
-//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kTight, 0.24, kXi, all);
-//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kTight, 0.11, kOm, kLow);
-//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kTight, 0.06, kOm, kMid);
-//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kTight, 0.15, kOm, kHigh);
-//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kVeryTight, 0.42, kXi, kLow);
-//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kVeryTight, 0.5, kXi, kMid);
-//     SetVarCutValue(kTRUE, kDcaMesV0ToPv, kVeryTight, 0.5, kXi, kHigh);
-
-//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kLoose, 0.02, all, all);
-//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kTight, 0.07, kXi, all);
-//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kTight, 0.06, kOm, all);
-//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kVeryTight, 0.13, kXi, kLow);
-//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kVeryTight, 0.11, kXi, kMid);
-//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kVeryTight, 0.11, kXi, kHigh);
-//     SetVarCutValue(kTRUE, kDcaBarV0ToPv, kVeryTight, 0.1, kOm, all);
-// }
 {
     /// Initialise all elements of nvarcut array to -1 to skip unused indices
     std::fill_n(nvarcut_Ev, kNumCascEvCuts, -1);
@@ -1269,7 +1217,6 @@ void AliAnalysisTaskStrangeCascadesRun2::SetDefCutVariations()
     SetCutVariation(kFALSE, kLeastCRowsOvF, 4, 0.75, 0.9); // not used --> USE -> (0.8)
 
     SetCutVariation(kFALSE, kTrackLengthCut, 4, 0, 3);
-    
 
     // SetVarCutValue(kFALSE, kLeastCRowsOvF, 0.8);           // not used --> USE -> (0.8)
     // SetVarCutValue(kFALSE, kTrackLengthCut, 1.0);          // not used --> USE
@@ -1282,8 +1229,8 @@ void AliAnalysisTaskStrangeCascadesRun2::SetDefCutVariations()
     SetCutVariation(kTRUE, kCascCosPa, 10, 0.95, 0.995);
     SetCutVariation(kTRUE, kDcaBachToV0, 9, 0.4, 2.);
     SetCutVariation(kTRUE, kDcaV0Daughters, 9, 0.4, 2.);
-    SetCutVariation(kTRUE, kCascTransDecayRadius, 9, 0.4, 2.);  
-    SetCutVariation(kTRUE, kV0TransDecayRadius, 13, 1., 7.);   
+    SetCutVariation(kTRUE, kCascTransDecayRadius, 9, 0.4, 2.);
+    SetCutVariation(kTRUE, kV0TransDecayRadius, 13, 1., 7.);
     SetCutVariation(kTRUE, kDcaBachToPv, 10, 0.02, 0.2);
     SetCutVariation(kTRUE, kDcaV0ToPv, 10, 0.02, 0.2);
     SetCutVariation(kTRUE, kDcaMesV0ToPv, 15, 0.02, 0.3);
@@ -1744,6 +1691,12 @@ void AliAnalysisTaskStrangeCascadesRun2::SetMassbinning(int ipart, int nummassbi
 }
 
 ///________________________________________________________________________
+/**
+ * @brief Posts the data for the analysis.
+ *
+ * This function posts the histograms and other data objects to the output list.
+ * It is called at the end of each event processing to ensure that the data is available for further analysis.
+ */
 void AliAnalysisTaskStrangeCascadesRun2::DataPosting()
 {
 
@@ -1862,123 +1815,166 @@ void AliAnalysisTaskStrangeCascadesRun2::FillHistCutVariations(double perc, bool
 */
 
 //________________________________________________________________________
+/**
+ * @brief Fills histograms with cut variations.
+ *
+ * This function applies random cut variations and fills the corresponding histograms
+ * for different particle species (Xi and Omega) based on the provided parameters.
+ *
+ * @param perc The percentile value for multiplicity.
+ * @param phypri Boolean indicating if the particle is a physical primary.
+ * @param associFlag Array of boolean flags indicating if the particle is associated.
+ */
 void AliAnalysisTaskStrangeCascadesRun2::FillHistCutVariations(double perc, bool phypri, bool *associFlag)
 {
-    int all = -1;
+    // int all = -1;
+    Int_t nVars = 500;
 
-    for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
+    for (int iVar = 0; iVar < nVars; iVar++)
     {
-        if (nvarcut_Ev[iCutEv] == -1) // skip the cut if value == -1 -> unused variations
-            continue;
-        if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
-            continue;
-
-        for (int iVarEv = 0; iVarEv < nvarcut_Ev[iCutEv]; iVarEv++)
+        RandomiseCuts(iVar);
+        // Xi filling
+        // if (iCutEv != kCompetingCascRejectOm)
+        // {
+        if (fParticleAnalysisStatus[kxip])
         {
-            //             if (fisParametricBacBarCosPA && iCutEv != kCasc_BacBarCosPA && perc < fCentLimit_BacBarCosPA)
-            //             {
-            //                 if (fCasc_Pt >= fHist_PtBacBarCosPA->GetXaxis()->GetXmin() && fCasc_Pt <= fHist_PtBacBarCosPA->GetXaxis()->GetXmax())
-            //                 {
-            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fHist_PtBacBarCosPA->GetBinContent(fHist_PtBacBarCosPA->GetXaxis()->FindBin(fCasc_Pt)));
-            //                 }
-            //                 else
-            //                 {
-            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fCasc_Cuts[kCasc_BacBarCosPA]);
-            //                 }
-            //             }
-            //             if (fisParametricTrackLengthCut && iCutEv != kCasc_TrackLengthCut)
-            //             {
-            //                 if (perc >= fHist_CentTrackLengthCut->GetXaxis()->GetXmin() && perc <= fHist_CentTrackLengthCut->GetXaxis()->GetXmax())
-            //                 {
-            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_TrackLengthCut, fHist_CentTrackLengthCut->GetBinContent(fHist_CentTrackLengthCut->GetXaxis()->FindBin(perc)));
-            //                 }
-            //                 else
-            //                 {
-            //                     SetEvCutVal(kFALSE, kTRUE, kCasc_TrackLengthCut, fCasc_Cuts[kCasc_TrackLengthCut]);
-            //                 }
-            //             }
-
-            // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
-            SetCutValue(kFALSE, iCutEv, (varlowcut_Ev[iCutEv] + iVarEv * (varhighcut_Ev[iCutEv] - varlowcut_Ev[iCutEv]) / (nvarcut_Ev[iCutEv] - 1)), all, all);
-
-            if (cutValEv[iCutEv] == def_cutValEv[iCutEv]) // skip the variation if it is the default value
-                continue;
-
-            // Xi filling
-            if (iCutEv != kCompetingCascRejectOm)
-            {
-                if (fParticleAnalysisStatus[kxip])
-                {
-                    if (phypri && associFlag[kxim] && ApplyCuts(kxim))
-                        fHistos_XiMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassXiMin, perc);
-                    if (phypri && associFlag[kxip] && ApplyCuts(kxip))
-                        fHistos_XiPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassXiPlu, perc);
-                }
-            }
-
-            // Omega filling
-            if (fParticleAnalysisStatus[komp])
-            {
-                if (phypri && associFlag[komm] && ApplyCuts(komm))
-                    fHistos_OmMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassOmMin, perc);
-                if (phypri && associFlag[komp] && ApplyCuts(komp))
-                    fHistos_OmPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassOmPlu, perc);
-            }
+            if (phypri && associFlag[kxim] && ApplyCuts(kxim))
+                fHistos_XiMin->FillTH3(TString::Format("h3Var_%d", iVar), fCasc_Pt, fCasc_InvMassXiMin, perc);
+            if (phypri && associFlag[kxip] && ApplyCuts(kxip))
+                fHistos_XiPlu->FillTH3(TString::Format("h3Var_%d", iVar), fCasc_Pt, fCasc_InvMassXiPlu, perc);
         }
-        SetDefCuts(); // reset defaults
+        // }
+
+        // Omega filling
+        if (fParticleAnalysisStatus[komp])
+        {
+            if (phypri && associFlag[komm] && ApplyCuts(komm))
+                fHistos_OmMin->FillTH3(TString::Format("h3Var_%d", iVar), fCasc_Pt, fCasc_InvMassOmMin, perc);
+            if (phypri && associFlag[komp] && ApplyCuts(komp))
+                fHistos_OmPlu->FillTH3(TString::Format("h3Var_%d", iVar), fCasc_Pt, fCasc_InvMassOmPlu, perc);
+        }
     }
 
-    for (int iCutTopo = 0; iCutTopo < kNumCascTopoCuts; iCutTopo++)
-    {
-        if (nvarcut_Topo[iCutTopo] == -1) // skip the cut if value == -1 -> unused variations
-            continue;
+    SetDefCuts(); // reset defaults
 
-        for (int iVarTopo = 0; iVarTopo < nvarcut_Topo[iCutTopo]; iVarTopo++)
-        {
-            // if (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] == -1) // skip the variation if ptInterval values == -1 -> unused variation (including all pT intervals)
-            //     continue;
+    // for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
+    // {
+    //     if (nvarcut_Ev[iCutEv] == -1) // skip the cut if value == -1 -> unused variations
+    //         continue;
+    //     if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
+    //         continue;
 
-            // for (int iPtTopo = 0; iPtTopo < kNumPtInterval; iPtTopo++)
-            // {
-            //     SetCutValue(true, iCutTopo, var_cutValTopo[kXi][iCutTopo][iPtTopo][iVarTopo], kXi, iPtTopo);
-            //     SetCutValue(true, iCutTopo, var_cutValTopo[kOm][iCutTopo][iPtTopo][iVarTopo], kOm, iPtTopo);
-            // }
+    //     for (int iVarEv = 0; iVarEv < nvarcut_Ev[iCutEv]; iVarEv++)
+    //     {
+    //         //             if (fisParametricBacBarCosPA && iCutEv != kCasc_BacBarCosPA && perc < fCentLimit_BacBarCosPA)
+    //         //             {
+    //         //                 if (fCasc_Pt >= fHist_PtBacBarCosPA->GetXaxis()->GetXmin() && fCasc_Pt <= fHist_PtBacBarCosPA->GetXaxis()->GetXmax())
+    //         //                 {
+    //         //                     SetEvCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fHist_PtBacBarCosPA->GetBinContent(fHist_PtBacBarCosPA->GetXaxis()->FindBin(fCasc_Pt)));
+    //         //                 }
+    //         //                 else
+    //         //                 {
+    //         //                     SetEvCutVal(kFALSE, kTRUE, kCasc_BacBarCosPA, fCasc_Cuts[kCasc_BacBarCosPA]);
+    //         //                 }
+    //         //             }
+    //         //             if (fisParametricTrackLengthCut && iCutEv != kCasc_TrackLengthCut)
+    //         //             {
+    //         //                 if (perc >= fHist_CentTrackLengthCut->GetXaxis()->GetXmin() && perc <= fHist_CentTrackLengthCut->GetXaxis()->GetXmax())
+    //         //                 {
+    //         //                     SetEvCutVal(kFALSE, kTRUE, kCasc_TrackLengthCut, fHist_CentTrackLengthCut->GetBinContent(fHist_CentTrackLengthCut->GetXaxis()->FindBin(perc)));
+    //         //                 }
+    //         //                 else
+    //         //                 {
+    //         //                     SetEvCutVal(kFALSE, kTRUE, kCasc_TrackLengthCut, fCasc_Cuts[kCasc_TrackLengthCut]);
+    //         //                 }
+    //         //             }
 
-            // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
-            SetCutValue(kTRUE, iCutTopo, (varlowcut_Topo[iCutTopo] + iVarTopo * (varhighcut_Topo[iCutTopo] - varlowcut_Topo[iCutTopo]) / (nvarcut_Topo[iCutTopo] - 1)), all, all);
+    //         // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+    //         SetCutValue(kFALSE, iCutEv, (varlowcut_Ev[iCutEv] + iVarEv * (varhighcut_Ev[iCutEv] - varlowcut_Ev[iCutEv]) / (nvarcut_Ev[iCutEv] - 1)), all, all);
 
-            // if (fParticleAnalysisStatus[kxip] && (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] != -1))
-            // {
-            if (fParticleAnalysisStatus[kxip])
-            {
-                if (!((cutValTopo[kXi][iCutTopo][kLow] == def_cutValTopo[kXi][iCutTopo][kLow]) && (cutValTopo[kXi][iCutTopo][kMid] == def_cutValTopo[kXi][iCutTopo][kMid]) && (cutValTopo[kXi][iCutTopo][kHigh] == def_cutValTopo[kXi][iCutTopo][kHigh]))) // skip the variation if it is exact same as the default value across pt intervals
-                {
-                    // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
-                    if (phypri && associFlag[kxim] && ApplyCuts(kxim))
-                        fHistos_XiMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiMin, perc);
-                    if (phypri && associFlag[kxip] && ApplyCuts(kxip))
-                        fHistos_XiPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiPlu, perc);
-                }
-            }
+    //         if (cutValEv[iCutEv] == def_cutValEv[iCutEv]) // skip the variation if it is the default value
+    //             continue;
 
-            // if (fParticleAnalysisStatus[komp] && (var_cutValTopo[kOm][iCutTopo][kMid][iVarTopo] != -1))
-            // {
-            if (fParticleAnalysisStatus[komp])
-            {
-                if (!((cutValTopo[kOm][iCutTopo][kLow] == def_cutValTopo[kOm][iCutTopo][kLow]) && (cutValTopo[kOm][iCutTopo][kMid] == def_cutValTopo[kOm][iCutTopo][kMid]) && (cutValTopo[kOm][iCutTopo][kHigh] == def_cutValTopo[kOm][iCutTopo][kHigh]))) // skip the variation if it is exact same as the default value across pt intervals
-                {
-                    // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
-                    if (phypri && associFlag[komm] && ApplyCuts(komm))
-                        fHistos_OmMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmMin, perc);
-                    if (phypri && associFlag[komp] && ApplyCuts(komp))
-                        fHistos_OmPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmPlu, perc);
-                }
-            }
-        }
-        SetDefCuts(); // reset defaults
-    }
+    //         // Xi filling
+    //         if (iCutEv != kCompetingCascRejectOm)
+    //         {
+    //             if (fParticleAnalysisStatus[kxip])
+    //             {
+    //                 if (phypri && associFlag[kxim] && ApplyCuts(kxim))
+    //                     fHistos_XiMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassXiMin, perc);
+    //                 if (phypri && associFlag[kxip] && ApplyCuts(kxip))
+    //                     fHistos_XiPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassXiPlu, perc);
+    //             }
+    //         }
+
+    //         // Omega filling
+    //         if (fParticleAnalysisStatus[komp])
+    //         {
+    //             if (phypri && associFlag[komm] && ApplyCuts(komm))
+    //                 fHistos_OmMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassOmMin, perc);
+    //             if (phypri && associFlag[komp] && ApplyCuts(komp))
+    //                 fHistos_OmPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fCasc_Pt, fCasc_InvMassOmPlu, perc);
+    //         }
+    //     }
+    //     SetDefCuts(); // reset defaults
+    // }
+
+    // for (int iCutTopo = 0; iCutTopo < kNumCascTopoCuts; iCutTopo++)
+    // {
+    //     if (nvarcut_Topo[iCutTopo] == -1) // skip the cut if value == -1 -> unused variations
+    //         continue;
+
+    //     for (int iVarTopo = 0; iVarTopo < nvarcut_Topo[iCutTopo]; iVarTopo++)
+    //     {
+    //         // if (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] == -1) // skip the variation if ptInterval values == -1 -> unused variation (including all pT intervals)
+    //         //     continue;
+
+    //         // for (int iPtTopo = 0; iPtTopo < kNumPtInterval; iPtTopo++)
+    //         // {
+    //         //     SetCutValue(true, iCutTopo, var_cutValTopo[kXi][iCutTopo][iPtTopo][iVarTopo], kXi, iPtTopo);
+    //         //     SetCutValue(true, iCutTopo, var_cutValTopo[kOm][iCutTopo][iPtTopo][iVarTopo], kOm, iPtTopo);
+    //         // }
+
+    //         // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+    //         SetCutValue(kTRUE, iCutTopo, (varlowcut_Topo[iCutTopo] + iVarTopo * (varhighcut_Topo[iCutTopo] - varlowcut_Topo[iCutTopo]) / (nvarcut_Topo[iCutTopo] - 1)), all, all);
+
+    //         // if (fParticleAnalysisStatus[kxip] && (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] != -1))
+    //         // {
+    //         if (fParticleAnalysisStatus[kxip])
+    //         {
+    //             {
+    //                 // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+    //                 if (phypri && associFlag[kxim] && ApplyCuts(kxim))
+    //                     fHistos_XiMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiMin, perc);
+    //                 if (phypri && associFlag[kxip] && ApplyCuts(kxip))
+    //                     fHistos_XiPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassXiPlu, perc);
+    //             }
+    //         }
+
+    //         // if (fParticleAnalysisStatus[komp] && (var_cutValTopo[kOm][iCutTopo][kMid][iVarTopo] != -1))
+    //         // {
+    //         if (fParticleAnalysisStatus[komp])
+    //         {
+    //             if (!((cutValTopo[kOm][iCutTopo][kLow] == def_cutValTopo[kOm][iCutTopo][kLow]) && (cutValTopo[kOm][iCutTopo][kMid] == def_cutValTopo[kOm][iCutTopo][kMid]) && (cutValTopo[kOm][iCutTopo][kHigh] == def_cutValTopo[kOm][iCutTopo][kHigh]))) // skip the variation if it is exact same as the default value across pt intervals
+    //             {
+    //                 // SetEvCutVal(kFALSE, kTRUE, iCutEv, varlowcut_Casc[iCutEv] + iVarEv * (varhighcut_Casc[iCutEv] - varlowcut_Casc[iCutEv]) / (nvarcut_Casc[iCutEv] - 1));
+    //                 if (phypri && associFlag[komm] && ApplyCuts(komm))
+    //                     fHistos_OmMin->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmMin, perc);
+    //                 if (phypri && associFlag[komp] && ApplyCuts(komp))
+    //                     fHistos_OmPlu->FillTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fCasc_Pt, fCasc_InvMassOmPlu, perc);
+    //             }
+    //         }
+    //     }
+    // SetDefCuts(); // reset defaults
+    // }
 }
 
+/**
+ * @brief Terminate function called at the end of the analysis.
+ *
+ * This function is called once at the end of the analysis. It can be used to perform
+ * any final calculations or cleanup tasks.
+ */
 void AliAnalysisTaskStrangeCascadesRun2::Terminate(Option_t *)
 {
 }
