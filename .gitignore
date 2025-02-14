@@ -12,6 +12,7 @@ code/*.root
 
 old_stuff_for_reference/
 orphaned_results/
+testCodes/
 *myAnalysis.C
 *myTask_merge.C
 *stderr

@@ -5,10 +5,42 @@
 #include "AliPIDResponse.h"
 #include "AliAnalysisTaskSE.h"
 #include "THistManager.h"
-#include "TString.h"
 #include "AliEventCuts.h"
 #include "AliESDtrackCuts.h"
 
+/**
+ * @brief Analysis task for strange cascade (Xi and Omega) reconstruction in Run 2
+ * 
+ * This class implements an analysis task for the reconstruction and study of strange
+ * cascade particles (Xi and Omega baryons) in ALICE Run 2 data. It inherits from
+ * AliAnalysisTaskSE and provides functionality for:
+ * 
+ * - Topological and kinematic selections for cascade candidates
+ * - PID selection for daughter tracks
+ * - Event selection and pile-up rejection
+ * - Support for both real data and Monte Carlo analysis
+ * - Configurable binning for centrality, mass and pt spectra
+ * - Cut variation studies with multiple selection criteria
+ * 
+ * The task can analyze both Xi (Ξ⁻ and Ξ⁺) and Omega (Ω⁻ and Ω⁺) cascades,
+ * with configurable selection criteria for each particle species.
+ * 
+ * @author Ishaan Ahuja
+ * @date 14-02-2025
+ * 
+ * @note This task is designed for ALICE Run 2 data analysis
+ * 
+ * Main features:
+ * - Flexible cut configuration system with default and variable cuts
+ * - Support for MC association studies
+ * - Parametric cuts for bachelor-baryon cosine pointing angle
+ * - Geometric track length cuts
+ * - Multiple analysis ranges (low, mid, high pt)
+ * 
+ * @see AliAnalysisTaskSE
+ * @see AliEventCuts
+ * @see AliPIDResponse
+ */
 class AliAnalysisTaskStrangeCascadesRun2 : public AliAnalysisTaskSE
 {
 public:
@@ -269,9 +301,10 @@ private:
     void SetDefCutVals();
     void SetDefCuts();
     void SetCutVariation(bool, int, int, double, double);
+    void RandomiseCuts(Int_t);
     // void SetCutVariation(int, int, double, double, double, double);
     void SetDefCutVariations();
-    void SetCutValue(bool, int, double, int, int);
+    Double_t SetCutValue(bool, int, double, int, int);
 
     AliAnalysisTaskStrangeCascadesRun2(const AliAnalysisTaskStrangeCascadesRun2 &);            // not implemented
     AliAnalysisTaskStrangeCascadesRun2 &operator=(const AliAnalysisTaskStrangeCascadesRun2 &); // not implemented
