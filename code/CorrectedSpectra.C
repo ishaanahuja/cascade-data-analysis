@@ -1,18 +1,18 @@
 #include <fstream>
 #include <vector>
 
-#include <TString.h>
-#include <TSystem.h>
-#include <TH1.h>
-#include <TF1.h>
-#include <TVirtualPad.h>
-#include <TStyle.h>
-#include <THStack.h>
-#include <TFile.h>
 #include <TCanvas.h>
+#include <TDirectory.h>
+#include <TFile.h>
+#include <TF1.h>
+#include <TH1.h>
+#include <THStack.h>
 #include <TLine.h>
 #include <TROOT.h>
-#include <TDirectory.h>
+#include <TString.h>
+#include <TStyle.h>
+#include <TSystem.h>
+#include <TVirtualPad.h>
 
 inline void SaveImage(TString imagePath, TString imageName, TString imageFormat)
 {
@@ -25,7 +25,42 @@ inline void SaveImage(TString imagePath, TString imageName, TString imageFormat)
     gSystem->Chmod(Form("%s/%s.%s", imagePath.Data(), imageName.Data(), imageFormat.Data()), 0755);
 }
 
-int CorrectedSpectra(std::string inputFileList = "McFileList.txt", TString outputFilename = "test_CorrectedSpectra.root", TString outputFolder = "rootResults/tstCorrected", Bool_t fGenerateCorrected = kTRUE, TString input_RawPt = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/6runs/testDraw_all.root", Bool_t saveStack = kTRUE, TString imageFormat = "png")
+/**
+ * @brief This function calculates and corrects the efficiency of Xi and Omega particles from Monte Carlo (MC) simulations.
+ *
+ * @param inputFileList The name of the file containing the list of MC files to be processed. Default is "McFileList.txt".
+ * @param outputFilename The name of the output ROOT file where results will be saved. Default is "test_CorrectedSpectra.root".
+ * @param outputFolder The folder where output images and results will be saved. Default is "rootResults/tstCorrected".
+ * @param fGenerateCorrected A flag to indicate whether to generate corrected spectra. Default is kTRUE.
+ * @param input_RawPt The path to the input ROOT file containing raw Pt spectra. Default is "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/6runs/testDraw_all.root".
+ * @param saveStack A flag to indicate whether to save the stack plots as images. Default is kTRUE.
+ * @param imageFormat The format of the output images. Default is "png".
+ *
+ * @return int Returns 0 on success, 1 if there is an error opening a file or finding a histogram, and 3 if there is an error opening the output file.
+ *
+ * The function performs the following steps:
+ * 1. Initializes histograms and directories.
+ * 2. Reads the list of MC files and extracts efficiency histograms for Xi and Omega particles.
+ * 3. Calculates the average efficiency for Xi and Omega particles.
+ * 4. Saves the average efficiency histograms to the output file.
+ * 5. Draws and saves stack plots of the efficiencies.
+ * 6. If fGenerateCorrected is true, applies efficiency corrections to raw Pt spectra and generates corrected spectra.
+ * 7. Saves the corrected spectra to the output file and optionally saves the stack plots as images.
+ *
+ * The SaveImage function saves the current pad as an image file in the specified format.
+ *
+ * @warning Obsolete and replaced by EfficiencyEstimation.C and EfficiencyCorrection.C
+ * @note Might work, not supported anymore, use the above mentioned scripts for efficiency estimation and correction.
+ *
+ */
+int CorrectedSpectra(
+    std::string inputFileList = "McFileList.txt",
+    TString outputFilename = "test_CorrectedSpectra.root",
+    TString outputFolder = "rootResults/tstCorrected",
+    Bool_t fGenerateCorrected = kTRUE,
+    TString input_RawPt = "/var/home/ishaan/Work/git/analysis/p-Pb/MC/rootResults/6runs/testDraw_all.root",
+    Bool_t saveStack = kTRUE,
+    TString imageFormat = "png")
 {
     // keep histograms independent from their directory
     TH1::AddDirectory(0);
@@ -103,9 +138,9 @@ int CorrectedSpectra(std::string inputFileList = "McFileList.txt", TString outpu
         hvec_eff_xiC.push_back(eff_xiC);
 
         eff_omC = (TH1 *)f->FindObjectAny("eff_pt_omC");
-        if (!eff_xiC)
+        if (!eff_omC)
         {
-            Printf("Error: Cannot find histogram 'eff_pt_xiC' in '%s'!", fileName.data());
+            Printf("Error: Cannot find histogram 'eff_pt_omC' in '%s'!", fileName.data());
             return 1;
         }
         eff_omC->SetNameTitle((TString::Format(("eff_omC_[%d]"), totalFilesInFileList)), (TString::Format(("%s"), MCrun.data())));
