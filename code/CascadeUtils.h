@@ -19,6 +19,13 @@
 #include <TCanvas.h>
 #include <THStack.h>
 
+enum particles
+{
+    kXi,
+    kOm,
+    kNumPart
+};
+
 const Double_t fMass_Xi = 1.32171;
 const Double_t fMass_Om = 1.67245;
 
@@ -33,11 +40,22 @@ const Int_t fNptbins_Xi = sizeof(fPtbins_Xi) / sizeof(double) - 1;
 const Int_t fNptbins_Om = sizeof(fPtbins_Om) / sizeof(double) - 1;
 
 // chosen marker style palette
-Int_t markerStyles[] = {4, 21, 22, 23, 29, 33, 34, 43, 47, 41, 20};
+Int_t markerStyles[] = {kCircle, kFullSquare, kFullTriangleUp, kFullTriangleDown, kFullStar, kFullDiamond, kFullCross, kFullDoubleDiamond, kFullCrossX, kFullFourTrianglesX, kFullThreeTriangles, kFullCircle};
 
-/// @brief Function to get all file names from a text file and return them as a vector of strings
-/// @param inputFilePath Full path to .txt file containing file names/paths
-/// @return Returns vector containing file contents by line
+/**
+ * @brief Reads a list of file paths from a text file and returns them as a vector of strings
+ *
+ * This function opens the specified input file and reads it line by line,
+ * storing each non-empty line as a string in a vector. Each line is expected
+ * to contain a file path.
+ *
+ * @param inputFilePath The path to the text file containing the list of files
+ * @return std::vector<std::string> A vector containing all non-empty lines from the input file.
+ *         Returns an empty vector if the file cannot be opened or read.
+ *
+ * @note The function automatically skips empty lines in the input file
+ * @note The file is automatically closed after reading
+ */
 std::vector<std::string> GetFileList(const std::string &inputFilePath)
 {
     std::vector<std::string> fileList;
@@ -67,10 +85,23 @@ std::vector<std::string> GetFileList(const std::string &inputFilePath)
     return fileList;
 }
 
-/// @brief Open a root file and return the TFile's handle.
-/// @param fileName Full path to the file, appends .root if absent
-/// @param options Open a file in Read, Write, Recreate mode etc. Check options in TFile::Open
-/// @return Returns the pointer to file.
+/**
+ * @brief Opens a ROOT file with specified options
+ *
+ * This function opens a ROOT file and performs basic validity checks.
+ * If the file name is provided without the .root extension, it will be automatically added.
+ *
+ * @param fileName The name/path of the ROOT file to open
+ * @param options File access options (default: "READ")
+ * @return TFile* Pointer to the opened file, nullptr if opening fails
+ *
+ * @note The function performs the following checks:
+ *       - Empty file name
+ *       - File opening success
+ *       - Zombie file status
+ *
+ * @warning The caller is responsible for closing and deleting the returned TFile pointer
+ */
 inline TFile *OpenFile(TString fileName, TString options = "READ")
 {
     if (fileName.IsNull())
@@ -98,9 +129,19 @@ inline TFile *OpenFile(TString fileName, TString options = "READ")
         return fileHandle;
 }
 
-/// @brief Accepts path where output should be stored. Creates folder if it doesn't exist.
-/// @param folderName NOTE: if folderName is empty, creates a folder called "Output" in CWD.
-/// @return Full path of output folder
+/**
+ * @brief Sets up and returns the output folder path
+ *
+ * If no folder name is provided, defaults to "Output" directory in current working directory.
+ * Expands any environment variables or special characters in the provided path.
+ * Creates the folder if it does not exist and sets appropriate permissions (755).
+ *
+ * @param folderName Target folder path (optional). If empty, defaults to "./Output"
+ * @return TString The full path to the output folder
+ *
+ * @warning Prints warning if no folder name is provided
+ * @note Creates intermediate directories as needed with permissions set to 755
+ */
 inline TString SetOutputFolder(TString folderName = "")
 {
     if (folderName.IsNull())
@@ -121,12 +162,23 @@ inline TString SetOutputFolder(TString folderName = "")
     return folderName;
 }
 
-/// @brief Draw a THStack on the current canvas, with legend and axes titles
-/// @param c current canvas to use (*)
-/// @param hs THStack object to paint (*)
-/// @param setLogY Set Y-axis as Logarithmic
-/// @param yAxisTitle Title for y-axis
-/// @param xAxisTitle Title for x-axis
+/**
+ * @brief Paints a THStack object on a TCanvas with specified settings
+ *
+ * @param c Reference to the TCanvas where the stack will be painted
+ * @param hs Reference to the THStack object to be painted
+ * @param setLogY Boolean flag to set logarithmic Y axis (default: true)
+ * @param yAxisTitle Title for Y axis (default: "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}")
+ * @param xAxisTitle Title for X axis (default: "#it{p}_{T} (GeV/c)")
+ *
+ * This function:
+ * - Clears the canvas
+ * - Draws the stack without stacking ("nostack" option)
+ * - Sets logarithmic Y axis if specified
+ * - Builds a legend
+ * - Sets X and Y axis titles
+ * - Updates the canvas
+ */
 inline void PaintStack(TCanvas &c, THStack &hs, Bool_t setLogY = kTRUE, TString yAxisTitle = "#frac{1}{#it{N}_{inel}} #frac{d#it{N}}{d#it{p}_{T}}", TString xAxisTitle = "#it{p}_{T} (GeV/c)")
 {
     c.Clear();
@@ -141,11 +193,21 @@ inline void PaintStack(TCanvas &c, THStack &hs, Bool_t setLogY = kTRUE, TString 
     c.ForceUpdate();
 }
 
-/// @brief Save image to directory.
-/// @param outputFolder Parent directory of images
-/// @param imageFolder Sub-directory for image groups
-/// @param imageName name of the image file
-/// @param imageFormat image format, e.g. png, pdf, jpg ...
+/**
+ * @brief Saves a ROOT canvas as an image file
+ *
+ * This function saves either a specified TCanvas or the current pad (gPad) as an image file
+ * in the specified output location. After saving, it sets the file permissions to 0755.
+ *
+ * @param outputFolder Base output directory path
+ * @param imageFolder Subdirectory within output folder where image will be saved
+ * @param imageName Name of the output image file (without extension)
+ * @param imageFormat Format/extension of the output image (e.g., "png", "pdf")
+ * @param c Pointer to TCanvas to be saved. If nullptr, current pad (gPad) will be used
+ *
+ * @note The function uses SetOutputFolder to ensure the directory exists before saving
+ * @note File permissions are set to 0755 (rwxr-xr-x) after saving
+ */
 inline void SaveImage(TString outputFolder, TString imageFolder, TString imageName, TString imageFormat, TCanvas *c = nullptr)
 {
     TString imagePath = SetOutputFolder(outputFolder + "/" + imageFolder);
@@ -166,6 +228,26 @@ inline Double_t DoubleGausPol3(double *x, double *par)
     return par[0] * TMath::Gaus(x[0], par[1], par[2]) + par[3] * TMath::Gaus(x[0], par[4], par[5]) + par[6] + par[7] * x[0] + par[8] * x[0] * x[0] + par[9] * x[0] * x[0] * x[0];
 }
 
+/**
+ * @brief Second degree polynomial function with exclusion region capability
+ *
+ * This function implements a second degree polynomial (ax^2 + bx + c) with the ability
+ * to exclude points within a specified region around a peak. Used primarily for background
+ * fitting in mass spectra analysis.
+ *
+ * @param x Pointer to the x coordinate [input]
+ * @param par Array of parameters:
+ *        par[0] = quadratic term coefficient (a)
+ *        par[1] = linear term coefficient (b)
+ *        par[2] = constant term (c)
+ *        par[3] = peak mass position
+ *        par[4] = peak width (sigma)
+ *        par[5] = rejection flag (boolean)
+ *
+ * @return Double_t The function value at x, or 0 if point is rejected
+ *
+ * @note When par[5] is true, points within ±sigma around peak mass are rejected using TF1::RejectPoint()
+ */
 inline Double_t Pol2Exclude(double *x, double *par)
 {
     // par[5] = rejectPoint(boolean); par[3] = peakFitMass; par[4]=peakFitSigma;
@@ -218,12 +300,35 @@ inline Double_t GetProb(TFitResultPtr fFitResult)
         return prob;
 }
 
+/**
+ * Calculates the integral and its error for a specified region in a 2D histogram
+ *
+ * @param h2 Pointer to the 2D histogram
+ * @param binsMC Array containing bin range [xmin, xmax, ymin, ymax]
+ * @param genErr Reference to store the error of the integral
+ * @return Double_t The integral value for the specified region
+ */
 inline Double_t GetGeneratedParticles(TH2 *h2, Int_t binsMC[], Double_t &genErr)
 {
     Double_t gen = h2->IntegralAndError(binsMC[0], binsMC[1], binsMC[2], binsMC[3], genErr);
     return gen;
 }
 
+/**
+ * @brief Calculates the error propagation in a ratio A/B
+ *
+ * This function computes the uncertainty in a ratio of two quantities using error propagation formula.
+ * If the denominator (B) is zero, returns -1 to indicate invalid ratio.
+ * The error is calculated using the formula: sqrt(|σ²ᴀ/B² - (A²/B⁴)σ²ʙ|)
+ * where σᴀ and σʙ are the uncertainties in A and B respectively.
+ *
+ * @param A Numerator value
+ * @param Aerr Error/uncertainty in numerator (σᴀ)
+ * @param B Denominator value
+ * @param Berr Error/uncertainty in denominator (σʙ)
+ *
+ * @return Double_t Error in the ratio A/B, or -1 if B is zero
+ */
 inline Double_t ErrorInRatio(Double_t A, Double_t Aerr, Double_t B, Double_t Berr)
 {
     Double_t err = 0.;
@@ -233,7 +338,8 @@ inline Double_t ErrorInRatio(Double_t A, Double_t Aerr, Double_t B, Double_t Ber
     {
         Double_t errorfromtop = Aerr * Aerr / (B * B);
         Double_t errorfrombottom = ((A * A) / (B * B * B * B)) * Berr * Berr;
-        err = TMath::Sqrt(errorfromtop + errorfrombottom);
+        // err = TMath::Sqrt(errorfromtop + errorfrombottom);
+        err = TMath::Sqrt(TMath::Abs(errorfromtop - errorfrombottom));
     }
     return err;
 }
@@ -302,6 +408,28 @@ void TF1::Print(Option_t *option) const
 }
 
 /// Get avg mean and sigma from both gaussians - adapted for both gaussians with same mean
+/**
+ * @brief Calculates weighted mean and sigma from a double Gaussian fit with background
+ *
+ * Extracts parameters from a double Gaussian fit function of the form:
+ * [6]+[7]*x+[8]*x*x+[0]*TMath::Gaus(x,[1],[2])+[3]*TMath::Gaus(x,[4],[5])
+ * and calculates the weighted mean and sigma values with their uncertainties.
+ *
+ * @param f_doubleGaus Pointer to the double Gaussian fit function
+ * @param lFitResultPtr Pointer to the fit result containing covariance matrix
+ * @param mean Output parameter for the calculated weighted mean
+ * @param mean_err Output parameter for the error on weighted mean
+ * @param sigma Output parameter for the calculated weighted sigma
+ * @param sigma_err Output parameter for the error on weighted sigma
+ *
+ * The function calculates weighted averages using:
+ * mean = (N1*mu1 + N2*mu2)/(N1 + N2)
+ * sigma = (N1*sigma1 + N2*sigma2)/(N1 + N2)
+ *
+ * Errors are calculated using either:
+ * - Full error propagation with covariance matrix if available
+ * - Simplified error estimation if covariance matrix is not available
+ */
 inline void GetMeanSigmaDG(TF1 *f_doubleGaus, TFitResultPtr lFitResultPtr, Double_t &mean, Double_t &mean_err, Double_t &sigma, Double_t &sigma_err)
 {
     //[6]+[7]*x+[8]*x*x+[0]*TMath::Gaus(x,[1],[2])+[3]*TMath::Gaus(x,[4],[5])",1.305,1.34
