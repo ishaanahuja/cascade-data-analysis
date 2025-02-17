@@ -9,7 +9,16 @@
 
 void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TString outputFolder, TString imageFormat);
 
-int DrawCascades(TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root", TString outputFilename = "300924_drawUpdatedCuts_def.root", TString outputFolder = "300924_imagesUpdatedCuts_def", TString ptRatioFilename = "~/Work/git/analysis/results/0_current_best/0_DG_sameMass_parLmt_110624/DG_sameMass_parLmt_170624_draw.root", Bool_t fisMC = kFALSE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png", Int_t verbosity = kInfo)
+int DrawCascades(
+    TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root",
+    TString outputFilename = "300924_drawUpdatedCuts_def.root",
+    TString outputFolder = "300924_imagesUpdatedCuts_def",
+    TString ptRatioFilename = "~/Work/git/analysis/results/0_current_best/0_DG_sameMass_parLmt_110624/DG_sameMass_parLmt_170624_draw.root",
+    Bool_t fisMC = kFALSE,
+    Bool_t saveImages = kFALSE,
+    Bool_t saveStack = kTRUE,
+    TString imageFormat = "png",
+    Int_t verbosity = kInfo)
 {
     // gPrintViaErrorHandler = kTRUE;
     gErrorIgnoreLevel = verbosity;
@@ -17,23 +26,50 @@ int DrawCascades(TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root", 
     outputFolder = SetOutputFolder(outputFolder);
     gStyle->SetOptFit(1111);
 
+    TH1 *h_MassXim;
+    TH1 *h_MassXip;
+    TH1 *h_MassOmm;
+    TH1 *h_MassOmp;
+    TH1 *h_MassXiC;
+    TH1 *h_MassOmC;
+    TH1 *h_multBinEntries_Xi;
+    TH1 *h_multBinEntries_Om;
+
+    TH1 *resultParams_Xip_allInt, *resultParams_Xim_allInt, *resultParams_XiC_allInt;
+    TH1 *resultParams_Omp_allInt, *resultParams_Omm_allInt, *resultParams_OmC_allInt;
+
+    TH1 *h_MassXip_pt[fNptbins_Xi];
+    TH1 *h_MassXim_pt[fNptbins_Xi];
+    TH1 *h_MassOmp_pt[fNptbins_Om];
+    TH1 *h_MassOmm_pt[fNptbins_Om];
+    TH1 *h_MassXiC_pt[fNptbins_Xi];
+    TH1 *h_MassOmC_pt[fNptbins_Om];
+
+    TH1 *resultParXip_pt[fNptbins_Xi];
+    TH1 *resultParXim_pt[fNptbins_Xi];
+    TH1 *resultParOmp_pt[fNptbins_Om];
+    TH1 *resultParOmm_pt[fNptbins_Om];
+    TH1 *resultParXiC_pt[fNptbins_Xi];
+    TH1 *resultParOmC_pt[fNptbins_Om];
+
     TH1 *h_MassXim_pt_mult[fNptbins_Xi][fNmultbins_Xi];
     TH1 *h_MassXip_pt_mult[fNptbins_Xi][fNmultbins_Xi];
     TH1 *h_MassOmm_pt_mult[fNptbins_Om][fNmultbins_Om];
     TH1 *h_MassOmp_pt_mult[fNptbins_Om][fNmultbins_Om];
+    TH1 *h_MassXiC_pt_mult[fNptbins_Xi][fNmultbins_Xi];
+    TH1 *h_MassOmC_pt_mult[fNptbins_Om][fNmultbins_Om];
+
     TH1 *resultParXip_pt_mult[fNptbins_Xi][fNmultbins_Xi];
     TH1 *resultParXim_pt_mult[fNptbins_Xi][fNmultbins_Xi];
     TH1 *resultParOmp_pt_mult[fNptbins_Om][fNmultbins_Om];
     TH1 *resultParOmm_pt_mult[fNptbins_Om][fNmultbins_Om];
+    TH1 *resultParXiC_pt_mult[fNptbins_Xi][fNmultbins_Xi];
+    TH1 *resultParOmC_pt_mult[fNptbins_Om][fNmultbins_Om];
+
     TH1D *rawPt_xim[fNmultbins_Xi];
     TH1D *rawPt_xip[fNmultbins_Xi];
     TH1D *rawPt_omm[fNmultbins_Om];
     TH1D *rawPt_omp[fNmultbins_Om];
-
-    TH1 *h_MassXiC_pt_mult[fNptbins_Xi][fNmultbins_Xi];
-    TH1 *h_MassOmC_pt_mult[fNptbins_Om][fNmultbins_Om];
-    TH1 *resultParXiC_pt_mult[fNptbins_Xi][fNmultbins_Xi];
-    TH1 *resultParOmC_pt_mult[fNptbins_Om][fNmultbins_Om];
     TH1D *rawPt_xiC[fNmultbins_Xi];
     TH1D *rawPt_omC[fNmultbins_Om];
 
@@ -47,38 +83,12 @@ int DrawCascades(TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root", 
     TH1D *eff_xiC_ratio[fNmultbins_Xi];
     TH1D *eff_omC_ratio[fNmultbins_Om];
 
-    TH1 *resultParXip_pt[fNptbins_Xi];
-    TH1 *resultParXim_pt[fNptbins_Xi];
-    TH1 *resultParOmp_pt[fNptbins_Om];
-    TH1 *resultParOmm_pt[fNptbins_Om];
-    TH1 *resultParXiC_pt[fNptbins_Xi];
-    TH1 *resultParOmC_pt[fNptbins_Om];
-
-    TH1 *h_MassXip_pt[fNptbins_Xi];
-    TH1 *h_MassXim_pt[fNptbins_Xi];
-    TH1 *h_MassOmp_pt[fNptbins_Om];
-    TH1 *h_MassOmm_pt[fNptbins_Om];
-    TH1 *h_MassXiC_pt[fNptbins_Xi];
-    TH1 *h_MassOmC_pt[fNptbins_Om];
-
-    TH1D *eff_pt_xim = new TH1D("eff_pt_xim", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi);
+    TH1D *eff_pt_xim = new TH1D("eff_pt_xim", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi); /// mult integrated efficiency
     TH1D *eff_pt_xip = new TH1D("eff_pt_xip", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi);
     TH1D *eff_pt_omm = new TH1D("eff_pt_omm", "Mult: 0-100%", fNptbins_Om, fPtbins_Om);
     TH1D *eff_pt_omp = new TH1D("eff_pt_omp", "Mult: 0-100%", fNptbins_Om, fPtbins_Om);
     TH1D *eff_pt_xiC = new TH1D("eff_pt_xiC", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi);
     TH1D *eff_pt_omC = new TH1D("eff_pt_omC", "Mult: 0-100%", fNptbins_Om, fPtbins_Om);
-
-    TH1 *h_MassXim;
-    TH1 *h_MassXip;
-    TH1 *h_MassOmm;
-    TH1 *h_MassOmp;
-    TH1 *h_MassXiC;
-    TH1 *h_MassOmC;
-    TH1 *h_multBinEntries_Xi;
-    TH1 *h_multBinEntries_Om;
-
-    TH1 *resultParams_Xip_allInt, *resultParams_Xim_allInt, *resultParams_XiC_allInt;
-    TH1 *resultParams_Omp_allInt, *resultParams_Omm_allInt, *resultParams_OmC_allInt;
 
     /// background estimation hist through TSpectrum
     TH1 *h_bgXim_pt_mult[fNptbins_Xi][fNmultbins_Xi];
@@ -635,7 +645,7 @@ int DrawCascades(TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root", 
 
     if (!ptRatioFilename.IsNull())
     {
-        /// get previously calculated pT ratio from file to compute ratio of pT spectra
+        /// get previously calculated pT ratio from file to compute ratio of raw pT spectra
 
         Printf("\nOpening %s for ratio calculation...", ptRatioFilename.Data());
         TFile *fRatio = OpenFile(ptRatioFilename);

@@ -45,11 +45,11 @@ void RunAnalysisTask_StrangeCascadesRun2()
         TChain *chain = new TChain("aodTree");
         // add a few files to the chain (change this so that your local files are added)
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/PbPbLHC15o_pass5/AliAOD.root");
-        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/LHC17e1b_cent/265594/AOD202/0004/AliAOD.root"); // MC
+        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/LHC17e1b_cent/265594/AOD202/0004/AliAOD.root"); // MC
         // chain->Add("/var/home/ishaan/alice/sim/2017/LHC17d14_cent/265596/AOD202/0001/AliAOD.root"); // MC
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/alice/sim/2017/LHC17f3a_cent_fix/265594/AOD202/0002/AliAOD.root"); // MC
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/LHC17d14_cent/265594/AOD202/0008/AliAOD.root"); // MC
-        // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/pPbLHC16r/000265596/pass1_CENT_wSDD/AOD190/0001/AliAOD.root"); // good
+        chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/pPbLHC16r/000265596/pass1_CENT_wSDD/AOD190/0001/AliAOD.root"); // good
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/pPbLHC16r/000265596/pass1_CENT_wSDD/AOD190/0035/AliAOD.root"); // good
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/pPbLHC16r/000266076/pass1_CENT_wSDD/AOD190/0060/AliAOD.root"); // pileup
         // chain->Add("/var/home/ishaan/Work/CERN/ishaan-ahuja/data_AOD/pPbLHC16r/000266076/pass1_CENT_wSDD/AOD190/0246/AliAOD.root"); // pileup
@@ -74,16 +74,18 @@ void RunAnalysisTask_StrangeCascadesRun2()
 
         alienHandler->SetAPIVersion("V1.1x");
 
-        // alienHandler->SetGridDataDir("/alice/sim/2018/LHC18f3b_cent_2");          // MC
+        // alienHandler->SetUseSubmitPolicy(kTRUE); ///
+
+        alienHandler->SetGridDataDir("/alice/sim/2018/LHC18f3b_cent_2");          // MC
         // alienHandler->SetGridDataDir("/alice/sim/2017/LHC17e1a_cent");          // MC
         // alienHandler->SetGridDataDir("/alice/sim/2017/LHC17e1b_cent");          // MC
-        alienHandler->SetGridDataDir("/alice/sim/2017/LHC17l7a2_cent");          // MC  <<<<<<<<<<<<<< NEXT
-        // alienHandler->SetGridDataDir("/alice/sim/2017/LHC17f3a_cent_fix");          // MC 
+        // alienHandler->SetGridDataDir("/alice/sim/2017/LHC17l7a2_cent"); // MC  <<<<<<<<<<<<<< NEXT
+        // alienHandler->SetGridDataDir("/alice/sim/2017/LHC17f3a_cent_fix");          // MC
         // alienHandler->SetGridDataDir("/alice/data/2016/LHC16r");                //Data
 
         // alienHandler->SetDataPattern("*ESDs/pass2/AOD145/*AOD.root");
         // alienHandler->SetDataPattern("*pass3/AOD252/*AOD.root");
-        alienHandler->SetDataPattern("*AOD202/*AliAOD.root");                      // MC
+        alienHandler->SetDataPattern("*AOD202/*AliAOD.root"); // MC
         // alienHandler->SetDataPattern("*pass2_CENT_wSDD/AOD244/*AliAOD.root");   //Data
 
         // MC has no prefix, data has prefix 000
@@ -134,22 +136,24 @@ void RunAnalysisTask_StrangeCascadesRun2()
         alienHandler->SetSplitMaxInputFileNumber(40);
         alienHandler->SetExecutable("myTask.sh");
         // specify how many seconds your job may take
-        alienHandler->SetTTL(35000);
+        alienHandler->SetTTL(50000);
         alienHandler->SetJDLName("myTask.jdl");
 
         alienHandler->SetOutputToRunNo(kTRUE);
         alienHandler->SetKeepLogs(kTRUE);
 
-        alienHandler->SetMaxMergeStages(1);
+        alienHandler->SetMaxMergeStages(2); //
         // alienHandler->SetMergeViaJDL(kTRUE); //
         alienHandler->SetMergeViaJDL(kFALSE); //
 
         // define the output folders
+        alienHandler->SetGridWorkingDir("150125_LHC18f3b_cent_2_RandomVars_WD");
+        // alienHandler->SetGridWorkingDir("140125_LHC17f3a_cent_fix_RandomVars_WD");
         // alienHandler->SetGridWorkingDir("081023_MC_LHC17f3b_cent_updatedCutsTL_WD");
-        alienHandler->SetGridWorkingDir("100824_updatedCutVar_MC_LHC17l7a2cent_WD"); 
+        // alienHandler->SetGridWorkingDir("110125_LHC17e1b_cent_RandomVars_WD");
         // alienHandler->SetGridWorkingDir("090824_updatedCutVar_MC_LHC17e1bcent_WD");
-        // alienHandler->SetGridOutputDir("081023_MC_LHC17f3b_cent_updatedCutsTL_OD");
-        alienHandler->SetGridOutputDir("100824_updatedCutVar_MC_LHC17l7a2cent_OD");
+        alienHandler->SetGridOutputDir("150125_LHC18f3b_cent_2_RandomVars_OD");
+        // alienHandler->SetGridOutputDir("140125_LHC17f3a_cent_fix_RandomVars_OD");
         // alienHandler->SetGridOutputDir("090824_updatedCutVar_MC_LHC17e1bcent_OD");
         // connect the alien plugin to the manager
         mgr->SetGridHandler(alienHandler);
