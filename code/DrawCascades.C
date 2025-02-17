@@ -7,9 +7,77 @@
 
 #include "CascadeUtils.h"
 
+/**
+ * @brief Draws and optionally saves histograms with fit results and statistical information
+ *
+ * This function creates a canvas and draws the peak histogram along with background (if provided),
+ * adds vertical lines indicating the signal region (±4σ around the peak position),
+ * and displays a legend with fit statistics. The resulting plot can be optionally saved.
+ *
+ * @param peak Pointer to the peak histogram to be drawn
+ * @param bg Pointer to the background histogram to be drawn (can be nullptr)
+ * @param resultParams Pointer to histogram containing fit parameters:
+ *                    - bin 1: Signal - Background
+ *                    - bin 4: Peak position (mean)
+ *                    - bin 5: Peak width (sigma)
+ * @param saveImages Boolean flag to control whether to save the plot
+ * @param outputFolder Directory path where images should be saved
+ * @param imageFormat Format of the output image file
+ *
+ * @note The function automatically handles memory management by deleting created objects
+ * @note Signal region is defined as ±4 sigma around the peak position
+ */
+
 void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TString outputFolder, TString imageFormat);
 
-int DrawCascades(TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root", TString outputFilename = "300924_drawUpdatedCuts_def.root", TString outputFolder = "300924_imagesUpdatedCuts_def", TString ptRatioFilename = "~/Work/git/analysis/results/0_current_best/0_DG_sameMass_parLmt_110624/DG_sameMass_parLmt_170624_draw.root", Bool_t fisMC = kFALSE, Bool_t saveImages = kFALSE, Bool_t saveStack = kTRUE, TString imageFormat = "png", Int_t verbosity = kInfo)
+/**
+ * @brief Draws cascade analysis results and generates various plots
+ *
+ * This function processes and visualizes cascade particle analysis data, including:
+ * - Mass distributions
+ * - pT spectra
+ * - Efficiencies
+ * - Ratios
+ * for Xi and Omega particles (both charges) and their combinations
+ *
+ * @param inputFilename Path to input ROOT file containing fitted analysis histograms
+ * @param outputFilename Path for output ROOT file (default: derived from input name)
+ * @param outputFolder Path for output images folder
+ * @param ptRatioFilename Optional path to reference file (previous *_Draw.root file) for rawPt ratio comparison
+ * @param fisMC Flag to indicate if input is from Monte Carlo simulation
+ * @param saveImages Flag to save individual histogram images
+ * @param saveStack Flag to save stacked histogram images
+ * @param imageFormat Output image format (e.g. "png")
+ * @param verbosity ROOT verbosity level
+ *
+ * @return Integer status code (0 for success)
+ *
+ * The function:
+ * 1. Loads input histograms for Xi/Omega particles
+ * 2. Processes pT spectra and efficiencies per multiplicity bin
+ * 3. Creates stacked visualizations
+ * 4. Optionally calculates ratios to reference spectra
+ * 5. Saves results to ROOT file and image files
+ *
+ * Main outputs include:
+ * - Mass distribution fits
+ * - Raw pT spectra
+ * - Efficiency curves (for MC)
+ * - Ratio plots (if reference provided)
+ * Both integrated and multiplicity-differential results are processed
+ *
+ * @note This is not mandatory to run anymore, as the functionality is replicated in EfficiencyEstimation.C, but can be used to generate raw pT spectra, fitting and efficiency plots
+ */
+int DrawCascades(
+    TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root",
+    TString outputFilename = "300924_drawUpdatedCuts_def.root",
+    TString outputFolder = "300924_imagesUpdatedCuts_def",
+    TString ptRatioFilename = "~/Work/git/analysis/results/0_current_best/0_DG_sameMass_parLmt_110624/DG_sameMass_parLmt_170624_draw.root",
+    Bool_t fisMC = kFALSE,
+    Bool_t saveImages = kFALSE,
+    Bool_t saveStack = kTRUE,
+    TString imageFormat = "png",
+    Int_t verbosity = kInfo)
 {
     // gPrintViaErrorHandler = kTRUE;
     gErrorIgnoreLevel = verbosity;
@@ -17,23 +85,50 @@ int DrawCascades(TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root", 
     outputFolder = SetOutputFolder(outputFolder);
     gStyle->SetOptFit(1111);
 
+    TH1 *h_MassXim;
+    TH1 *h_MassXip;
+    TH1 *h_MassOmm;
+    TH1 *h_MassOmp;
+    TH1 *h_MassXiC;
+    TH1 *h_MassOmC;
+    TH1 *h_multBinEntries_Xi;
+    TH1 *h_multBinEntries_Om;
+
+    TH1 *resultParams_Xip_allInt, *resultParams_Xim_allInt, *resultParams_XiC_allInt;
+    TH1 *resultParams_Omp_allInt, *resultParams_Omm_allInt, *resultParams_OmC_allInt;
+
+    TH1 *h_MassXip_pt[fNptbins_Xi];
+    TH1 *h_MassXim_pt[fNptbins_Xi];
+    TH1 *h_MassOmp_pt[fNptbins_Om];
+    TH1 *h_MassOmm_pt[fNptbins_Om];
+    TH1 *h_MassXiC_pt[fNptbins_Xi];
+    TH1 *h_MassOmC_pt[fNptbins_Om];
+
+    TH1 *resultParXip_pt[fNptbins_Xi];
+    TH1 *resultParXim_pt[fNptbins_Xi];
+    TH1 *resultParOmp_pt[fNptbins_Om];
+    TH1 *resultParOmm_pt[fNptbins_Om];
+    TH1 *resultParXiC_pt[fNptbins_Xi];
+    TH1 *resultParOmC_pt[fNptbins_Om];
+
     TH1 *h_MassXim_pt_mult[fNptbins_Xi][fNmultbins_Xi];
     TH1 *h_MassXip_pt_mult[fNptbins_Xi][fNmultbins_Xi];
     TH1 *h_MassOmm_pt_mult[fNptbins_Om][fNmultbins_Om];
     TH1 *h_MassOmp_pt_mult[fNptbins_Om][fNmultbins_Om];
+    TH1 *h_MassXiC_pt_mult[fNptbins_Xi][fNmultbins_Xi];
+    TH1 *h_MassOmC_pt_mult[fNptbins_Om][fNmultbins_Om];
+
     TH1 *resultParXip_pt_mult[fNptbins_Xi][fNmultbins_Xi];
     TH1 *resultParXim_pt_mult[fNptbins_Xi][fNmultbins_Xi];
     TH1 *resultParOmp_pt_mult[fNptbins_Om][fNmultbins_Om];
     TH1 *resultParOmm_pt_mult[fNptbins_Om][fNmultbins_Om];
+    TH1 *resultParXiC_pt_mult[fNptbins_Xi][fNmultbins_Xi];
+    TH1 *resultParOmC_pt_mult[fNptbins_Om][fNmultbins_Om];
+
     TH1D *rawPt_xim[fNmultbins_Xi];
     TH1D *rawPt_xip[fNmultbins_Xi];
     TH1D *rawPt_omm[fNmultbins_Om];
     TH1D *rawPt_omp[fNmultbins_Om];
-
-    TH1 *h_MassXiC_pt_mult[fNptbins_Xi][fNmultbins_Xi];
-    TH1 *h_MassOmC_pt_mult[fNptbins_Om][fNmultbins_Om];
-    TH1 *resultParXiC_pt_mult[fNptbins_Xi][fNmultbins_Xi];
-    TH1 *resultParOmC_pt_mult[fNptbins_Om][fNmultbins_Om];
     TH1D *rawPt_xiC[fNmultbins_Xi];
     TH1D *rawPt_omC[fNmultbins_Om];
 
@@ -47,38 +142,12 @@ int DrawCascades(TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root", 
     TH1D *eff_xiC_ratio[fNmultbins_Xi];
     TH1D *eff_omC_ratio[fNmultbins_Om];
 
-    TH1 *resultParXip_pt[fNptbins_Xi];
-    TH1 *resultParXim_pt[fNptbins_Xi];
-    TH1 *resultParOmp_pt[fNptbins_Om];
-    TH1 *resultParOmm_pt[fNptbins_Om];
-    TH1 *resultParXiC_pt[fNptbins_Xi];
-    TH1 *resultParOmC_pt[fNptbins_Om];
-
-    TH1 *h_MassXip_pt[fNptbins_Xi];
-    TH1 *h_MassXim_pt[fNptbins_Xi];
-    TH1 *h_MassOmp_pt[fNptbins_Om];
-    TH1 *h_MassOmm_pt[fNptbins_Om];
-    TH1 *h_MassXiC_pt[fNptbins_Xi];
-    TH1 *h_MassOmC_pt[fNptbins_Om];
-
-    TH1D *eff_pt_xim = new TH1D("eff_pt_xim", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi);
+    TH1D *eff_pt_xim = new TH1D("eff_pt_xim", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi); /// mult integrated efficiency
     TH1D *eff_pt_xip = new TH1D("eff_pt_xip", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi);
     TH1D *eff_pt_omm = new TH1D("eff_pt_omm", "Mult: 0-100%", fNptbins_Om, fPtbins_Om);
     TH1D *eff_pt_omp = new TH1D("eff_pt_omp", "Mult: 0-100%", fNptbins_Om, fPtbins_Om);
     TH1D *eff_pt_xiC = new TH1D("eff_pt_xiC", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi);
     TH1D *eff_pt_omC = new TH1D("eff_pt_omC", "Mult: 0-100%", fNptbins_Om, fPtbins_Om);
-
-    TH1 *h_MassXim;
-    TH1 *h_MassXip;
-    TH1 *h_MassOmm;
-    TH1 *h_MassOmp;
-    TH1 *h_MassXiC;
-    TH1 *h_MassOmC;
-    TH1 *h_multBinEntries_Xi;
-    TH1 *h_multBinEntries_Om;
-
-    TH1 *resultParams_Xip_allInt, *resultParams_Xim_allInt, *resultParams_XiC_allInt;
-    TH1 *resultParams_Omp_allInt, *resultParams_Omm_allInt, *resultParams_OmC_allInt;
 
     /// background estimation hist through TSpectrum
     TH1 *h_bgXim_pt_mult[fNptbins_Xi][fNmultbins_Xi];
@@ -635,7 +704,7 @@ int DrawCascades(TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root", 
 
     if (!ptRatioFilename.IsNull())
     {
-        /// get previously calculated pT ratio from file to compute ratio of pT spectra
+        /// get previously calculated pT ratio from file to compute ratio of raw pT spectra
 
         Printf("\nOpening %s for ratio calculation...", ptRatioFilename.Data());
         TFile *fRatio = OpenFile(ptRatioFilename);
@@ -883,4 +952,6 @@ void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TStri
     delete lLineLeft;
     delete lLineRight;
     delete cDraw;
+
+    gROOT->SetBatch(kFALSE);
 }
