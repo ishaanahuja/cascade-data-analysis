@@ -28,11 +28,11 @@ struct RunInfo
  * @return Returns 0 on success, 1 on failure.
  */
 int EfficiencyEstimation(
-    std::string inputFilename = "McFileListPrefix_SysSigExt.txt",
-    TString histName = "DGP2_15bg",
+    std::string inputFilename = "McFileListPrefix.txt",
+    TString histName = "h3_ptmasscent_def",
     Bool_t analyseDiffs = kTRUE,
-    TString outputFilename = "/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt/200225_SysSigExt_DGP2_15bg_effEst.root",
-    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt",
+    TString outputFilename = "TEST_effEst.root",
+    TString outputFolder = "TEST_effEst_images",
     Bool_t saveStack = kTRUE,
     TString imageFormat = "png",
     Int_t verbosity = kInfo)
@@ -128,8 +128,7 @@ int EfficiencyEstimation(
         // get the file name, run name
         TString fileName = inputFileList[iFileList];
         TString McRunName = fileName(fileName.Last('_') + 1, fileName.Length()); // get the last part of the file name - the run name (e.g. fileNamePrefix = "MCfile_LHC17e1b" -> McRunName = "LHC17e1b")
-        // fileName = fileName + "_" + histName + ".root";                          // append the histName to the file name prefix to get the full file name
-        fileName = fileName + ".root"; // append .root to file name prefix to get the full file name - only for SysUncertainty Signal extraction
+        fileName = fileName + "_" + histName + ".root";                          // append the histName to the file name prefix to get the full file name
 
         Info("EfficiencyEstimation: histInput", "Getting histograms for '%s': %s", McRunName.Data(), histName.Data());
         TFile *inputFile = OpenFile(fileName);
@@ -604,14 +603,20 @@ int EfficiencyEstimation(
             hs_omC_eff_ratio[iCanvas]->Write();
 
             cDiff[iCanvas] = new TCanvas(TString::Format("cDiff%d", iCanvas), TString::Format("cDiff%d", iCanvas), 2560, 1440);
-
             PaintStack(*cDiff[iCanvas], *hs_xiC_eff_ratio[iCanvas], kFALSE, "Efficiency Ratio");
-            if (saveStack)
+            PaintStack(*cDiff[iCanvas], *hs_omC_eff_ratio[iCanvas], kFALSE, "Efficiency Ratio");
+        }
+
+        if (saveStack)
+        {
+            for (Int_t iCanvas = 0; iCanvas < nMcRuns; iCanvas++)
+            {
+                cDiff[iCanvas]->cd();
                 SaveImage(histImageOutFolder, "effMultRatio", hs_xiC_eff_ratio[iCanvas]->GetName(), imageFormat, cDiff[iCanvas]);
 
-            PaintStack(*cDiff[iCanvas], *hs_omC_eff_ratio[iCanvas], kFALSE, "Efficiency Ratio");
-            if (saveStack)
+                cDiff[iCanvas]->cd();
                 SaveImage(histImageOutFolder, "effMultRatio", hs_omC_eff_ratio[iCanvas]->GetName(), imageFormat, cDiff[iCanvas]);
+            }
         }
 
         // delete canvas objects

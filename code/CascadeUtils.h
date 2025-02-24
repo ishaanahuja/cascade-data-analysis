@@ -25,13 +25,6 @@ enum particles
     kOm,
     kNumPart
 };
-enum fitFunctions
-{
-    kGausPol2 = 1,
-    kDoubleGausPol2 = 2,
-    kDoubleGausPol3 = 3
-    // bgTSpectrum = 4
-};
 
 const Double_t fMass_Xi = 1.32171;
 const Double_t fMass_Om = 1.67245;
@@ -47,133 +40,7 @@ const Int_t fNptbins_Xi = sizeof(fPtbins_Xi) / sizeof(double) - 1;
 const Int_t fNptbins_Om = sizeof(fPtbins_Om) / sizeof(double) - 1;
 
 // chosen marker style palette
-Int_t markerStyles[] = {kCircle, kFullSquare, kFullTriangleUp, kStar, kFullTriangleDown, kOpenSquare, kFullDiamond, kFullCross, kOpenDiamond, kFullFourTrianglesX, kFullThreeTriangles, kFullCircle};
-
-/**
- * @brief Evaluates a double Gaussian function with a polynomial of degree 2
- *
- * This function returns the sum of two Gaussian distributions with the same mean
- * but different widths, plus a quadratic polynomial background.
- *
- * @param x[0] The x coordinate where the function is evaluated
- * @param par[0] Amplitude of the first Gaussian
- * @param par[1] Mean of both Gaussians
- * @param par[2] Sigma (width) of the first Gaussian
- * @param par[3] Amplitude of the second Gaussian
- * @param par[4] Sigma (width) of the second Gaussian
- * @param par[5] Constant term of the polynomial (p0)
- * @param par[6] Linear term coefficient of the polynomial (p1)
- * @param par[7] Quadratic term coefficient of the polynomial (p2)
- *
- * @return Value of the combined function: (Gaussian1 + Gaussian2 + p0 + p1*x + p2*x^2)
- */
-inline Double_t DoubleGausPol2(double *x, double *par) // with same mean parameter for both gaussians
-{
-    return par[0] * TMath::Gaus(x[0], par[1], par[2]) + par[3] * TMath::Gaus(x[0], par[1], par[4]) + par[5] + par[6] * x[0] + par[7] * x[0] * x[0];
-}
-
-/**
- * Function that combines two Gaussian distributions with a polynomial background of order 3.
- * Both Gaussian distributions share the same mean parameter.
- *
- * @param x[0] Input value at which to evaluate the function
- * @param par[0] Amplitude of first Gaussian
- * @param par[1] Mean value (shared between both Gaussians)
- * @param par[2] Sigma (width) of first Gaussian
- * @param par[3] Amplitude of second Gaussian
- * @param par[4] Sigma (width) of second Gaussian
- * @param par[5] Constant term of polynomial (p0)
- * @param par[6] Linear term coefficient of polynomial (p1)
- * @param par[7] Quadratic term coefficient of polynomial (p2)
- * @param par[8] Cubic term coefficient of polynomial (p3)
- *
- * @return Value of the combined function: (Gaussian1 + Gaussian2 + p0 + p1*x + p2*x^2 + p3*x^3)
- */
-inline Double_t DoubleGausPol3(double *x, double *par) // with same mean parameter for both gaussians
-{
-    return par[0] * TMath::Gaus(x[0], par[1], par[2]) + par[3] * TMath::Gaus(x[0], par[1], par[4]) + par[5] + par[6] * x[0] + par[7] * x[0] * x[0] + par[8] * x[0] * x[0] * x[0];
-}
-
-/**
- * @brief Second degree polynomial function with exclusion region capability
- *
- * This function implements a second degree polynomial (ax^2 + bx + c) with the ability
- * to exclude points within a specified region around a peak. Used primarily for background
- * fitting in mass spectra analysis.
- *
- * @param x Pointer to the x coordinate [input]
- * @param par Array of parameters:
- *        par[0] = quadratic term coefficient (a)
- *        par[1] = linear term coefficient (b)
- *        par[2] = constant term (c)
- *        par[3] = peak mass position
- *        par[4] = peak width (sigma)
- *        par[5] = rejection flag (boolean)
- *
- * @return Double_t The function value at x, or 0 if point is rejected
- *
- * @note When par[5] is true, points within ±sigma around peak mass are rejected using TF1::RejectPoint()
- */
-inline Double_t Pol2Exclude(double *x, double *par)
-{
-    // par[5] = rejectPoint(boolean); par[3] = peakFitMass; par[4]=peakFitSigma;
-    if (par[5] && x[0] > (par[3] - par[4]) && x[0] < (par[3] + par[4]))
-    {
-        TF1::RejectPoint();
-        return 0;
-    }
-    return par[0] * x[0] * x[0] + par[1] * x[0] + par[2];
-}
-
-/**
- * @brief A third-order polynomial function with optional point exclusion around a peak.
- *
- * This function evaluates a third-order polynomial and can optionally exclude points
- * within a specified range around a peak. Used typically for background fitting in
- * particle physics analysis.
- *
- * @param x    Pointer to the x value where the function is evaluated
- * @param par  Array of parameters:
- *             - par[0]: Coefficient of x³ term
- *             - par[1]: Coefficient of x² term
- *             - par[2]: Coefficient of x term
- *             - par[3]: Peak position (mass)
- *             - par[4]: Peak width (sigma)
- *             - par[5]: Boolean flag for point rejection
- *             - par[6]: Constant term
- *
- * @return The value of the polynomial at x[0], or 0 if the point is rejected
- */
-inline Double_t Pol3Exclude(double *x, double *par)
-{
-    // par[5] = rejectPoint(boolean); par[3] = peakFitMass; par[4]=peakFitSigma;
-    if (par[5] && x[0] > (par[3] - par[4]) && x[0] < (par[3] + par[4]))
-    {
-        TF1::RejectPoint();
-        return 0;
-    }
-    return par[0] * x[0] * x[0] * x[0] + par[1] * x[0] * x[0] + par[2] * x[0] + par[6];
-}
-
-/**
- * @brief Evaluates a combination of a Gaussian function and a quadratic polynomial
- *
- * @param x Array containing the x coordinate [x[0]]
- * @param par Array of parameters:
- *        par[0]: Amplitude of Gaussian
- *        par[1]: Mean of Gaussian
- *        par[2]: Sigma of Gaussian
- *        par[3]: Coefficient of x²
- *        par[4]: Coefficient of x
- *        par[5]: Constant term
- *
- * @return Double_t Result of f(x) = A*Gaus(x,μ,σ) + ax² + bx + c
- *                  where Gaus is the normalized Gaussian function
- */
-inline Double_t GausPol2(double *x, double *par)
-{
-    return par[0] * TMath::Gaus(x[0], par[1], par[2]) + par[3] * x[0] * x[0] + par[4] * x[0] + par[5];
-}
+Int_t markerStyles[] = {kCircle, kFullSquare, kFullTriangleUp, kFullTriangleDown, kFullStar, kFullDiamond, kFullCross, kFullDoubleDiamond, kFullCrossX, kFullFourTrianglesX, kFullThreeTriangles, kFullCircle};
 
 /**
  * @brief Reads a list of file paths from a text file and returns them as a vector of strings
@@ -219,6 +86,50 @@ std::vector<std::string> GetFileList(const std::string &inputFilePath)
 }
 
 /**
+ * @brief Opens a ROOT file with specified options
+ *
+ * This function opens a ROOT file and performs basic validity checks.
+ * If the file name is provided without the .root extension, it will be automatically added.
+ *
+ * @param fileName The name/path of the ROOT file to open
+ * @param options File access options (default: "READ")
+ * @return TFile* Pointer to the opened file, nullptr if opening fails
+ *
+ * @note The function performs the following checks:
+ *       - Empty file name
+ *       - File opening success
+ *       - Zombie file status
+ *
+ * @warning The caller is responsible for closing and deleting the returned TFile pointer
+ */
+inline TFile *OpenFile(TString fileName, TString options = "READ")
+{
+    if (fileName.IsNull())
+    {
+        SysError("Utils: OpenFile", "Error: Provided file name is empty for %sING!", options.Data());
+        return nullptr;
+    }
+
+    // append .root at the end if filename is without extension
+    if (!fileName.EndsWith(".root"))
+        fileName.Append(".root");
+
+    Info("Utils: OpenFile", "Opening file '%s' for %sING ...", fileName.Data(), options.Data());
+
+    TFile *fileHandle = TFile::Open(fileName.Data(), options.Data());
+
+    // validity check
+    if ((!fileHandle) || fileHandle->IsZombie())
+    {
+        delete fileHandle;
+        SysError("Utils: OpenFile", "Error: Cannot open file '%s' for %sING!", fileName.Data(), options.Data());
+        return nullptr;
+    }
+    else
+        return fileHandle;
+}
+
+/**
  * @brief Sets up and returns the output folder path
  *
  * If no folder name is provided, defaults to "Output" directory in current working directory.
@@ -249,60 +160,6 @@ inline TString SetOutputFolder(TString folderName = "")
         gSystem->Chmod(folderName.Data(), 0755);
     }
     return folderName;
-}
-
-/**
- * @brief Opens a ROOT file with specified options and performs validity checks
- * 
- * @param fileName Name of the file to open. If no extension is provided, .root will be appended
- * @param options File access mode ("READ", "NEW", "CREATE", "RECREATE"). Defaults to "READ"
- * 
- * @return TFile* Pointer to the opened file, nullptr if operation fails
- * 
- * @details This function:
- * - Checks if the provided filename is not empty
- * - Appends .root extension if filename has no extension
- * - Creates directory structure if file is being created/recreated
- * - Opens the file and performs zombie check
- * - Prints informative messages about the operation
- * 
- * @note The caller is responsible for closing and deleting the returned TFile pointer
- */
-inline TFile *OpenFile(TString fileName, TString options = "READ")
-{
-    if (fileName.IsNull())
-    {
-        SysError("Utils: OpenFile", "Error: Provided file name is empty for %sING!", options.Data());
-        return nullptr;
-    }
-
-    // append .root at the end if filename is without extension
-    if (!fileName.EndsWith(".root"))
-        fileName.Append(".root");
-
-    // create file path if it doesn't exist
-    if (options == "NEW" || options == "CREATE" || options == "RECREATE")
-    {
-        TString folderPath = fileName(0, fileName.Last('/'));
-        if (folderPath != "")
-        {
-            SetOutputFolder(folderPath);
-        }
-    }
-
-    Info("Utils: OpenFile", "Opening file '%s' for %sING ...", fileName.Data(), options.Data());
-
-    TFile *fileHandle = TFile::Open(fileName.Data(), options.Data());
-
-    // validity check
-    if ((!fileHandle) || fileHandle->IsZombie())
-    {
-        delete fileHandle;
-        SysError("Utils: OpenFile", "Error: Cannot open file '%s' for %sING!", fileName.Data(), options.Data());
-        return nullptr;
-    }
-    else
-        return fileHandle;
 }
 
 /**
@@ -361,10 +218,54 @@ inline void SaveImage(TString outputFolder, TString imageFolder, TString imageNa
     gSystem->Chmod(TString::Format("%s/%s.%s", imagePath.Data(), imageName.Data(), imageFormat.Data()), 0755);
 }
 
+inline Double_t DoubleGausPol2(double *x, double *par) // with same mean parameter for both gaussians
+{
+    return par[0] * TMath::Gaus(x[0], par[1], par[2]) + par[3] * TMath::Gaus(x[0], par[1], par[4]) + par[5] + par[6] * x[0] + par[7] * x[0] * x[0];
+}
+
+inline Double_t DoubleGausPol3(double *x, double *par)
+{
+    return par[0] * TMath::Gaus(x[0], par[1], par[2]) + par[3] * TMath::Gaus(x[0], par[4], par[5]) + par[6] + par[7] * x[0] + par[8] * x[0] * x[0] + par[9] * x[0] * x[0] * x[0];
+}
+
+/**
+ * @brief Second degree polynomial function with exclusion region capability
+ *
+ * This function implements a second degree polynomial (ax^2 + bx + c) with the ability
+ * to exclude points within a specified region around a peak. Used primarily for background
+ * fitting in mass spectra analysis.
+ *
+ * @param x Pointer to the x coordinate [input]
+ * @param par Array of parameters:
+ *        par[0] = quadratic term coefficient (a)
+ *        par[1] = linear term coefficient (b)
+ *        par[2] = constant term (c)
+ *        par[3] = peak mass position
+ *        par[4] = peak width (sigma)
+ *        par[5] = rejection flag (boolean)
+ *
+ * @return Double_t The function value at x, or 0 if point is rejected
+ *
+ * @note When par[5] is true, points within ±sigma around peak mass are rejected using TF1::RejectPoint()
+ */
+inline Double_t Pol2Exclude(double *x, double *par)
+{
+    // par[5] = rejectPoint(boolean); par[3] = peakFitMass; par[4]=peakFitSigma;
+    if (par[5] && x[0] > (par[3] - par[4]) && x[0] < (par[3] + par[4]))
+    {
+        TF1::RejectPoint();
+        return 0;
+    }
+    return par[0] * x[0] * x[0] + par[1] * x[0] + par[2];
+}
+
+inline Double_t GausPol2(double *x, double *par)
+{
+    return par[0] * TMath::Gaus(x[0], par[1], par[2]) + par[3] * x[0] * x[0] + par[4] * x[0] + par[5];
+}
+
 inline Double_t GetChi2(TFitResultPtr fFitResult)
 {
-    if (!fFitResult)
-        return 0;
     Double_t chi2 = fFitResult->Chi2();
     if (TMath::IsNaN(chi2))
         return 0;
@@ -374,8 +275,6 @@ inline Double_t GetChi2(TFitResultPtr fFitResult)
 
 inline Double_t GetNdf(TFitResultPtr fFitResult)
 {
-    if (!fFitResult)
-        return 0;
     Double_t ndf = fFitResult->Ndf();
     if (TMath::IsNaN(ndf))
         return 0;
@@ -385,8 +284,6 @@ inline Double_t GetNdf(TFitResultPtr fFitResult)
 
 inline Double_t GetReducedChi2(TFitResultPtr fFitResult)
 {
-    if (!fFitResult)
-        return 0;
     Double_t reducedChi2 = fFitResult->Chi2() / fFitResult->Ndf();
     if (TMath::IsNaN(reducedChi2))
         return 0;
@@ -396,8 +293,6 @@ inline Double_t GetReducedChi2(TFitResultPtr fFitResult)
 
 inline Double_t GetProb(TFitResultPtr fFitResult)
 {
-    if (!fFitResult)
-        return 0;
     Double_t prob = fFitResult->Prob();
     if (TMath::IsNaN(prob))
         return 0;

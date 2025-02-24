@@ -31,19 +31,6 @@
 void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TString outputFolder, TString imageFormat);
 
 /**
- * @brief Draws a horizontal line at y=1 on the given canvas and histogram stack
- *
- * This function sets the minimum and maximum y-axis values for the histogram stack if provided,
- * and then draws a horizontal line at y=1 on the specified canvas.
- *
- * @param c Reference to the canvas on which to draw the line
- * @param hs Reference to the histogram stack to set y-axis limits and draw the line
- * @param hs_yMin Minimum y-axis value for the histogram stack (default: -100, no change)
- * @param hs_yMax Maximum y-axis value for the histogram stack (default: -100, no change)
- */
-void DrawRatioLine(TCanvas &c, THStack &hs, Double_t hs_yMin = -100, Double_t hs_yMax = -100);
-
-/**
  * @brief Draws cascade analysis results and generates various plots
  *
  * This function processes and visualizes cascade particle analysis data, including:
@@ -81,21 +68,19 @@ void DrawRatioLine(TCanvas &c, THStack &hs, Double_t hs_yMin = -100, Double_t hs
  *
  * @note This is not mandatory to run anymore, as the functionality is replicated in EfficiencyEstimation.C, but can be used to generate raw pT spectra, fitting and efficiency plots
  */
-
 int DrawCascades(
-    TString inputFilename = "/var/home/ishaan/Work/git/analysis/results/RandomVars/SysVars_SignalExtraction/190225_SysSigExt_Fit/190225_SysSigExt_DGP2_def_6Runs.root",
-    TString outputFilename = "/var/home/ishaan/Work/git/analysis/results/RandomVars/SysVars_SignalExtraction/190225_SysSigExt_Draw/190225_SysSigExt_DGP2_def_6Runs_draw.root",
-    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/SysVars_SignalExtraction/SysSigExt_Draw/230225_DGP2_def_6Runs",
-    TString ptRatioFilename = "",
+    TString inputFilename = "230924_fitUpdatedCutsDef_6Runs.root",
+    TString outputFilename = "300924_drawUpdatedCuts_def.root",
+    TString outputFolder = "300924_imagesUpdatedCuts_def",
+    TString ptRatioFilename = "~/Work/git/analysis/results/0_current_best/0_DG_sameMass_parLmt_110624/DG_sameMass_parLmt_170624_draw.root",
     Bool_t fisMC = kFALSE,
-    Bool_t saveImages = kTRUE,
+    Bool_t saveImages = kFALSE,
     Bool_t saveStack = kTRUE,
     TString imageFormat = "png",
     Int_t verbosity = kInfo)
 {
     // gPrintViaErrorHandler = kTRUE;
     gErrorIgnoreLevel = verbosity;
-    gROOT->SetBatch(kTRUE);
 
     outputFolder = SetOutputFolder(outputFolder);
     gStyle->SetOptFit(1111);
@@ -624,18 +609,18 @@ int DrawCascades(
     gStyle->SetOptStat(0);
     gStyle->SetPalette(kVisibleSpectrum);
 
-    TCanvas *cPtSpectra[8];
+    TCanvas *c[8];
     for (Int_t iCanvas = 0; iCanvas < 8; iCanvas++)
     {
-        cPtSpectra[iCanvas] = new TCanvas(TString::Format("cPtSpectra%d", iCanvas), TString::Format("cPtSpectra%d", iCanvas), 1920, 1080);
+        c[iCanvas] = new TCanvas(TString::Format("c%d", iCanvas), TString::Format("c%d", iCanvas), 1920, 1080);
     }
 
-    PaintStack(*cPtSpectra[0], *hs_xip);
-    PaintStack(*cPtSpectra[1], *hs_omp);
-    PaintStack(*cPtSpectra[2], *hs_xim);
-    PaintStack(*cPtSpectra[3], *hs_omm);
-    PaintStack(*cPtSpectra[4], *hs_xiC);
-    PaintStack(*cPtSpectra[5], *hs_omC);
+    PaintStack(*c[0], *hs_xip);
+    PaintStack(*c[1], *hs_omp);
+    PaintStack(*c[2], *hs_xim);
+    PaintStack(*c[3], *hs_omm);
+    PaintStack(*c[4], *hs_xiC);
+    PaintStack(*c[5], *hs_omC);
 
     outputFile->cd();
 
@@ -648,36 +633,36 @@ int DrawCascades(
 
     if (saveStack)
     {
-        cPtSpectra[0]->cd();
-        SaveImage(outputFolder, "rawPt", "xipN", imageFormat.Data(), cPtSpectra[0]);
+        c[0]->cd();
+        SaveImage(outputFolder, "rawPt", "xipN", imageFormat.Data());
 
-        cPtSpectra[1]->cd();
-        SaveImage(outputFolder, "rawPt", "ompN", imageFormat.Data(), cPtSpectra[1]);
+        c[1]->cd();
+        SaveImage(outputFolder, "rawPt", "ompN", imageFormat.Data());
 
-        cPtSpectra[2]->cd();
-        SaveImage(outputFolder, "rawPt", "ximN", imageFormat.Data(), cPtSpectra[2]);
+        c[2]->cd();
+        SaveImage(outputFolder, "rawPt", "ximN", imageFormat.Data());
 
-        cPtSpectra[3]->cd();
-        SaveImage(outputFolder, "rawPt", "ommN", imageFormat.Data(), cPtSpectra[3]);
+        c[3]->cd();
+        SaveImage(outputFolder, "rawPt", "ommN", imageFormat.Data());
 
-        cPtSpectra[4]->cd();
-        SaveImage(outputFolder, "rawPt", "xicN", imageFormat.Data(), cPtSpectra[4]);
+        c[4]->cd();
+        SaveImage(outputFolder, "rawPt", "xicN", imageFormat.Data());
 
-        cPtSpectra[5]->cd();
-        SaveImage(outputFolder, "rawPt", "omcN", imageFormat.Data(), cPtSpectra[5]);
+        c[5]->cd();
+        SaveImage(outputFolder, "rawPt", "omcN", imageFormat.Data());
     }
 
     if (fisMC)
     {
-        PaintStack(*cPtSpectra[0], *hs_xip_eff, kFALSE, "Efficiency");
-        PaintStack(*cPtSpectra[1], *hs_omp_eff, kFALSE, "Efficiency");
-        PaintStack(*cPtSpectra[2], *hs_xim_eff, kFALSE, "Efficiency");
-        PaintStack(*cPtSpectra[3], *hs_omm_eff, kFALSE, "Efficiency");
-        PaintStack(*cPtSpectra[4], *hs_xiC_eff, kFALSE, "Efficiency");
-        PaintStack(*cPtSpectra[5], *hs_omC_eff, kFALSE, "Efficiency");
+        PaintStack(*c[0], *hs_xip_eff, kFALSE, "Efficiency");
+        PaintStack(*c[1], *hs_omp_eff, kFALSE, "Efficiency");
+        PaintStack(*c[2], *hs_xim_eff, kFALSE, "Efficiency");
+        PaintStack(*c[3], *hs_omm_eff, kFALSE, "Efficiency");
+        PaintStack(*c[4], *hs_xiC_eff, kFALSE, "Efficiency");
+        PaintStack(*c[5], *hs_omC_eff, kFALSE, "Efficiency");
 
-        PaintStack(*cPtSpectra[6], *hs_xiC_eff_ratio, kFALSE, "Multiplicity classes/0-100%");
-        PaintStack(*cPtSpectra[7], *hs_omC_eff_ratio, kFALSE, "Multiplicity classes/0-100%");
+        PaintStack(*c[6], *hs_xiC_eff_ratio, kFALSE, "Multiplicity classes/0-100%");
+        PaintStack(*c[7], *hs_omC_eff_ratio, kFALSE, "Multiplicity classes/0-100%");
 
         hs_xip_eff->Write();
         hs_xim_eff->Write();
@@ -691,29 +676,29 @@ int DrawCascades(
 
         if (saveStack)
         {
-            cPtSpectra[0]->cd();
-            SaveImage(outputFolder, "eff", "eff_xipN", imageFormat.Data(), cPtSpectra[0]);
+            c[0]->cd();
+            SaveImage(outputFolder, "eff", "eff_xipN", imageFormat.Data());
 
-            cPtSpectra[1]->cd();
-            SaveImage(outputFolder, "eff", "eff_ompN", imageFormat.Data(), cPtSpectra[1]);
+            c[1]->cd();
+            SaveImage(outputFolder, "eff", "eff_ompN", imageFormat.Data());
 
-            cPtSpectra[2]->cd();
-            SaveImage(outputFolder, "eff", "eff_ximN", imageFormat.Data(), cPtSpectra[2]);
+            c[2]->cd();
+            SaveImage(outputFolder, "eff", "eff_ximN", imageFormat.Data());
 
-            cPtSpectra[3]->cd();
-            SaveImage(outputFolder, "eff", "eff_ommN", imageFormat.Data(), cPtSpectra[3]);
+            c[3]->cd();
+            SaveImage(outputFolder, "eff", "eff_ommN", imageFormat.Data());
 
-            cPtSpectra[4]->cd();
-            SaveImage(outputFolder, "eff", "eff_xicN", imageFormat.Data(), cPtSpectra[4]);
+            c[4]->cd();
+            SaveImage(outputFolder, "eff", "eff_xicN", imageFormat.Data());
 
-            cPtSpectra[5]->cd();
-            SaveImage(outputFolder, "eff", "eff_omcN", imageFormat.Data(), cPtSpectra[5]);
+            c[5]->cd();
+            SaveImage(outputFolder, "eff", "eff_omcN", imageFormat.Data());
 
-            cPtSpectra[6]->cd();
-            SaveImage(outputFolder, "effRatio", "effRatio_xicN", imageFormat.Data(), cPtSpectra[6]);
+            c[6]->cd();
+            SaveImage(outputFolder, "effRatio", "effRatio_xicN", imageFormat.Data());
 
-            cPtSpectra[7]->cd();
-            SaveImage(outputFolder, "effRatio", "effRatio_omcN", imageFormat.Data(), cPtSpectra[7]);
+            c[7]->cd();
+            SaveImage(outputFolder, "effRatio", "effRatio_omcN", imageFormat.Data());
         }
     }
 
@@ -836,20 +821,48 @@ int DrawCascades(
             hs_ratio_omC->Add(ratioPt_omC[multBinOm]);
         }
 
-        PaintStack(*cPtSpectra[0], *hs_ratio_xip, kFALSE, yAxisTitle);
-        PaintStack(*cPtSpectra[1], *hs_ratio_omp, kFALSE, yAxisTitle);
-        PaintStack(*cPtSpectra[2], *hs_ratio_xim, kFALSE, yAxisTitle);
-        PaintStack(*cPtSpectra[3], *hs_ratio_omm, kFALSE, yAxisTitle);
-        PaintStack(*cPtSpectra[4], *hs_ratio_xiC, kFALSE, yAxisTitle);
-        PaintStack(*cPtSpectra[5], *hs_ratio_omC, kFALSE, yAxisTitle);
+        Double_t yAxisMin_Xi = 0.7;
+        Double_t yAxisMax_Xi = 1.3;
+        Double_t yAxisMin_Om = 0.6;
+        Double_t yAxisMax_Om = 1.2;
+
+        PaintStack(*c[0], *hs_ratio_xip, kFALSE, yAxisTitle);
+        PaintStack(*c[1], *hs_ratio_omp, kFALSE, yAxisTitle);
+        PaintStack(*c[2], *hs_ratio_xim, kFALSE, yAxisTitle);
+        PaintStack(*c[3], *hs_ratio_omm, kFALSE, yAxisTitle);
+        PaintStack(*c[4], *hs_ratio_xiC, kFALSE, yAxisTitle);
+        PaintStack(*c[5], *hs_ratio_omC, kFALSE, yAxisTitle);
+
+        hs_ratio_xim->SetMinimum(yAxisMin_Xi);
+        hs_ratio_xip->SetMinimum(yAxisMin_Xi);
+        hs_ratio_xiC->SetMinimum(yAxisMin_Xi);
+        hs_ratio_omm->SetMinimum(yAxisMin_Om);
+        hs_ratio_omp->SetMinimum(yAxisMin_Om);
+        hs_ratio_omC->SetMinimum(yAxisMin_Om);
+
+        hs_ratio_xim->SetMaximum(yAxisMax_Xi);
+        hs_ratio_xip->SetMaximum(yAxisMax_Xi);
+        hs_ratio_xiC->SetMaximum(yAxisMax_Xi);
+        hs_ratio_omm->SetMaximum(yAxisMax_Om);
+        hs_ratio_omp->SetMaximum(yAxisMax_Om);
+        hs_ratio_omC->SetMaximum(yAxisMax_Om);
 
         /// Draw a line at y=1 for ratio histStack
-        DrawRatioLine(*cPtSpectra[0], *hs_ratio_xip, 0.5, 1.5);
-        DrawRatioLine(*cPtSpectra[1], *hs_ratio_omp, 0.5, 1.5);
-        DrawRatioLine(*cPtSpectra[2], *hs_ratio_xim, 0.5, 1.5);
-        DrawRatioLine(*cPtSpectra[3], *hs_ratio_omm, 0.5, 1.5);
-        DrawRatioLine(*cPtSpectra[4], *hs_ratio_xiC, 0.5, 1.5);
-        DrawRatioLine(*cPtSpectra[5], *hs_ratio_omC, 0.5, 1.5);
+        TLine *lLineAt1 = new TLine(0.8, 1, 5.3, 1);
+        lLineAt1->SetLineColor(kRed);
+
+        c[0]->cd();
+        lLineAt1->Draw("same");
+        c[1]->cd();
+        lLineAt1->Draw("same");
+        c[2]->cd();
+        lLineAt1->Draw("same");
+        c[3]->cd();
+        lLineAt1->Draw("same");
+        c[4]->cd();
+        lLineAt1->Draw("same");
+        c[5]->cd();
+        lLineAt1->Draw("same");
 
         outputFile->cd();
         hs_ratio_xip->Write();
@@ -861,32 +874,33 @@ int DrawCascades(
 
         if (saveStack)
         {
-            cPtSpectra[0]->cd();
-            SaveImage(outputFolder, "ratioPt", "ratio_xipN", imageFormat.Data(), cPtSpectra[0]);
+            c[0]->cd();
+            SaveImage(outputFolder, "ratioPt", "ratio_xipN", imageFormat.Data());
 
-            cPtSpectra[1]->cd();
-            SaveImage(outputFolder, "ratioPt", "ratio_ompN", imageFormat.Data(), cPtSpectra[1]);
+            c[1]->cd();
+            SaveImage(outputFolder, "ratioPt", "ratio_ompN", imageFormat.Data());
 
-            cPtSpectra[2]->cd();
-            SaveImage(outputFolder, "ratioPt", "ratio_ximN", imageFormat.Data(), cPtSpectra[2]);
+            c[2]->cd();
+            SaveImage(outputFolder, "ratioPt", "ratio_ximN", imageFormat.Data());
 
-            cPtSpectra[3]->cd();
-            SaveImage(outputFolder, "ratioPt", "ratio_ommN", imageFormat.Data(), cPtSpectra[3]);
+            c[3]->cd();
+            SaveImage(outputFolder, "ratioPt", "ratio_ommN", imageFormat.Data());
 
-            cPtSpectra[4]->cd();
-            SaveImage(outputFolder, "ratioPt", "ratio_xicN", imageFormat.Data(), cPtSpectra[4]);
+            c[4]->cd();
+            SaveImage(outputFolder, "ratioPt", "ratio_xicN", imageFormat.Data());
 
-            cPtSpectra[5]->cd();
-            SaveImage(outputFolder, "ratioPt", "ratio_omcN", imageFormat.Data(), cPtSpectra[5]);
+            c[5]->cd();
+            SaveImage(outputFolder, "ratioPt", "ratio_omcN", imageFormat.Data());
         }
     }
 
     // delete canvas objects
     for (Int_t iCanvas = 0; iCanvas < 8; iCanvas++)
     {
-        delete cPtSpectra[iCanvas];
+        delete c[iCanvas];
         // delete gROOT->FindObject(TString::Format("c%d", iCanvas));
     }
+
     delete outputFile;
     return 0;
 }
@@ -894,6 +908,7 @@ int DrawCascades(
 void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TString outputFolder, TString imageFormat)
 {
 
+    gROOT->SetBatch(kTRUE);
     TCanvas *cDraw = new TCanvas(peak->GetName(), peak->GetTitle(), 1920, 1080);
     cDraw->cd();
 
@@ -902,10 +917,10 @@ void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TStri
     auto legend = new TLegend(0.1, 0.7, 0.28, 0.9);
     legend->SetHeader("Fit Stats", "C"); // option "C" allows to center the header
     legend->AddEntry(peak->GetListOfFunctions()->At(0), "", "l");
-    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit mean = %.3f +/- %.3f", pPosition, resultParams->GetBinError(4)), "l");
-    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit sigma = %.3f +/- %.3f", pWidth, resultParams->GetBinError(5)), "l");
+    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit mean = %f +/- %f", pPosition, resultParams->GetBinError(4)), "l");
+    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit sigma = %f +/- %f", pWidth, resultParams->GetBinError(5)), "l");
     // legend->AddEntry(peak->GetListOfFunctions()->At(1), "", "lpf");
-    legend->AddEntry(peak, TString::Format("Sig - Bg (BC-FF) = %.3f +/- %.3f", resultParams->GetBinContent(1), resultParams->GetBinError(1)), "pe");
+    legend->AddEntry(peak, TString::Format("Sig - Bg (BC-FF) = %f +/- %f", resultParams->GetBinContent(1), resultParams->GetBinError(1)), "pe");
 
     ///  Defining peak limits for signal region (green lines):
     ///   par[1] = peak position, par[2] = peak width
@@ -937,22 +952,6 @@ void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TStri
     delete lLineLeft;
     delete lLineRight;
     delete cDraw;
-    return;
-}
 
-void DrawRatioLine(TCanvas &c, THStack &hs, Double_t hs_yMin, Double_t hs_yMax)
-{
-    if (hs_yMin != -100)
-        hs.SetMinimum(hs_yMin);
-    if (hs_yMax != -100)
-        hs.SetMaximum(hs_yMax);
-
-    hs.GetYaxis()->SetNdivisions(3, 5, 10);
-    TLine *lLineAt1 = new TLine(hs.GetXaxis()->GetXmin(), 1, hs.GetXaxis()->GetXmax(), 1);
-    lLineAt1->SetLineColor(kRed);
-    c.cd();
-    lLineAt1->Draw("same");
-    c.Modified();
-    c.Update();
-    return;
+    gROOT->SetBatch(kFALSE);
 }

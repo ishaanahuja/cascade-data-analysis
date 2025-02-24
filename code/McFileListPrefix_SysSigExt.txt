@@ -1,5 +1,0 @@
-/var/home/ishaan/Work/git/analysis/results/RandomVars/190225_SysUncertSigExt/190225_SysSigExt_DGP2_15bg_LHC17f3a
-/var/home/ishaan/Work/git/analysis/results/RandomVars/190225_SysUncertSigExt/190225_SysSigExt_DGP2_15bg_LHC17l7a2
-/var/home/ishaan/Work/git/analysis/results/RandomVars/190225_SysUncertSigExt/190225_SysSigExt_DGP2_15bg_LHC18f3b
-/var/home/ishaan/Work/git/analysis/results/RandomVars/190225_SysUncertSigExt/190225_SysSigExt_DGP2_15bg_OmLHC17e1a
-/var/home/ishaan/Work/git/analysis/results/RandomVars/190225_SysUncertSigExt/190225_SysSigExt_DGP2_15bg_XiLHC17e1b

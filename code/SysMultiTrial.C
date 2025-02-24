@@ -89,10 +89,10 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
  * - Both multiplicity integrated and multiplicity dependent results
  */
 int SysMultiTrial(
-    TString inputPath = "/var/home/ishaan/Work/git/analysis/results/RandomVars/100225_EfficiencyCorrected_Vars",
+    TString inputPath = "/var/home/ishaan/Work/git/analysis/results/RandomVars/100225_effCorr",
     TString effCorrInputFilePrefix = "100225_effCorr",
-    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/220225_SysUncertainty_MultiTrial/220225_sysUncertainty_multiTrial.root",
-    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/220225_SysUncertainty_MultiTrial",
+    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/120225_sysUncertainty/120225_sysUncertainty_multiTrial.root",
+    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/120225_sysUncertainty",
     Bool_t fDebug = kFALSE,
     Bool_t saveImages = kTRUE,
     TString imageFormat = "png",
@@ -111,11 +111,6 @@ int SysMultiTrial(
     TH1::SetDefaultSumw2(kTRUE);
 
     outputFolder = SetOutputFolder(outputFolder);
-
-    Int_t binsYieldDev = 212;
-    Int_t binsMultiplierYieldDev = 0;
-    Double_t minRangeYieldDev = -1.05;
-    Double_t maxRangeYieldDev = +1.05;
 
     TH1 *def_effCorrPt_xim;                     // mult integrated efficiency corrected spectra for default cuts
     TH1 *def_effCorrPt_xip;                     // mult integrated efficiency corrected spectra for default cuts
@@ -250,6 +245,10 @@ int SysMultiTrial(
     }
 
     /// Reference output objects - yield deviation from default cut, fitted with gaussian:
+    Int_t binsYieldDev = 250;
+    Int_t binsMultiplierYieldDev = 0;
+    Double_t minRangeYieldDev = -1;
+    Double_t maxRangeYieldDev = +1;
     for (Int_t ptBinXi = 0; ptBinXi < fNptbins_Xi; ptBinXi++)
     {
         varDefYieldDev_xip_pt[ptBinXi] = new TH1D(TString::Format("varDefYieldDev_xip_pt[%d]", ptBinXi), TString::Format("#Xi^{+}: #it{p}_{T}: <%.1f,%.1f>, Mult: 0-100%%;Y_{sys}/Y_{def} - 1;Counts", fPtbins_Xi[ptBinXi], fPtbins_Xi[ptBinXi + 1]), (binsYieldDev + binsMultiplierYieldDev * ptBinXi), minRangeYieldDev, maxRangeYieldDev);
@@ -556,9 +555,7 @@ Double_t FitGaus(TH1 *hist, TString fitOptions)
     }
 
     TF1 *fGaus = new TF1(TString::Format("fGaus_%s", hist->GetName()), "gaus", -1, 1);
-    fGaus->SetNpx(1000);
     fGaus->SetParameter(0, hAmp);
-    fGaus->SetParLimits(0, 0.5 * hAmp, 1.1 * hAmp); // Limit amplitude to 50% to 120% of max
     fGaus->SetParameter(1, xAmp);
     fGaus->SetParLimits(1, xAmp - sigmaGaus, xAmp + sigmaGaus);
     fGaus->SetParameter(2, sigmaGaus);
@@ -575,9 +572,7 @@ Double_t FitGaus(TH1 *hist, TString fitOptions)
     {
         Warning("FitGaus", "Fit failed for %s. Fit status: %d, Fit mean = %.2f, Fit sigma = %.2f, Fit range: [%.2f, %.2f], Entries: %.1f. Trying again:", hist->GetName(), fitStatus, fGaus->GetParameter(1), sigmaGaus, fitMin, fitMax, hist->GetEntries());
         fitOptions.ReplaceAll("Q", "");
-        fitStatus = hist->Fit(fGaus, fitOptions.Data(), "", fitMin, fitMax);
-        if (fitStatus != 0)
-            Error("FitGaus", "Fit failed for %s. Fit status: %d, Fit mean = %.2f, Fit sigma = %.2f, Fit range: [%.2f, %.2f], Entries: %.1f. Exiting.", hist->GetName(), fitStatus, fGaus->GetParameter(1), sigmaGaus, fitMin, fitMax, hist->GetEntries());
+        hist->Fit(fGaus, fitOptions.Data(), "", fitMin, fitMax);
     }
 
     sigmaGaus = TMath::Abs(fGaus->GetParameter(2));
@@ -599,27 +594,24 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
     TF1 *func = (TF1 *)hist->GetListOfFunctions()->At(0);
     if (func)
     {
-        Int_t ndf_sanitized = func->GetNDF();
-        if (ndf_sanitized == 0)
-            ndf_sanitized = 1;
         legend->SetTextSize(0.02);
         legend->SetHeader("Fit Stats (Gaus)", "C"); // option "C" allows to center the header
         legend->AddEntry(func, TString::Format("Fit mean (#mu) = %.3f", func->GetParameter(1)), "l");
         legend->AddEntry(func, TString::Format("Fit sigma (#sigma)= %.3f", func->GetParameter(2)), "l");
-        legend->AddEntry(func, TString::Format("#frac{#chi^{2}}{NDF} = %.1f", (func->GetChisquare() / ndf_sanitized)), "l");
+        legend->AddEntry(func, TString::Format("#frac{#chi^{2}}{NDF} = %.1f", (func->GetChisquare() / func->GetNDF())), "l");
 
         hist->GetYaxis()->SetRangeUser(0., hist->GetMaximum() * 1.2);
         hist->SetMarkerStyle(kFullTriangleUp);
-        // hist->SetColors(kTeal, kBlack, kYellow);
-        // hist->Draw("P LF2 HIST SAME");
-        hist->Draw("HIST");
+        hist->SetColors(kTeal, kBlack, kYellow);
+        // hist->Draw("P HIST");
+        hist->Draw("P LF2 HIST SAME");
         func->Draw("same");
 
         legend->Draw();
     }
     else
     {
-        hist->GetYaxis()->SetRangeUser(0., hist->GetMaximum() * 1.4);
+        hist->GetYaxis()->SetRangeUser(0., hist->GetMaximum() * 1.2);
         hist->SetMarkerStyle(kFullCircle);
         gStyle->SetPaintTextFormat("1.3f");
         hist->Draw("TEXT00");
