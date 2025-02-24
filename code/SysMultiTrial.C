@@ -91,8 +91,8 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
 int SysMultiTrial(
     TString inputPath = "/var/home/ishaan/Work/git/analysis/results/RandomVars/100225_EfficiencyCorrected_Vars",
     TString effCorrInputFilePrefix = "100225_effCorr",
-    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/220225_SysUncertainty_MultiTrial/220225_sysUncertainty_multiTrial.root",
-    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/220225_SysUncertainty_MultiTrial",
+    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/240225_SysUncertainty_MultiTrial_212noRBErr/240225_sysUncertainty_noRB_multiTrial.root",
+    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/240225_SysUncertainty_MultiTrial_212noRBErr",
     Bool_t fDebug = kFALSE,
     Bool_t saveImages = kTRUE,
     TString imageFormat = "png",
@@ -103,7 +103,10 @@ int SysMultiTrial(
     ROOT::Math::MinimizerOptions::SetDefaultMinimizer("Minuit2");
     ROOT::Math::MinimizerOptions::SetDefaultStrategy(2);
     ROOT::Math::MinimizerOptions::SetDefaultPrintLevel(0); // Fit printing: -1 = no printing, 0 (minimal) to 3 (max)
+
+    gROOT->SetBatch(kTRUE);
     gStyle->SetOptFit(1111);
+    gStyle->SetPaintTextFormat("1.3f");
     gErrorIgnoreLevel = verbosity;
 
     // remove ownership of objects from file so we can delete the file ptr
@@ -168,6 +171,19 @@ int SysMultiTrial(
     TH1D *sysMultiTrial_omp_mult[fNmultbins_Om]; // mult binned systematic uncertainty from MultiTrial
     TH1D *sysMultiTrial_xiC_mult[fNmultbins_Xi]; // mult binned systematic uncertainty from MultiTrial
     TH1D *sysMultiTrial_omC_mult[fNmultbins_Om]; // mult binned systematic uncertainty from MultiTrial
+
+    TH1D *fitMeanYieldDev_xim;                     // mult integrated yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_xip;                     // mult integrated yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_omm;                     // mult integrated yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_omp;                     // mult integrated yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_xiC;                     // mult integrated yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_omC;                     // mult integrated yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_xim_mult[fNmultbins_Xi]; // mult binned yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_xip_mult[fNmultbins_Xi]; // mult binned yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_omm_mult[fNmultbins_Om]; // mult binned yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_omp_mult[fNmultbins_Om]; // mult binned yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_xiC_mult[fNmultbins_Xi]; // mult binned yield deviation: mean of Gaussian fit
+    TH1D *fitMeanYieldDev_omC_mult[fNmultbins_Om]; // mult binned yield deviation: mean of Gaussian fit
 
     /// Getting default cut histograms:
     TString histName = "h3_ptmasscent_def";
@@ -247,6 +263,25 @@ int SysMultiTrial(
         sysMultiTrial_omp_mult[multBinOm] = new TH1D(TString::Format("sysMultiTrial_omp_mult[%d]", multBinOm), TString::Format("#Omega^{+}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
         sysMultiTrial_omm_mult[multBinOm] = new TH1D(TString::Format("sysMultiTrial_omm_mult[%d]", multBinOm), TString::Format("#Omega^{-}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
         sysMultiTrial_omC_mult[multBinOm] = new TH1D(TString::Format("sysMultiTrial_omC_mult[%d]", multBinOm), TString::Format("#Omega^{+} + #Omega^{-}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
+    }
+
+    fitMeanYieldDev_xip = new TH1D("fitMeanYieldDev_xip", "#Xi^{+}: Mean of Gaussian fit: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fNptbins_Xi, fPtbins_Xi);
+    fitMeanYieldDev_xim = new TH1D("fitMeanYieldDev_xim", "#Xi^{-}: Mean of Gaussian fit: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fNptbins_Xi, fPtbins_Xi);
+    fitMeanYieldDev_omp = new TH1D("fitMeanYieldDev_omp", "#Omega^{+}: Mean of Gaussian fit: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fNptbins_Om, fPtbins_Om);
+    fitMeanYieldDev_omm = new TH1D("fitMeanYieldDev_omm", "#Omega^{-}: Mean of Gaussian fit: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fNptbins_Om, fPtbins_Om);
+    fitMeanYieldDev_xiC = new TH1D("fitMeanYieldDev_xiC", "#Xi^{+} + #Xi^{-}: Mean of Gaussian fit: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fNptbins_Xi, fPtbins_Xi);
+    fitMeanYieldDev_omC = new TH1D("fitMeanYieldDev_omC", "#Omega^{+} + #Omega^{-}: Mean of Gaussian fit: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fNptbins_Om, fPtbins_Om);
+    for (Int_t multBinXi = 0; multBinXi < fNmultbins_Xi; multBinXi++)
+    {
+        fitMeanYieldDev_xip_mult[multBinXi] = new TH1D(TString::Format("fitMeanYieldDev_xip_mult[%d]", multBinXi), TString::Format("#Xi^{+}: Mean of Gaussian fit: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]), fNptbins_Xi, fPtbins_Xi);
+        fitMeanYieldDev_xim_mult[multBinXi] = new TH1D(TString::Format("fitMeanYieldDev_xim_mult[%d]", multBinXi), TString::Format("#Xi^{-}: Mean of Gaussian fit: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]), fNptbins_Xi, fPtbins_Xi);
+        fitMeanYieldDev_xiC_mult[multBinXi] = new TH1D(TString::Format("fitMeanYieldDev_xiC_mult[%d]", multBinXi), TString::Format("#Xi^{+} + #Xi^{-}: Mean of Gaussian fit: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]), fNptbins_Xi, fPtbins_Xi);
+    }
+    for (Int_t multBinOm = 0; multBinOm < fNmultbins_Om; multBinOm++)
+    {
+        fitMeanYieldDev_omp_mult[multBinOm] = new TH1D(TString::Format("fitMeanYieldDev_omp_mult[%d]", multBinOm), TString::Format("#Omega^{+}: Mean of Gaussian fit: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
+        fitMeanYieldDev_omm_mult[multBinOm] = new TH1D(TString::Format("fitMeanYieldDev_omm_mult[%d]", multBinOm), TString::Format("#Omega^{-}: Mean of Gaussian fit: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
+        fitMeanYieldDev_omC_mult[multBinOm] = new TH1D(TString::Format("fitMeanYieldDev_omC_mult[%d]", multBinOm), TString::Format("#Omega^{+} + #Omega^{-}: Mean of Gaussian fit: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
     }
 
     /// Reference output objects - yield deviation from default cut, fitted with gaussian:
@@ -346,11 +381,21 @@ int SysMultiTrial(
         sysMultiTrial_xim->SetBinContent(ptBinXi + 1, FitGaus(varDefYieldDev_xim_pt[ptBinXi]));
         sysMultiTrial_xiC->SetBinContent(ptBinXi + 1, FitGaus(varDefYieldDev_xiC_pt[ptBinXi]));
 
+        // add gaus fit's mean to fitMeanYieldDev histograms
+        fitMeanYieldDev_xip->SetBinContent(ptBinXi + 1, ((TF1 *)varDefYieldDev_xip_pt[ptBinXi]->GetListOfFunctions()->At(0))->GetParameter(1));
+        fitMeanYieldDev_xim->SetBinContent(ptBinXi + 1, ((TF1 *)varDefYieldDev_xim_pt[ptBinXi]->GetListOfFunctions()->At(0))->GetParameter(1));
+        fitMeanYieldDev_xiC->SetBinContent(ptBinXi + 1, ((TF1 *)varDefYieldDev_xiC_pt[ptBinXi]->GetListOfFunctions()->At(0))->GetParameter(1));
+
         for (Int_t multBinXi = 0; multBinXi < fNmultbins_Xi; multBinXi++)
         {
             sysMultiTrial_xip_mult[multBinXi]->SetBinContent(ptBinXi + 1, FitGaus(varDefYieldDev_xip_pt_mult[ptBinXi][multBinXi]));
             sysMultiTrial_xim_mult[multBinXi]->SetBinContent(ptBinXi + 1, FitGaus(varDefYieldDev_xim_pt_mult[ptBinXi][multBinXi]));
             sysMultiTrial_xiC_mult[multBinXi]->SetBinContent(ptBinXi + 1, FitGaus(varDefYieldDev_xiC_pt_mult[ptBinXi][multBinXi]));
+
+            // add gaus fit's mean to fitMeanYieldDev histograms
+            fitMeanYieldDev_xip_mult[multBinXi]->SetBinContent(ptBinXi + 1, ((TF1 *)varDefYieldDev_xip_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0))->GetParameter(1));
+            fitMeanYieldDev_xim_mult[multBinXi]->SetBinContent(ptBinXi + 1, ((TF1 *)varDefYieldDev_xim_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0))->GetParameter(1));
+            fitMeanYieldDev_xiC_mult[multBinXi]->SetBinContent(ptBinXi + 1, ((TF1 *)varDefYieldDev_xiC_pt_mult[ptBinXi][multBinXi]->GetListOfFunctions()->At(0))->GetParameter(1));
         }
     }
     Info("SysMultiTrial: Fit Om", "Fitting yield deviation histograms with gaussian and extracting sigmaGaus as systematic uncertainty.");
@@ -360,27 +405,43 @@ int SysMultiTrial(
         sysMultiTrial_omm->SetBinContent(ptBinOm + 1, FitGaus(varDefYieldDev_omm_pt[ptBinOm]));
         sysMultiTrial_omC->SetBinContent(ptBinOm + 1, FitGaus(varDefYieldDev_omC_pt[ptBinOm]));
 
+        // add gaus fit's mean to fitMeanYieldDev histograms
+        fitMeanYieldDev_omp->SetBinContent(ptBinOm + 1, ((TF1 *)varDefYieldDev_omp_pt[ptBinOm]->GetListOfFunctions()->At(0))->GetParameter(1));
+        fitMeanYieldDev_omm->SetBinContent(ptBinOm + 1, ((TF1 *)varDefYieldDev_omm_pt[ptBinOm]->GetListOfFunctions()->At(0))->GetParameter(1));
+        fitMeanYieldDev_omC->SetBinContent(ptBinOm + 1, ((TF1 *)varDefYieldDev_omC_pt[ptBinOm]->GetListOfFunctions()->At(0))->GetParameter(1));
+
         for (Int_t multBinOm = 0; multBinOm < fNmultbins_Om; multBinOm++)
         {
             sysMultiTrial_omp_mult[multBinOm]->SetBinContent(ptBinOm + 1, FitGaus(varDefYieldDev_omp_pt_mult[ptBinOm][multBinOm]));
             sysMultiTrial_omm_mult[multBinOm]->SetBinContent(ptBinOm + 1, FitGaus(varDefYieldDev_omm_pt_mult[ptBinOm][multBinOm]));
             sysMultiTrial_omC_mult[multBinOm]->SetBinContent(ptBinOm + 1, FitGaus(varDefYieldDev_omC_pt_mult[ptBinOm][multBinOm]));
+
+            // add gaus fit's mean to fitMeanYieldDev histograms
+            fitMeanYieldDev_omp_mult[multBinOm]->SetBinContent(ptBinOm + 1, ((TF1 *)varDefYieldDev_omp_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0))->GetParameter(1));
+            fitMeanYieldDev_omm_mult[multBinOm]->SetBinContent(ptBinOm + 1, ((TF1 *)varDefYieldDev_omm_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0))->GetParameter(1));
+            fitMeanYieldDev_omC_mult[multBinOm]->SetBinContent(ptBinOm + 1, ((TF1 *)varDefYieldDev_omC_pt_mult[ptBinOm][multBinOm]->GetListOfFunctions()->At(0))->GetParameter(1));
         }
     }
 
     /// Write output objects to file and save images:
     outputFile->cd("dirSysMultiTrial_xip_mult");
     sysMultiTrial_xip->Write();
+    fitMeanYieldDev_xip->Write();
     outputFile->cd("dirSysMultiTrial_xim_mult");
     sysMultiTrial_xim->Write();
+    fitMeanYieldDev_xim->Write();
     outputFile->cd("dirSysMultiTrial_xiC_mult");
     sysMultiTrial_xiC->Write();
+    fitMeanYieldDev_xiC->Write();
     outputFile->cd("dirSysMultiTrial_omp_mult");
     sysMultiTrial_omp->Write();
+    fitMeanYieldDev_omp->Write();
     outputFile->cd("dirSysMultiTrial_omm_mult");
     sysMultiTrial_omm->Write();
+    fitMeanYieldDev_omm->Write();
     outputFile->cd("dirSysMultiTrial_omC_mult");
     sysMultiTrial_omC->Write();
+    fitMeanYieldDev_omC->Write();
     if (saveImages)
     {
         DrawAndSaveImage(sysMultiTrial_xip, outputFolder, "SysMultiTrial_xip", imageFormat);
@@ -389,35 +450,56 @@ int SysMultiTrial(
         DrawAndSaveImage(sysMultiTrial_omp, outputFolder, "SysMultiTrial_omp", imageFormat);
         DrawAndSaveImage(sysMultiTrial_omm, outputFolder, "SysMultiTrial_omm", imageFormat);
         DrawAndSaveImage(sysMultiTrial_omC, outputFolder, "SysMultiTrial_omC", imageFormat);
+
+        DrawAndSaveImage(fitMeanYieldDev_xip, outputFolder, "FitMeanYieldDev_xip", imageFormat);
+        DrawAndSaveImage(fitMeanYieldDev_xim, outputFolder, "FitMeanYieldDev_xim", imageFormat);
+        DrawAndSaveImage(fitMeanYieldDev_xiC, outputFolder, "FitMeanYieldDev_xiC", imageFormat);
+        DrawAndSaveImage(fitMeanYieldDev_omp, outputFolder, "FitMeanYieldDev_omp", imageFormat);
+        DrawAndSaveImage(fitMeanYieldDev_omm, outputFolder, "FitMeanYieldDev_omm", imageFormat);
+        DrawAndSaveImage(fitMeanYieldDev_omC, outputFolder, "FitMeanYieldDev_omC", imageFormat);
     }
     for (Int_t multBinXi = 0; multBinXi < fNmultbins_Xi; multBinXi++)
     {
         outputFile->cd("dirSysMultiTrial_xip_mult");
         sysMultiTrial_xip_mult[multBinXi]->Write();
+        fitMeanYieldDev_xip_mult[multBinXi]->Write();
         outputFile->cd("dirSysMultiTrial_xim_mult");
         sysMultiTrial_xim_mult[multBinXi]->Write();
+        fitMeanYieldDev_xim_mult[multBinXi]->Write();
         outputFile->cd("dirSysMultiTrial_xiC_mult");
         sysMultiTrial_xiC_mult[multBinXi]->Write();
+        fitMeanYieldDev_xiC_mult[multBinXi]->Write();
         if (saveImages)
         {
             DrawAndSaveImage(sysMultiTrial_xip_mult[multBinXi], outputFolder, "SysMultiTrial_xip", imageFormat);
             DrawAndSaveImage(sysMultiTrial_xim_mult[multBinXi], outputFolder, "SysMultiTrial_xim", imageFormat);
             DrawAndSaveImage(sysMultiTrial_xiC_mult[multBinXi], outputFolder, "SysMultiTrial_xiC", imageFormat);
+
+            DrawAndSaveImage(fitMeanYieldDev_xip_mult[multBinXi], outputFolder, "FitMeanYieldDev_xip", imageFormat);
+            DrawAndSaveImage(fitMeanYieldDev_xim_mult[multBinXi], outputFolder, "FitMeanYieldDev_xim", imageFormat);
+            DrawAndSaveImage(fitMeanYieldDev_xiC_mult[multBinXi], outputFolder, "FitMeanYieldDev_xiC", imageFormat);
         }
     }
     for (Int_t multBinOm = 0; multBinOm < fNmultbins_Om; multBinOm++)
     {
         outputFile->cd("dirSysMultiTrial_omp_mult");
         sysMultiTrial_omp_mult[multBinOm]->Write();
+        fitMeanYieldDev_omp_mult[multBinOm]->Write();
         outputFile->cd("dirSysMultiTrial_omm_mult");
         sysMultiTrial_omm_mult[multBinOm]->Write();
+        fitMeanYieldDev_omm_mult[multBinOm]->Write();
         outputFile->cd("dirSysMultiTrial_omC_mult");
         sysMultiTrial_omC_mult[multBinOm]->Write();
+        fitMeanYieldDev_omC_mult[multBinOm]->Write();
         if (saveImages)
         {
             DrawAndSaveImage(sysMultiTrial_omp_mult[multBinOm], outputFolder, "SysMultiTrial_omp", imageFormat);
             DrawAndSaveImage(sysMultiTrial_omm_mult[multBinOm], outputFolder, "SysMultiTrial_omm", imageFormat);
             DrawAndSaveImage(sysMultiTrial_omC_mult[multBinOm], outputFolder, "SysMultiTrial_omC", imageFormat);
+
+            DrawAndSaveImage(fitMeanYieldDev_omp_mult[multBinOm], outputFolder, "FitMeanYieldDev_omp", imageFormat);
+            DrawAndSaveImage(fitMeanYieldDev_omm_mult[multBinOm], outputFolder, "FitMeanYieldDev_omm", imageFormat);
+            DrawAndSaveImage(fitMeanYieldDev_omC_mult[multBinOm], outputFolder, "FitMeanYieldDev_omC", imageFormat);
         }
     }
 
@@ -510,17 +592,17 @@ Double_t ComputeRogerBarlow(TH1 *hVar, TH1 *hDef, TH1 *hYieldDev, Int_t ptBin, I
         sigmaRB = sigmaRB / defVal;
         nSigmaRB = nSigma * sigmaRB;
 
-        if (TMath::Abs(yieldDev) > (nSigmaRB))
-        {
-            if (fDebug)
-                Info("ComputeRogerBarlow", "iVar %d: Filling %s: ptBin: %d, varVal: %f, defVal: %f, yieldDev: %f, nSigmaRB: %f", iVar, hYieldDev->GetName(), ptBin, varVal, defVal, yieldDev, nSigmaRB);
-            hYieldDev->Fill(yieldDev);
-        }
-        else
-        {
-            if (fDebug)
-                Info("ComputeRogerBarlow", "iVar %d: Skipping %s: ptBin: %d, varVal: %f, defVal: %f, yieldDev: %f, nSigmaRB: %f. Failed RB criteria.", iVar, hYieldDev->GetName(), ptBin, varVal, defVal, yieldDev, nSigmaRB);
-        }
+        // if (TMath::Abs(yieldDev) > (nSigmaRB))
+        // {
+        if (fDebug)
+            Info("ComputeRogerBarlow", "iVar %d: Filling %s: ptBin: %d, varVal: %f, defVal: %f, yieldDev: %f, nSigmaRB: %f", iVar, hYieldDev->GetName(), ptBin, varVal, defVal, yieldDev, nSigmaRB);
+        hYieldDev->Fill(yieldDev);
+        // }
+        // else
+        // {
+        // if (fDebug)
+        // Info("ComputeRogerBarlow", "iVar %d: Skipping %s: ptBin: %d, varVal: %f, defVal: %f, yieldDev: %f, nSigmaRB: %f. Failed RB criteria.", iVar, hYieldDev->GetName(), ptBin, varVal, defVal, yieldDev, nSigmaRB);
+        // }
     }
     else
     {
@@ -532,7 +614,6 @@ Double_t ComputeRogerBarlow(TH1 *hVar, TH1 *hDef, TH1 *hYieldDev, Int_t ptBin, I
 
 Double_t FitGaus(TH1 *hist, TString fitOptions)
 {
-    gROOT->SetBatch(kTRUE);
 
     Double_t sigmaGaus = 0.0;
     Int_t fitStatus = 0;
@@ -583,15 +664,12 @@ Double_t FitGaus(TH1 *hist, TString fitOptions)
     sigmaGaus = TMath::Abs(fGaus->GetParameter(2));
     hist->GetListOfFunctions()->Add(fGaus);
 
-    gROOT->SetBatch(kFALSE);
-
     return sigmaGaus;
 }
 
 void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TString imageFormat)
 {
 
-    gROOT->SetBatch(kTRUE);
     TCanvas *cDraw = new TCanvas(hist->GetName(), hist->GetTitle(), 1920, 1080);
     auto legend = new TLegend(0.1, 0.7, 0.28, 0.9);
     cDraw->cd();
@@ -609,19 +687,24 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
         legend->AddEntry(func, TString::Format("#frac{#chi^{2}}{NDF} = %.1f", (func->GetChisquare() / ndf_sanitized)), "l");
 
         hist->GetYaxis()->SetRangeUser(0., hist->GetMaximum() * 1.2);
-        hist->SetMarkerStyle(kFullTriangleUp);
-        // hist->SetColors(kTeal, kBlack, kYellow);
+        hist->SetMarkerStyle(kFullCircle);
+        hist->SetColors(kBlue, kBlack);
         // hist->Draw("P LF2 HIST SAME");
-        hist->Draw("HIST");
+        // hist->Draw("HIST");
+        hist->Draw("P E1");
         func->Draw("same");
 
         legend->Draw();
+    }
+    else if (TString(hist->GetName()).Contains("Mean"))
+    {
+        hist->SetMarkerStyle(kFullCircle);
+        hist->Draw("TEXT00");
     }
     else
     {
         hist->GetYaxis()->SetRangeUser(0., hist->GetMaximum() * 1.4);
         hist->SetMarkerStyle(kFullCircle);
-        gStyle->SetPaintTextFormat("1.3f");
         hist->Draw("TEXT00");
     }
 
@@ -629,6 +712,4 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
 
     delete legend;
     delete cDraw;
-
-    gROOT->SetBatch(kFALSE);
 }
