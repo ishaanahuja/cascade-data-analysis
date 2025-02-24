@@ -21,11 +21,11 @@
  * @return int Status code (0 for success).
  */
 int EfficiencyCorrection(
-    TString fitInputFilePrefix = "/var/home/ishaan/Work/git/analysis/results/RandomVars/050225_6RunsRandDiff_fit/050225_6RunsRandDiff",
-    TString effInputFilePrefix = "/var/home/ishaan/Work/git/analysis/results/RandomVars/030225_efficiencyVars/030225_eff",
-    TString histName = "h3_ptmasscent_def",
-    TString outputFileName = "",
-    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/100225_effCorr",
+    TString fitInputFilePrefix = "/var/home/ishaan/Work/git/analysis/results/RandomVars/190225_SysUncertSigExt_Fit/190225_SysSigExt_DGP2_15bg_6Runs.root",
+    TString effInputFilePrefix = "/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt_effEst/200225_SysSigExt_DGP2_15bg_effEst.root",
+    TString histName = "DGP2_15bg",
+    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt_effCorr/200225_SysSigExt_DGP2_15bg_effCorr.root",
+    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt_effCorr",
     Bool_t saveStack = kTRUE,
     TString imageFormat = "png",
     Int_t verbosity = kInfo)
@@ -101,8 +101,11 @@ int EfficiencyCorrection(
     auto hs_xiC_effCorr = new THStack("hs_xiC_effCorr", "Efficiency corrected #it{p}_{T} spectra #Xi^{+} + #Xi^{-}");
     auto hs_omC_effCorr = new THStack("hs_omC_effCorr", "Efficiency corrected #it{p}_{T} spectra #Omega^{+} + #Omega^{-}");
 
-    TString fitInputFileName = TString::Format("%s_%s.root", fitInputFilePrefix.Data(), histName.Data());
-    TString effInputFileName = TString::Format("%s_%s.root", effInputFilePrefix.Data(), histName.Data());
+    // TString fitInputFileName = TString::Format("%s_%s.root", fitInputFilePrefix.Data(), histName.Data());
+    // TString effInputFileName = TString::Format("%s_%s.root", effInputFilePrefix.Data(), histName.Data());
+
+    TString fitInputFileName = fitInputFilePrefix; // only for SysSigExt
+    TString effInputFileName = effInputFilePrefix; // only for SysSigExt
 
     /// Getting histograms from fit input file:
     TFile *fitInputFile = OpenFile(fitInputFileName);
