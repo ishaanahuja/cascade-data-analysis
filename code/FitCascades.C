@@ -10,7 +10,8 @@
 
 #include "CascadeUtils.h"
 
-Double_t nSigma = 10.;
+Double_t nSigma = 4.;
+UInt_t bgFitIntSigma = 0;
 Double_t sigmaXi = 0.0018;
 Double_t sigmaOm = 0.0020;
 
@@ -24,9 +25,11 @@ Double_t sigmaOm = 0.0020;
  * @param mass The mass value to be used for the fit.
  * @param sigma The sigma value to be used for the fit.
  * @param usePrevious Boolean flag indicating whether to use the previous Pt bin fit parameters.
+ * @param bgFitIntervalSigma Number of sigmas to be used for background fit interval (default: bgFitIntSigma)
+
  * @return TF1* Pointer to the TF1 object with the set parameters.
  */
-TF1 *SetFitParametersGaus(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious);
+TF1 *SetFitParametersGaus(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious, UInt_t bgFitIntervalSigma = bgFitIntSigma);
 /**
  * @brief Sets the fit parameters for a double Gaussian function.
  *
@@ -39,33 +42,56 @@ TF1 *SetFitParametersGaus(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *p
  * @param mass The mass value around which the peak is centered.
  * @param sigma The standard deviation (sigma) of the Gaussian function.
  * @param usePrevious Boolean flag indicating whether to use the previous fit parameters.
+ * @param bgFitIntervalSigma Number of sigmas to be used for background fit interval (default: bgFitIntSigma)
+
  * @return Pointer to the TF1 object with the set parameters.
  */
-TF1 *SetFitParametersDG(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious);
+TF1 *SetFitParametersDG(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious, UInt_t bgFitIntervalSigma = bgFitIntSigma);
+
+/**
+ * @brief Sets fit parameters for DGP3 function
+ *
+ * @param peakFnc Pointer to the peak function to be configured
+ * @param previousPtBinFitParams Array containing fit parameters from previous pT bin
+ * @param peak Histogram containing the peak to be fitted
+ * @param mass Expected mass value for the peak
+ * @param sigma Expected sigma value for the peak width
+ * @param usePrevious Boolean flag to determine if previous fit parameters should be used
+ * @param bgFitIntervalSigma Number of sigmas to be used for background fit interval (default: bgFitIntSigma)
+ *
+ * @return Pointer to the configured peak function
+ *
+ * This function configures the fit parameters for a DGP3 (Double Gaussian + Polynomial 3rd order)
+ * function used in particle mass spectrum analysis. It can utilize parameters from previous
+ * pT bin fits if specified.
+ */
+TF1 *SetFitParametersDGP3(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious, UInt_t bgFitIntervalSigma = bgFitIntSigma);
 
 /**
  * @brief Fits a histogram with a specified peak function and background.
  *
- * This function performs a fit on the given histogram `h_bg` using the specified peak function `peakFnc`.
+ * This function performs a fit on the given histogram `peak` using the specified peak function `peakFnc`.
  * It also takes into account the provided peak histogram `peak` and fit ranges `fitMinSig` and `fitMaxSig`.
  * Additional parameters include Monte Carlo bins `binsMC`, generated Monte Carlo histogram `MCgen`,
  * a flag indicating if the data is Monte Carlo `fisMC`, a flag indicating if the fit is Gaussian with a polynomial background `isGausPol2`,
  * and options for fitting the signal `fitOptSig` and background `fitOptBg`.
  *
- * @param h_bg Pointer to the background histogram to be fitted.
+ * @param h_bg Pointer to the background histogram, if available.
  * @param peakFnc Pointer to the peak function to be used for fitting.
- * @param peak Pointer to the peak histogram.
+ * @param peak Pointer to the peak histogram to be fitted.
  * @param fitMinSig Minimum value of the fit range for the signal.
  * @param fitMaxSig Maximum value of the fit range for the signal.
  * @param binsMC Array of integers representing the bins for Monte Carlo data.
  * @param MCgen Pointer to the 2D histogram of generated Monte Carlo data.
  * @param fisMC Boolean flag indicating if the data is Monte Carlo.
- * @param isGausPol2 Boolean flag indicating if the fit is Gaussian with a polynomial background.
- * @param fitOptSig String specifying the options for fitting the signal.
- * @param fitOptBg String specifying the options for fitting the background.
+ * @param fitFunction Integer specifying which fit function to use
+ * @param fitOptSig String containing fit options for signal
+ * @param fitOptBg String containing fit options for background
+ * @param bgFitIntervalSigma Background fit interval in sigma units (default: bgFitIntSigma)
+
  * @return Pointer to the resulting histogram after the fit.
  */
-TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t fitMaxSig, Int_t binsMC[], TH2 *MCgen, bool fisMC, Bool_t isGausPol2, TString fitOptSig, TString fitOptBg);
+TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t fitMaxSig, Int_t binsMC[], TH2 *MCgen, bool fisMC, Int_t fitFunction, TString fitOptSig, TString fitOptBg, UInt_t bgFitIntervalSigma = bgFitIntSigma);
 
 /**
  * @brief Fills parameters for a histogram based on fit results and other inputs.
@@ -79,11 +105,11 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
  * @param maxInt Maximum integration limit.
  * @param MCgen Pointer to the 2D histogram for Monte Carlo generated data.
  * @param binsMC Array of bin indices for Monte Carlo data.
+ * @param fitFunction Integer specifying which fit function to use
  * @param fisMC Boolean flag indicating if the data is from Monte Carlo.
- * @param isGausPol2 Boolean flag indicating if the fit function is a Gaussian plus a second-order polynomial.
  * @return Pointer to the filled result params histogram.
  */
-TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC, bool isGausPol2);
+TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], Int_t fitFunction, bool fisMC);
 
 /**
  * @brief Computes the yield by bin counting method.
@@ -122,27 +148,55 @@ void GetYieldFitFunction(TH1 *h, TFitResultPtr fFitResult_sig, TFitResultPtr fFi
                          Double_t &err, Double_t eps = 1e-2);
 
 /**
- * @brief Fits cascade particle histograms from an input ROOT file and saves the results to an output ROOT file.
+ * Performs invariant mass fits on Xi and Omega cascades.
  *
- * @param inputFilename The name of the input ROOT file containing the histograms to be analyzed. Default is "070824_updatedCutVar_MC_LHC18f3bcent2.root".
- * @param outputFilename The name of the output ROOT file where the fit results will be saved. Default is "190924_fitUpdatedCuts_LHC18f3bcent2_new.root".
- * @param h3Name The name of the 3D histogram to be analyzed. Default is "h3_ptmasscent_def".
- * @param fisMC Boolean flag indicating whether the input data is Monte Carlo (MC) or real data. Default is false.
- * @param fitDifferential Boolean flag indicating whether to perform differential fits (pt and multiplicity dependent). Default is true.
- * @param idAxis The axis identifier for projecting the 3D histogram. Default is "ye".
- * @param fitFunction Integer specifying the fit function to use: 1 for GausPol2, 2 for DoubleGausPol2. Default is 2.
- * @param xi Boolean flag indicating whether to analyze Xi particles. Default is true.
- * @param om Boolean flag indicating whether to analyze Omega particles. Default is true.
- * @param verbosity Integer specifying the verbosity level for error messages. Default is kInfo.
- * @return Integer status code: 0 for success, 1 if both particle analysis flags are false, and 3 for invalid fitFunction value.
+ * This function analyzes ROOT histograms containing cascade candidates and performs mass fits
+ * using various fit functions (GausPol2, DoubleGausPol2, DoubleGausPol3). The analysis can be
+ * done differentially in pT and multiplicity bins.
+ *
+ * @param inputFilename Path to input ROOT file containing the cascade histograms (LHC GRID results)
+ * @param outputFilename Path where to save output ROOT file with fit results (optional)
+ * @param h3Name Name of the 3D histogram to analyze
+ * @param fisMC Flag indicating if input is from Monte Carlo
+ * @param fitDifferential Flag to enable differential analysis in pT and multiplicity
+ * @param idAxis Projection axis for the invariant mass ("ye" by default)
+ * @param fitFunction Integer selecting fit function:
+ *                   1 = GausPol2
+ *                   2 = DoubleGausPol2
+ *                   3 = DoubleGausPol3
+ * @param xi Flag to enable Xi analysis
+ * @param om Flag to enable Omega analysis
+ * @param verbosity Sets ROOT verbosity level
+ *
+ * @return 0 on success, 1 on failure
+ *
+ * The function performs the following steps:
+ * - Configures ROOT fitting parameters
+ * - Reads input histograms
+ * - Performs integrated fits
+ * - If fitDifferential=true, performs fits in pT and multiplicity bins
+ * - Saves results to output ROOT file
+ *
+ * The analysis is done separately for:
+ * - Xi minus
+ * - Xi plus
+ * - Xi combined
+ * - Omega minus
+ * - Omega plus
+ * - Omega combined
+ *
+ * For each case it produces:
+ * - Fitted mass histograms
+ * - Fit parameters
+ * - Background estimates
  */
-int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.root",
-                TString outputFilename = "190924_fitUpdatedCuts_LHC18f3bcent2_new.root",
+int FitCascades(TString inputFilename = "/var/home/ishaan/Work/git/analysis/results/0_grid_results/181224_6Runs_RandomVars.root",
+                TString outputFilename = "/var/home/ishaan/Work/git/analysis/results/RandomVars/180225_SysUncertSignalExtraction/DGP2/180225_6Runs_SysSigExt_DGP2_10bg.root",
                 TString h3Name = "h3_ptmasscent_def",
                 bool fisMC = false,
                 bool fitDifferential = true,
                 TString idAxis = "ye",
-                Int_t fitFunction = 2,
+                Int_t fitFunction = kDoubleGausPol2,
                 bool xi = true,
                 bool om = true,
                 Int_t verbosity = kInfo)
@@ -177,22 +231,30 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
 
     Bool_t isGausPol2 = kFALSE;
     Bool_t isDoubleGausPol2 = kFALSE;
+    Bool_t isDoubleGausPol3 = kFALSE;
     // Bool_t bgTSpectrum = kFALSE;
     /// Setting which fit functions to use:
     /// fitFunction = 1 -> GausPol2
     /// fitFunction = 2 -> DoubleGausPol2
-    /// fitFunction = 3 -> bgTSpectrum
-    if (fitFunction == 1)
+    /// fitFunction = 3 -> DoubleGausPol3
+    /// fitFunction = 4 -> bgTSpectrum
+
+    if (fitFunction == kGausPol2)
     {
         isGausPol2 = kTRUE;
         Printf("<%s>: Selected fit function: GausPol2", h3Name.Data());
     }
-    else if (fitFunction == 2)
+    else if (fitFunction == kDoubleGausPol2)
     {
         isDoubleGausPol2 = kTRUE;
         Printf("<%s>: Selected fit function: DoubleGausPol2", h3Name.Data());
     }
-    // if (fitFunction == 3)
+    else if (fitFunction == kDoubleGausPol3)
+    {
+        isDoubleGausPol3 = kTRUE;
+        Printf("<%s>: Selected fit function: DoubleGausPol3", h3Name.Data());
+    }
+    // if (fitFunction == 4)
     // {
     //     bgTSpectrum = kTRUE;
     //     Printf("Background fitting with TSpectrum will be used.");
@@ -436,10 +498,10 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
     TH1 *resultParams_Xip_allInt, *resultParams_Xim_allInt, *resultParams_XiC_allInt;
     TH1 *resultParams_Omp_allInt, *resultParams_Omm_allInt, *resultParams_OmC_allInt;
 
-    Double_t fitMinSig_Xi = fMass_Xi - nSigma * sigmaXi;
-    Double_t fitMaxSig_Xi = fMass_Xi + nSigma * sigmaXi;
-    Double_t fitMinSig_Om = fMass_Om - nSigma * sigmaOm;
-    Double_t fitMaxSig_Om = fMass_Om + nSigma * sigmaOm;
+    Double_t fitMinSig_Xi = fMass_Xi - (10 * sigmaXi);
+    Double_t fitMaxSig_Xi = fMass_Xi + (10 * sigmaXi);
+    Double_t fitMinSig_Om = fMass_Om - (10 * sigmaOm);
+    Double_t fitMaxSig_Om = fMass_Om + (10 * sigmaOm);
 
     if (xi)
     {
@@ -450,6 +512,19 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
         binsMC[3] = fNmultbins_Xi;
         Info("FitCascades: Xi_allInt", "Starting XI pt+mult integrated analysis...");
 
+        if (isGausPol2)
+        {
+            f_Sig_Xip = new TF1("GausPol2_Xip", GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+            f_Sig_Xim = new TF1("GausPol2_Xim", GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+            f_Sig_XiC = new TF1("GausPol2_XiC", GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+            f_Sig_Xip->SetNpx(1000);
+            f_Sig_Xim->SetNpx(1000);
+            f_Sig_XiC->SetNpx(1000);
+
+            f_Sig_Xip = SetFitParametersGaus(f_Sig_Xip, nullptr, h_MassXip, fMass_Xi, sigmaXi, kFALSE);
+            f_Sig_Xim = SetFitParametersGaus(f_Sig_Xim, nullptr, h_MassXim, fMass_Xi, sigmaXi, kFALSE);
+            f_Sig_XiC = SetFitParametersGaus(f_Sig_XiC, nullptr, h_MassXiC, fMass_Xi, sigmaXi, kFALSE);
+        }
         if (isDoubleGausPol2)
         {
             // Info("FitCascades: Xi_allInt", "Creating FF...");
@@ -466,19 +541,20 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
             f_Sig_XiC = SetFitParametersDG(f_Sig_XiC, nullptr, h_MassXiC, fMass_Xi, sigmaXi, kFALSE);
             // Info("FitCascades: Xi_allInt", "DG Fit params set.");
         }
-        if (isGausPol2)
+        if (isDoubleGausPol3)
         {
-            f_Sig_Xip = new TF1("GausPol2_Xip", GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
-            f_Sig_Xim = new TF1("GausPol2_Xim", GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
-            f_Sig_XiC = new TF1("GausPol2_XiC", GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+            f_Sig_Xip = new TF1("DblGausPol3_Xip", DoubleGausPol3, fitMinSig_Xi, fitMaxSig_Xi, 9);
+            f_Sig_Xim = new TF1("DblGausPol3_Xim", DoubleGausPol3, fitMinSig_Xi, fitMaxSig_Xi, 9);
+            f_Sig_XiC = new TF1("DblGausPol3_XiC", DoubleGausPol3, fitMinSig_Xi, fitMaxSig_Xi, 9);
             f_Sig_Xip->SetNpx(1000);
             f_Sig_Xim->SetNpx(1000);
             f_Sig_XiC->SetNpx(1000);
 
-            f_Sig_Xip = SetFitParametersGaus(f_Sig_Xip, nullptr, h_MassXip, fMass_Xi, sigmaXi, kFALSE);
-            f_Sig_Xim = SetFitParametersGaus(f_Sig_Xim, nullptr, h_MassXim, fMass_Xi, sigmaXi, kFALSE);
-            f_Sig_XiC = SetFitParametersGaus(f_Sig_XiC, nullptr, h_MassXiC, fMass_Xi, sigmaXi, kFALSE);
+            f_Sig_Xip = SetFitParametersDGP3(f_Sig_Xip, nullptr, h_MassXip, fMass_Xi, sigmaXi, kFALSE);
+            f_Sig_Xim = SetFitParametersDGP3(f_Sig_Xim, nullptr, h_MassXim, fMass_Xi, sigmaXi, kFALSE);
+            f_Sig_XiC = SetFitParametersDGP3(f_Sig_XiC, nullptr, h_MassXiC, fMass_Xi, sigmaXi, kFALSE);
         }
+
         resultParams_Xip_allInt = FitResults(nullptr, f_Sig_Xip, h_MassXip, fitMinSig_Xi, fitMaxSig_Xi, binsMC, MCGenXip, fisMC, isGausPol2, fitOptSig, fitOptBg);
         resultParams_Xim_allInt = FitResults(nullptr, f_Sig_Xim, h_MassXim, fitMinSig_Xi, fitMaxSig_Xi, binsMC, MCGenXim, fisMC, isGausPol2, fitOptSig, fitOptBg);
         resultParams_XiC_allInt = FitResults(nullptr, f_Sig_XiC, h_MassXiC, fitMinSig_Xi, fitMaxSig_Xi, binsMC, MCGenXiC, fisMC, isGausPol2, fitOptSig, fitOptBg);
@@ -520,6 +596,27 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
             h_MassXiC_pt[ptBinXi]->SetTitle(TString::Format(("Invariant Mass #Xi: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), fPtbins_Xi[ptBinXi], fPtbins_Xi[ptBinXi + 1], fMultbins_Xi[0], fMultbins_Xi[fNmultbins_Xi]));
             // h_MassXiC_pt[ptBinXi]->Scale(1, "width"); // when fitting variable bin histograms you need first to scale the histogram using the bin width
 
+            if (isGausPol2)
+            {
+                f_Sig_Xip_pt[ptBinXi] = new TF1(TString::Format("GausPol2_Xip[%d]", ptBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+                f_Sig_Xim_pt[ptBinXi] = new TF1(TString::Format("GausPol2_Xim[%d]", ptBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+                f_Sig_XiC_pt[ptBinXi] = new TF1(TString::Format("GausPol2_XiC[%d]", ptBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+                f_Sig_Xip_pt[ptBinXi]->SetNpx(1000);
+                f_Sig_Xim_pt[ptBinXi]->SetNpx(1000);
+                f_Sig_XiC_pt[ptBinXi]->SetNpx(1000);
+                if (ptBinXi < 1)
+                {
+                    f_Sig_Xip_pt[ptBinXi] = SetFitParametersGaus(f_Sig_Xip_pt[ptBinXi], f_Sig_Xip->GetParameters(), h_MassXip_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    f_Sig_Xim_pt[ptBinXi] = SetFitParametersGaus(f_Sig_Xim_pt[ptBinXi], f_Sig_Xim->GetParameters(), h_MassXim_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    f_Sig_XiC_pt[ptBinXi] = SetFitParametersGaus(f_Sig_XiC_pt[ptBinXi], f_Sig_XiC->GetParameters(), h_MassXiC_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                }
+                else
+                {
+                    f_Sig_Xip_pt[ptBinXi] = SetFitParametersGaus(f_Sig_Xip_pt[ptBinXi], f_Sig_Xip_pt[ptBinXi - 1]->GetParameters(), h_MassXip_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    f_Sig_Xim_pt[ptBinXi] = SetFitParametersGaus(f_Sig_Xim_pt[ptBinXi], f_Sig_Xim_pt[ptBinXi - 1]->GetParameters(), h_MassXim_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    f_Sig_XiC_pt[ptBinXi] = SetFitParametersGaus(f_Sig_XiC_pt[ptBinXi], f_Sig_XiC_pt[ptBinXi - 1]->GetParameters(), h_MassXiC_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                }
+            }
             if (isDoubleGausPol2)
             {
                 f_Sig_Xip_pt[ptBinXi] = new TF1(TString::Format("DblGausPol2_Xip[%d]", ptBinXi), DoubleGausPol2, fitMinSig_Xi, fitMaxSig_Xi, 8);
@@ -542,25 +639,25 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
                     f_Sig_XiC_pt[ptBinXi] = SetFitParametersDG(f_Sig_XiC_pt[ptBinXi], f_Sig_XiC_pt[ptBinXi - 1]->GetParameters(), h_MassXiC_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
                 }
             }
-            if (isGausPol2)
+            if (isDoubleGausPol3)
             {
-                f_Sig_Xip_pt[ptBinXi] = new TF1(TString::Format("GausPol2_Xip[%d]", ptBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
-                f_Sig_Xim_pt[ptBinXi] = new TF1(TString::Format("GausPol2_Xim[%d]", ptBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
-                f_Sig_XiC_pt[ptBinXi] = new TF1(TString::Format("GausPol2_XiC[%d]", ptBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+                f_Sig_Xip_pt[ptBinXi] = new TF1(TString::Format("DblGausPol3_Xip[%d]", ptBinXi), DoubleGausPol3, fitMinSig_Xi, fitMaxSig_Xi, 9);
+                f_Sig_Xim_pt[ptBinXi] = new TF1(TString::Format("DblGausPol3_Xim[%d]", ptBinXi), DoubleGausPol3, fitMinSig_Xi, fitMaxSig_Xi, 9);
+                f_Sig_XiC_pt[ptBinXi] = new TF1(TString::Format("DblGausPol3_XiC[%d]", ptBinXi), DoubleGausPol3, fitMinSig_Xi, fitMaxSig_Xi, 9);
                 f_Sig_Xip_pt[ptBinXi]->SetNpx(1000);
                 f_Sig_Xim_pt[ptBinXi]->SetNpx(1000);
                 f_Sig_XiC_pt[ptBinXi]->SetNpx(1000);
                 if (ptBinXi < 1)
                 {
-                    f_Sig_Xip_pt[ptBinXi] = SetFitParametersGaus(f_Sig_Xip_pt[ptBinXi], f_Sig_Xip->GetParameters(), h_MassXip_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
-                    f_Sig_Xim_pt[ptBinXi] = SetFitParametersGaus(f_Sig_Xim_pt[ptBinXi], f_Sig_Xim->GetParameters(), h_MassXim_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
-                    f_Sig_XiC_pt[ptBinXi] = SetFitParametersGaus(f_Sig_XiC_pt[ptBinXi], f_Sig_XiC->GetParameters(), h_MassXiC_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    f_Sig_Xip_pt[ptBinXi] = SetFitParametersDGP3(f_Sig_Xip_pt[ptBinXi], f_Sig_Xip->GetParameters(), h_MassXip_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    f_Sig_Xim_pt[ptBinXi] = SetFitParametersDGP3(f_Sig_Xim_pt[ptBinXi], f_Sig_Xim->GetParameters(), h_MassXim_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    f_Sig_XiC_pt[ptBinXi] = SetFitParametersDGP3(f_Sig_XiC_pt[ptBinXi], f_Sig_XiC->GetParameters(), h_MassXiC_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
                 }
                 else
                 {
-                    f_Sig_Xip_pt[ptBinXi] = SetFitParametersGaus(f_Sig_Xip_pt[ptBinXi], f_Sig_Xip_pt[ptBinXi - 1]->GetParameters(), h_MassXip_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
-                    f_Sig_Xim_pt[ptBinXi] = SetFitParametersGaus(f_Sig_Xim_pt[ptBinXi], f_Sig_Xim_pt[ptBinXi - 1]->GetParameters(), h_MassXim_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
-                    f_Sig_XiC_pt[ptBinXi] = SetFitParametersGaus(f_Sig_XiC_pt[ptBinXi], f_Sig_XiC_pt[ptBinXi - 1]->GetParameters(), h_MassXiC_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    f_Sig_Xip_pt[ptBinXi] = SetFitParametersDGP3(f_Sig_Xip_pt[ptBinXi], f_Sig_Xip_pt[ptBinXi - 1]->GetParameters(), h_MassXip_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    f_Sig_Xim_pt[ptBinXi] = SetFitParametersDGP3(f_Sig_Xim_pt[ptBinXi], f_Sig_Xim_pt[ptBinXi - 1]->GetParameters(), h_MassXim_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    f_Sig_XiC_pt[ptBinXi] = SetFitParametersDGP3(f_Sig_XiC_pt[ptBinXi], f_Sig_XiC_pt[ptBinXi - 1]->GetParameters(), h_MassXiC_pt[ptBinXi], fMass_Xi, sigmaXi, kTRUE);
                 }
             }
 
@@ -625,6 +722,19 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
                     h_MassXiC_pt_mult[ptBinXi][multBinXi]->Add(h_MassXim_pt_mult[ptBinXi][multBinXi]);
                     h_MassXiC_pt_mult[ptBinXi][multBinXi]->SetTitle(TString::Format(("Invariant Mass #Xi: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), fPtbins_Xi[ptBinXi], fPtbins_Xi[ptBinXi + 1], fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
 
+                    if (isGausPol2)
+                    {
+                        f_Sig_Xip_pt_mult[ptBinXi][multBinXi] = new TF1(TString::Format("GausPol2_Xip[%d][%d]", ptBinXi, multBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+                        f_Sig_Xim_pt_mult[ptBinXi][multBinXi] = new TF1(TString::Format("GausPol2_Xim[%d][%d]", ptBinXi, multBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+                        f_Sig_XiC_pt_mult[ptBinXi][multBinXi] = new TF1(TString::Format("GausPol2_XiC[%d][%d]", ptBinXi, multBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+                        f_Sig_Xip_pt_mult[ptBinXi][multBinXi]->SetNpx(1000);
+                        f_Sig_Xim_pt_mult[ptBinXi][multBinXi]->SetNpx(1000);
+                        f_Sig_XiC_pt_mult[ptBinXi][multBinXi]->SetNpx(1000);
+
+                        f_Sig_Xip_pt_mult[ptBinXi][multBinXi] = SetFitParametersGaus(f_Sig_Xip_pt_mult[ptBinXi][multBinXi], f_Sig_Xip_pt[ptBinXi]->GetParameters(), h_MassXip_pt_mult[ptBinXi][multBinXi], fMass_Xi, sigmaXi, kTRUE); // ptBin needs to be >1 in this case to ensure correct flow in SetFitParametersGaus to not reset fn params
+                        f_Sig_Xim_pt_mult[ptBinXi][multBinXi] = SetFitParametersGaus(f_Sig_Xim_pt_mult[ptBinXi][multBinXi], f_Sig_Xim_pt[ptBinXi]->GetParameters(), h_MassXim_pt_mult[ptBinXi][multBinXi], fMass_Xi, sigmaXi, kTRUE);
+                        f_Sig_XiC_pt_mult[ptBinXi][multBinXi] = SetFitParametersGaus(f_Sig_XiC_pt_mult[ptBinXi][multBinXi], f_Sig_XiC_pt[ptBinXi]->GetParameters(), h_MassXiC_pt_mult[ptBinXi][multBinXi], fMass_Xi, sigmaXi, kTRUE);
+                    }
                     if (isDoubleGausPol2)
                     {
                         f_Sig_Xip_pt_mult[ptBinXi][multBinXi] = new TF1(TString::Format("DblGausPol2_Xip[%d][%d]", ptBinXi, multBinXi), DoubleGausPol2, fitMinSig_Xi, fitMaxSig_Xi, 8);
@@ -638,19 +748,18 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
                         f_Sig_Xim_pt_mult[ptBinXi][multBinXi] = SetFitParametersDG(f_Sig_Xim_pt_mult[ptBinXi][multBinXi], f_Sig_Xim_pt[ptBinXi]->GetParameters(), h_MassXim_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXim_pt[ptBinXi]->GetBinContent(5), kTRUE);
                         f_Sig_XiC_pt_mult[ptBinXi][multBinXi] = SetFitParametersDG(f_Sig_XiC_pt_mult[ptBinXi][multBinXi], f_Sig_XiC_pt[ptBinXi]->GetParameters(), h_MassXiC_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXiC_pt[ptBinXi]->GetBinContent(5), kTRUE);
                     }
-
-                    if (isGausPol2)
+                    if (isDoubleGausPol3)
                     {
-                        f_Sig_Xip_pt_mult[ptBinXi][multBinXi] = new TF1(TString::Format("GausPol2_Xip[%d][%d]", ptBinXi, multBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
-                        f_Sig_Xim_pt_mult[ptBinXi][multBinXi] = new TF1(TString::Format("GausPol2_Xim[%d][%d]", ptBinXi, multBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
-                        f_Sig_XiC_pt_mult[ptBinXi][multBinXi] = new TF1(TString::Format("GausPol2_XiC[%d][%d]", ptBinXi, multBinXi), GausPol2, fitMinSig_Xi, fitMaxSig_Xi, 6);
+                        f_Sig_Xip_pt_mult[ptBinXi][multBinXi] = new TF1(TString::Format("DblGausPol3_Xip[%d][%d]", ptBinXi, multBinXi), DoubleGausPol3, fitMinSig_Xi, fitMaxSig_Xi, 9);
+                        f_Sig_Xim_pt_mult[ptBinXi][multBinXi] = new TF1(TString::Format("DblGausPol3_Xim[%d][%d]", ptBinXi, multBinXi), DoubleGausPol3, fitMinSig_Xi, fitMaxSig_Xi, 9);
+                        f_Sig_XiC_pt_mult[ptBinXi][multBinXi] = new TF1(TString::Format("DblGausPol3_XiC[%d][%d]", ptBinXi, multBinXi), DoubleGausPol3, fitMinSig_Xi, fitMaxSig_Xi, 9);
                         f_Sig_Xip_pt_mult[ptBinXi][multBinXi]->SetNpx(1000);
                         f_Sig_Xim_pt_mult[ptBinXi][multBinXi]->SetNpx(1000);
                         f_Sig_XiC_pt_mult[ptBinXi][multBinXi]->SetNpx(1000);
 
-                        f_Sig_Xip_pt_mult[ptBinXi][multBinXi] = SetFitParametersGaus(f_Sig_Xip_pt_mult[ptBinXi][multBinXi], f_Sig_Xip_pt[ptBinXi]->GetParameters(), h_MassXip_pt_mult[ptBinXi][multBinXi], fMass_Xi, sigmaXi, kTRUE); // ptBin needs to be >1 in this case to ensure correct flow in SetFitParametersGaus to not reset fn params
-                        f_Sig_Xim_pt_mult[ptBinXi][multBinXi] = SetFitParametersGaus(f_Sig_Xim_pt_mult[ptBinXi][multBinXi], f_Sig_Xim_pt[ptBinXi]->GetParameters(), h_MassXim_pt_mult[ptBinXi][multBinXi], fMass_Xi, sigmaXi, kTRUE);
-                        f_Sig_XiC_pt_mult[ptBinXi][multBinXi] = SetFitParametersGaus(f_Sig_XiC_pt_mult[ptBinXi][multBinXi], f_Sig_XiC_pt[ptBinXi]->GetParameters(), h_MassXiC_pt_mult[ptBinXi][multBinXi], fMass_Xi, sigmaXi, kTRUE);
+                        f_Sig_Xip_pt_mult[ptBinXi][multBinXi] = SetFitParametersDGP3(f_Sig_Xip_pt_mult[ptBinXi][multBinXi], f_Sig_Xip_pt[ptBinXi]->GetParameters(), h_MassXip_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXip_pt[ptBinXi]->GetBinContent(5), kTRUE); // ptBin needs to be >1 in this case to ensure correct flow in SetFitParametersDG to not reset fn params
+                        f_Sig_Xim_pt_mult[ptBinXi][multBinXi] = SetFitParametersDGP3(f_Sig_Xim_pt_mult[ptBinXi][multBinXi], f_Sig_Xim_pt[ptBinXi]->GetParameters(), h_MassXim_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXim_pt[ptBinXi]->GetBinContent(5), kTRUE);
+                        f_Sig_XiC_pt_mult[ptBinXi][multBinXi] = SetFitParametersDGP3(f_Sig_XiC_pt_mult[ptBinXi][multBinXi], f_Sig_XiC_pt[ptBinXi]->GetParameters(), h_MassXiC_pt_mult[ptBinXi][multBinXi], fMass_Xi, resultParXiC_pt[ptBinXi]->GetBinContent(5), kTRUE);
                     }
 
                     // h_bgXip_pt_mult[ptBinXi][multBinXi] = GenerateBg(bgTSpectrum, h_MassXip_pt_mult[ptBinXi][multBinXi]);
@@ -700,19 +809,6 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
         binsMC[1] = fNptbins_Om;
         binsMC[2] = 1;
         binsMC[3] = fNmultbins_Om;
-        if (isDoubleGausPol2)
-        {
-            f_Sig_Omp = new TF1("DblGausPol2_Omp", DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
-            f_Sig_Omm = new TF1("DblGausPol2_Omm", DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
-            f_Sig_OmC = new TF1("DblGausPol2_OmC", DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
-            f_Sig_Omp->SetNpx(1000);
-            f_Sig_Omm->SetNpx(1000);
-            f_Sig_OmC->SetNpx(1000);
-
-            f_Sig_Omp = SetFitParametersDG(f_Sig_Omp, nullptr, h_MassOmp, fMass_Om, sigmaOm, kFALSE);
-            f_Sig_Omm = SetFitParametersDG(f_Sig_Omm, nullptr, h_MassOmm, fMass_Om, sigmaOm, kFALSE);
-            f_Sig_OmC = SetFitParametersDG(f_Sig_OmC, nullptr, h_MassOmC, fMass_Om, sigmaOm, kFALSE);
-        }
         if (isGausPol2)
         {
             f_Sig_Omp = new TF1("GausPol2_Omp", GausPol2, fitMinSig_Om, fitMaxSig_Om, 6);
@@ -726,6 +822,33 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
             f_Sig_Omm = SetFitParametersGaus(f_Sig_Omm, nullptr, h_MassOmm, fMass_Om, sigmaOm, kFALSE);
             f_Sig_OmC = SetFitParametersGaus(f_Sig_OmC, nullptr, h_MassOmC, fMass_Om, sigmaOm, kFALSE);
         }
+        if (isDoubleGausPol2)
+        {
+            f_Sig_Omp = new TF1("DblGausPol2_Omp", DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
+            f_Sig_Omm = new TF1("DblGausPol2_Omm", DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
+            f_Sig_OmC = new TF1("DblGausPol2_OmC", DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
+            f_Sig_Omp->SetNpx(1000);
+            f_Sig_Omm->SetNpx(1000);
+            f_Sig_OmC->SetNpx(1000);
+
+            f_Sig_Omp = SetFitParametersDG(f_Sig_Omp, nullptr, h_MassOmp, fMass_Om, sigmaOm, kFALSE);
+            f_Sig_Omm = SetFitParametersDG(f_Sig_Omm, nullptr, h_MassOmm, fMass_Om, sigmaOm, kFALSE);
+            f_Sig_OmC = SetFitParametersDG(f_Sig_OmC, nullptr, h_MassOmC, fMass_Om, sigmaOm, kFALSE);
+        }
+        if (isDoubleGausPol3)
+        {
+            f_Sig_Omp = new TF1("DblGausPol3_Omp", DoubleGausPol3, fitMinSig_Om, fitMaxSig_Om, 9);
+            f_Sig_Omm = new TF1("DblGausPol3_Omm", DoubleGausPol3, fitMinSig_Om, fitMaxSig_Om, 9);
+            f_Sig_OmC = new TF1("DblGausPol3_OmC", DoubleGausPol3, fitMinSig_Om, fitMaxSig_Om, 9);
+            f_Sig_Omp->SetNpx(1000);
+            f_Sig_Omm->SetNpx(1000);
+            f_Sig_OmC->SetNpx(1000);
+
+            f_Sig_Omp = SetFitParametersDGP3(f_Sig_Omp, nullptr, h_MassOmp, fMass_Om, sigmaOm, kFALSE);
+            f_Sig_Omm = SetFitParametersDGP3(f_Sig_Omm, nullptr, h_MassOmm, fMass_Om, sigmaOm, kFALSE);
+            f_Sig_OmC = SetFitParametersDGP3(f_Sig_OmC, nullptr, h_MassOmC, fMass_Om, sigmaOm, kFALSE);
+        }
+
         resultParams_Omp_allInt = FitResults(nullptr, f_Sig_Omp, h_MassOmp, fitMinSig_Om, fitMaxSig_Om, binsMC, MCGenOmp, fisMC, isGausPol2, fitOptSig, fitOptBg);
         resultParams_Omm_allInt = FitResults(nullptr, f_Sig_Omm, h_MassOmm, fitMinSig_Om, fitMaxSig_Om, binsMC, MCGenOmm, fisMC, isGausPol2, fitOptSig, fitOptBg);
         resultParams_OmC_allInt = FitResults(nullptr, f_Sig_OmC, h_MassOmC, fitMinSig_Om, fitMaxSig_Om, binsMC, MCGenOmC, fisMC, isGausPol2, fitOptSig, fitOptBg);
@@ -771,6 +894,28 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
             h_MassOmp_pt[ptBinOm]->Rebin(2);
             h_MassOmC_pt[ptBinOm]->Rebin(2);
 
+            if (isGausPol2)
+            {
+                f_Sig_Omp_pt[ptBinOm] = new TF1(TString::Format("GausPol2_OmP[%d]", ptBinOm), GausPol2, fitMinSig_Om, fitMaxSig_Om, 6);
+                f_Sig_Omm_pt[ptBinOm] = new TF1(TString::Format("GausPol2_Omm[%d]", ptBinOm), GausPol2, fitMinSig_Om, fitMaxSig_Om, 6);
+                f_Sig_OmC_pt[ptBinOm] = new TF1(TString::Format("GausPol2_OmC[%d]", ptBinOm), GausPol2, fitMinSig_Om, fitMaxSig_Om, 6);
+                f_Sig_Omp_pt[ptBinOm]->SetNpx(1000);
+                f_Sig_Omm_pt[ptBinOm]->SetNpx(1000);
+                f_Sig_OmC_pt[ptBinOm]->SetNpx(1000);
+                if (ptBinOm < 1)
+                {
+                    f_Sig_Omp_pt[ptBinOm] = SetFitParametersGaus(f_Sig_Omp_pt[ptBinOm], f_Sig_Omp->GetParameters(), h_MassOmp_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                    f_Sig_Omm_pt[ptBinOm] = SetFitParametersGaus(f_Sig_Omm_pt[ptBinOm], f_Sig_Omm->GetParameters(), h_MassOmm_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                    f_Sig_OmC_pt[ptBinOm] = SetFitParametersGaus(f_Sig_OmC_pt[ptBinOm], f_Sig_OmC->GetParameters(), h_MassOmC_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                }
+                else
+                {
+
+                    f_Sig_Omp_pt[ptBinOm] = SetFitParametersGaus(f_Sig_Omp_pt[ptBinOm], f_Sig_Omp_pt[ptBinOm - 1]->GetParameters(), h_MassOmp_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                    f_Sig_Omm_pt[ptBinOm] = SetFitParametersGaus(f_Sig_Omm_pt[ptBinOm], f_Sig_Omm_pt[ptBinOm - 1]->GetParameters(), h_MassOmm_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                    f_Sig_OmC_pt[ptBinOm] = SetFitParametersGaus(f_Sig_OmC_pt[ptBinOm], f_Sig_OmC_pt[ptBinOm - 1]->GetParameters(), h_MassOmC_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                }
+            }
             if (isDoubleGausPol2)
             {
                 f_Sig_Omp_pt[ptBinOm] = new TF1(TString::Format("DblGausPol2_OmP[%d]", ptBinOm), DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
@@ -793,26 +938,25 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
                     f_Sig_OmC_pt[ptBinOm] = SetFitParametersDG(f_Sig_OmC_pt[ptBinOm], f_Sig_OmC_pt[ptBinOm - 1]->GetParameters(), h_MassOmC_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
                 }
             }
-            if (isGausPol2)
+            if (isDoubleGausPol3)
             {
-                f_Sig_Omp_pt[ptBinOm] = new TF1(TString::Format("GausPol2_OmP[%d]", ptBinOm), GausPol2, fitMinSig_Om, fitMaxSig_Om, 6);
-                f_Sig_Omm_pt[ptBinOm] = new TF1(TString::Format("GausPol2_Omm[%d]", ptBinOm), GausPol2, fitMinSig_Om, fitMaxSig_Om, 6);
-                f_Sig_OmC_pt[ptBinOm] = new TF1(TString::Format("GausPol2_OmC[%d]", ptBinOm), GausPol2, fitMinSig_Om, fitMaxSig_Om, 6);
+                f_Sig_Omp_pt[ptBinOm] = new TF1(TString::Format("DblGausPol3_OmP[%d]", ptBinOm), DoubleGausPol3, fitMinSig_Om, fitMaxSig_Om, 9);
+                f_Sig_Omm_pt[ptBinOm] = new TF1(TString::Format("DblGausPol3_Omm[%d]", ptBinOm), DoubleGausPol3, fitMinSig_Om, fitMaxSig_Om, 9);
+                f_Sig_OmC_pt[ptBinOm] = new TF1(TString::Format("DblGausPol3_OmC[%d]", ptBinOm), DoubleGausPol3, fitMinSig_Om, fitMaxSig_Om, 9);
                 f_Sig_Omp_pt[ptBinOm]->SetNpx(1000);
                 f_Sig_Omm_pt[ptBinOm]->SetNpx(1000);
                 f_Sig_OmC_pt[ptBinOm]->SetNpx(1000);
                 if (ptBinOm < 1)
                 {
-                    f_Sig_Omp_pt[ptBinOm] = SetFitParametersGaus(f_Sig_Omp_pt[ptBinOm], f_Sig_Omp->GetParameters(), h_MassOmp_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
-                    f_Sig_Omm_pt[ptBinOm] = SetFitParametersGaus(f_Sig_Omm_pt[ptBinOm], f_Sig_Omm->GetParameters(), h_MassOmm_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
-                    f_Sig_OmC_pt[ptBinOm] = SetFitParametersGaus(f_Sig_OmC_pt[ptBinOm], f_Sig_OmC->GetParameters(), h_MassOmC_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                    f_Sig_Omp_pt[ptBinOm] = SetFitParametersDGP3(f_Sig_Omp_pt[ptBinOm], f_Sig_Omp->GetParameters(), h_MassOmp_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                    f_Sig_Omm_pt[ptBinOm] = SetFitParametersDGP3(f_Sig_Omm_pt[ptBinOm], f_Sig_Omm->GetParameters(), h_MassOmm_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                    f_Sig_OmC_pt[ptBinOm] = SetFitParametersDGP3(f_Sig_OmC_pt[ptBinOm], f_Sig_OmC->GetParameters(), h_MassOmC_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
                 }
                 else
                 {
-
-                    f_Sig_Omp_pt[ptBinOm] = SetFitParametersGaus(f_Sig_Omp_pt[ptBinOm], f_Sig_Omp_pt[ptBinOm - 1]->GetParameters(), h_MassOmp_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
-                    f_Sig_Omm_pt[ptBinOm] = SetFitParametersGaus(f_Sig_Omm_pt[ptBinOm], f_Sig_Omm_pt[ptBinOm - 1]->GetParameters(), h_MassOmm_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
-                    f_Sig_OmC_pt[ptBinOm] = SetFitParametersGaus(f_Sig_OmC_pt[ptBinOm], f_Sig_OmC_pt[ptBinOm - 1]->GetParameters(), h_MassOmC_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                    f_Sig_Omp_pt[ptBinOm] = SetFitParametersDGP3(f_Sig_Omp_pt[ptBinOm], f_Sig_Omp_pt[ptBinOm - 1]->GetParameters(), h_MassOmp_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                    f_Sig_Omm_pt[ptBinOm] = SetFitParametersDGP3(f_Sig_Omm_pt[ptBinOm], f_Sig_Omm_pt[ptBinOm - 1]->GetParameters(), h_MassOmm_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
+                    f_Sig_OmC_pt[ptBinOm] = SetFitParametersDGP3(f_Sig_OmC_pt[ptBinOm], f_Sig_OmC_pt[ptBinOm - 1]->GetParameters(), h_MassOmC_pt[ptBinOm], fMass_Om, sigmaOm, kTRUE);
                 }
             }
 
@@ -888,20 +1032,6 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
                     h_MassOmp_pt_mult[ptBinOm][multBinOm]->Rebin(2);
                     h_MassOmC_pt_mult[ptBinOm][multBinOm]->Rebin(2);
 
-                    if (isDoubleGausPol2)
-                    {
-                        f_Sig_Omp_pt_mult[ptBinOm][multBinOm] = new TF1(TString::Format("DblGausPol2_Omp[%d][%d]", ptBinOm, multBinOm), DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
-                        f_Sig_Omm_pt_mult[ptBinOm][multBinOm] = new TF1(TString::Format("DblGausPol2_Omm[%d][%d]", ptBinOm, multBinOm), DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
-                        f_Sig_OmC_pt_mult[ptBinOm][multBinOm] = new TF1(TString::Format("DblGausPol2_OmC[%d][%d]", ptBinOm, multBinOm), DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
-                        f_Sig_Omp_pt_mult[ptBinOm][multBinOm]->SetNpx(1000);
-                        f_Sig_Omm_pt_mult[ptBinOm][multBinOm]->SetNpx(1000);
-                        f_Sig_OmC_pt_mult[ptBinOm][multBinOm]->SetNpx(1000);
-
-                        f_Sig_Omp_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_Omp_pt_mult[ptBinOm][multBinOm], f_Sig_Omp_pt[ptBinOm]->GetParameters(), h_MassOmp_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmp_pt[ptBinOm]->GetBinContent(5), kTRUE);
-                        f_Sig_Omm_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_Omm_pt_mult[ptBinOm][multBinOm], f_Sig_Omm_pt[ptBinOm]->GetParameters(), h_MassOmm_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmm_pt[ptBinOm]->GetBinContent(5), kTRUE);
-                        f_Sig_OmC_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_OmC_pt_mult[ptBinOm][multBinOm], f_Sig_OmC_pt[ptBinOm]->GetParameters(), h_MassOmC_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmC_pt[ptBinOm]->GetBinContent(5), kTRUE);
-                    }
-
                     if (isGausPol2)
                     {
                         f_Sig_Omp_pt_mult[ptBinOm][multBinOm] = new TF1(TString::Format("GausPol2_Omp[%d][%d]", ptBinOm, multBinOm), GausPol2, fitMinSig_Om, fitMaxSig_Om, 6);
@@ -915,11 +1045,38 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
                         f_Sig_Omm_pt_mult[ptBinOm][multBinOm] = SetFitParametersGaus(f_Sig_Omm_pt_mult[ptBinOm][multBinOm], f_Sig_Omm_pt[ptBinOm]->GetParameters(), h_MassOmm_pt_mult[ptBinOm][multBinOm], fMass_Om, sigmaOm, kTRUE);
                         f_Sig_OmC_pt_mult[ptBinOm][multBinOm] = SetFitParametersGaus(f_Sig_OmC_pt_mult[ptBinOm][multBinOm], f_Sig_OmC_pt[ptBinOm]->GetParameters(), h_MassOmC_pt_mult[ptBinOm][multBinOm], fMass_Om, sigmaOm, kTRUE);
                     }
+                    if (isDoubleGausPol2)
+                    {
+                        f_Sig_Omp_pt_mult[ptBinOm][multBinOm] = new TF1(TString::Format("DblGausPol2_Omp[%d][%d]", ptBinOm, multBinOm), DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
+                        f_Sig_Omm_pt_mult[ptBinOm][multBinOm] = new TF1(TString::Format("DblGausPol2_Omm[%d][%d]", ptBinOm, multBinOm), DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
+                        f_Sig_OmC_pt_mult[ptBinOm][multBinOm] = new TF1(TString::Format("DblGausPol2_OmC[%d][%d]", ptBinOm, multBinOm), DoubleGausPol2, fitMinSig_Om, fitMaxSig_Om, 8);
+                        f_Sig_Omp_pt_mult[ptBinOm][multBinOm]->SetNpx(1000);
+                        f_Sig_Omm_pt_mult[ptBinOm][multBinOm]->SetNpx(1000);
+                        f_Sig_OmC_pt_mult[ptBinOm][multBinOm]->SetNpx(1000);
+
+                        f_Sig_Omp_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_Omp_pt_mult[ptBinOm][multBinOm], f_Sig_Omp_pt[ptBinOm]->GetParameters(), h_MassOmp_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmp_pt[ptBinOm]->GetBinContent(5), kTRUE);
+                        f_Sig_Omm_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_Omm_pt_mult[ptBinOm][multBinOm], f_Sig_Omm_pt[ptBinOm]->GetParameters(), h_MassOmm_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmm_pt[ptBinOm]->GetBinContent(5), kTRUE);
+                        f_Sig_OmC_pt_mult[ptBinOm][multBinOm] = SetFitParametersDG(f_Sig_OmC_pt_mult[ptBinOm][multBinOm], f_Sig_OmC_pt[ptBinOm]->GetParameters(), h_MassOmC_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmC_pt[ptBinOm]->GetBinContent(5), kTRUE);
+                    }
+                    if (isDoubleGausPol3)
+                    {
+                        f_Sig_Omp_pt_mult[ptBinOm][multBinOm] = new TF1(TString::Format("DblGausPol3_Omp[%d][%d]", ptBinOm, multBinOm), DoubleGausPol3, fitMinSig_Om, fitMaxSig_Om, 9);
+                        f_Sig_Omm_pt_mult[ptBinOm][multBinOm] = new TF1(TString::Format("DblGausPol3_Omm[%d][%d]", ptBinOm, multBinOm), DoubleGausPol3, fitMinSig_Om, fitMaxSig_Om, 9);
+                        f_Sig_OmC_pt_mult[ptBinOm][multBinOm] = new TF1(TString::Format("DblGausPol3_OmC[%d][%d]", ptBinOm, multBinOm), DoubleGausPol3, fitMinSig_Om, fitMaxSig_Om, 9);
+                        f_Sig_Omp_pt_mult[ptBinOm][multBinOm]->SetNpx(1000);
+                        f_Sig_Omm_pt_mult[ptBinOm][multBinOm]->SetNpx(1000);
+                        f_Sig_OmC_pt_mult[ptBinOm][multBinOm]->SetNpx(1000);
+
+                        f_Sig_Omp_pt_mult[ptBinOm][multBinOm] = SetFitParametersDGP3(f_Sig_Omp_pt_mult[ptBinOm][multBinOm], f_Sig_Omp_pt[ptBinOm]->GetParameters(), h_MassOmp_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmp_pt[ptBinOm]->GetBinContent(5), kTRUE);
+                        f_Sig_Omm_pt_mult[ptBinOm][multBinOm] = SetFitParametersDGP3(f_Sig_Omm_pt_mult[ptBinOm][multBinOm], f_Sig_Omm_pt[ptBinOm]->GetParameters(), h_MassOmm_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmm_pt[ptBinOm]->GetBinContent(5), kTRUE);
+                        f_Sig_OmC_pt_mult[ptBinOm][multBinOm] = SetFitParametersDGP3(f_Sig_OmC_pt_mult[ptBinOm][multBinOm], f_Sig_OmC_pt[ptBinOm]->GetParameters(), h_MassOmC_pt_mult[ptBinOm][multBinOm], fMass_Om, resultParOmC_pt[ptBinOm]->GetBinContent(5), kTRUE);
+                    }
+
                     resultParOmp_pt_mult[ptBinOm][multBinOm] = FitResults(nullptr, f_Sig_Omp_pt_mult[ptBinOm][multBinOm], h_MassOmp_pt_mult[ptBinOm][multBinOm], fitMinSig_Om, fitMaxSig_Om, binsMC, MCGenOmp, fisMC, isGausPol2, fitOptSig, fitOptBg);
                     resultParOmp_pt_mult[ptBinOm][multBinOm]->SetName(TString::Format(("resultParOmp_pt_mult[%d][%d]"), ptBinOm, multBinOm));
                     resultParOmp_pt_mult[ptBinOm][multBinOm]->SetTitle(TString::Format(("Result Parameters #Omega^{+}: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), fPtbins_Om[ptBinOm], fPtbins_Om[ptBinOm + 1], fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
 
-                    esultParOmm_pt_mult[ptBinOm][multBinOm] = FitResults(nullptr, f_Sig_Omm_pt_mult[ptBinOm][multBinOm], h_MassOmm_pt_mult[ptBinOm][multBinOm], fitMinSig_Om, fitMaxSig_Om, binsMC, MCGenOmm, fisMC, isGausPol2, fitOptSig, fitOptBg);
+                    resultParOmm_pt_mult[ptBinOm][multBinOm] = FitResults(nullptr, f_Sig_Omm_pt_mult[ptBinOm][multBinOm], h_MassOmm_pt_mult[ptBinOm][multBinOm], fitMinSig_Om, fitMaxSig_Om, binsMC, MCGenOmm, fisMC, isGausPol2, fitOptSig, fitOptBg);
                     resultParOmm_pt_mult[ptBinOm][multBinOm]->SetName(TString::Format(("resultParOmm_pt_mult[%d][%d]"), ptBinOm, multBinOm));
                     resultParOmm_pt_mult[ptBinOm][multBinOm]->SetTitle(TString::Format(("Result Parameters #Omega^{-}: p_{T}<%.1f,%.1f>, Mult<%.1f,%.1f>"), fPtbins_Om[ptBinOm], fPtbins_Om[ptBinOm + 1], fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
 
@@ -995,88 +1152,127 @@ int FitCascades(TString inputFilename = "070824_updatedCutVar_MC_LHC18f3bcent2.r
 //     return h_bg;
 // }
 
-TF1 *SetFitParametersGaus(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious)
+TF1 *SetFitParametersGaus(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious, UInt_t bgFitIntervalSigma)
 {
-    if (usePrevious)
+    // if (usePrevious)
+    // {
+    //     mass = previousPtBinFitParams[1];
+    //     sigma = previousPtBinFitParams[2];
+    // }
+    TString optBg = "QLNB MULTITHREAD";
+    if (peak->GetEntries() < 80)
     {
-        mass = previousPtBinFitParams[1];
-        sigma = previousPtBinFitParams[2];
+        optBg = "QLLNB MULTITHREAD";
     }
 
-    TString optBg = "QNFB MULTITHREAD";
+    Double_t bgFitMin = 0.0;
+    Double_t bgFitMax = 0.0;
+    if (bgFitIntervalSigma > 0)
+    {
+        bgFitMin = mass - bgFitIntervalSigma * sigma;
+        bgFitMax = mass + bgFitIntervalSigma * sigma;
+    }
+    else
+    {
+        bgFitMin = peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.));
+        bgFitMax = peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.));
+    }
 
-    /// gaus fit
-    TF1 *bgFnc = new TF1("bgFnc_Pol2", Pol2Exclude, peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)), 6);
+    /// background polynomial fit excluding estimated peak region
+    TF1 *bgFnc = new TF1("bgFnc_Pol2", Pol2Exclude, bgFitMin, bgFitMax, 6);
 
     // TF1 *bgFnc = new TF1("bgFnc_Pol2", Pol2Exclude, mass - 15 * sigma, mass + 15 * sigma, 6);
     bgFnc->SetParNames("p[0]", "p[1]", "p[2]", "initMass", "initFourSigma", "rejectBgFlag");
-    bgFnc->SetParameter(2, peak->GetMaximum() * 0.1);
-    bgFnc->FixParameter(3, mass);        // "mass = mean of fit"
-    bgFnc->FixParameter(4, (4 * sigma)); // "4*sigma"
-    bgFnc->FixParameter(5, 1);           // "reject" (set 1 or 0)
+    bgFnc->SetParameter(2, peak->GetMaximum() * 0.05);
+    bgFnc->FixParameter(3, mass);             // "mass = mean of fit"
+    bgFnc->FixParameter(4, (nSigma * sigma)); // "4*sigma"
+
+    bgFnc->FixParameter(5, 1); // "reject" (set 1 or 0)
 
     for (int iFitBg = 0; iFitBg < 10; iFitBg++)
-        peak->Fit(bgFnc, optBg.Data(), "", peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)));
+        peak->Fit(bgFnc, optBg.Data(), "", bgFitMin, bgFitMax);
 
-    // peak->Fit(bgFnc, optBg.Data(), "", mass - 15 * sigma, mass + 15 * sigma);
     bgFnc->FixParameter(5, 0); // reject = off (set 1 or 0)
-    peakFnc->SetParNames("Amplitude", "#mu", "#sigma");
-    peakFnc->FixParameter(3, bgFnc->GetParameter(0));
-    peakFnc->FixParameter(4, bgFnc->GetParameter(1));
-    peakFnc->FixParameter(5, bgFnc->GetParameter(2));
 
+    peakFnc->SetParNames("Amplitude", "#mu", "#sigma");
+    peakFnc->FixParameter(3, bgFnc->GetParameter(0)); // quadratic term
+    peakFnc->FixParameter(4, bgFnc->GetParameter(1)); // linear term
+    peakFnc->FixParameter(5, bgFnc->GetParameter(2)); // constant term
+
+    /// set params for mult integrated functions -> these params will be reused for mult differential too
     peakFnc->SetParLimits(0, 0, peak->GetMaximum() * 1.1);
     peakFnc->SetParLimits(1, mass - 2 * sigma, mass + 2 * sigma);
-    peakFnc->SetParLimits(2, 0.0009, 0.01);
+    peakFnc->SetParLimits(2, 0.0009, 0.009);
+
+    peakFnc->SetParameter(0, peak->GetMaximum() * 0.9);
 
     if (usePrevious)
     {
         if (previousPtBinFitParams)
         {
-            peakFnc->SetParameter(0, previousPtBinFitParams[0]);
+            // peakFnc->SetParameter(0, previousPtBinFitParams[0]);
             peakFnc->SetParameter(1, previousPtBinFitParams[1]);
             peakFnc->SetParameter(2, previousPtBinFitParams[2]);
         }
         else
         {
-            Error("FitCascades: SetFitParametersGaus", "previousPtBinFitParams not passed for %s. Setting defaults...", peak->GetName());
+            Error("SetFitParametersGaus", "previousPtBinFitParams not passed for %s. Setting defaults...", peak->GetName());
             SetFitParametersGaus(peakFnc, nullptr, peak, mass, sigma, kFALSE);
         }
     }
     else
     {
-        peakFnc->SetParameter(0, peak->GetMaximum() * 0.9);
+        // peakFnc->SetParameter(0, peak->GetMaximum() * 0.9);
         peakFnc->SetParameter(1, mass);
         peakFnc->SetParameter(2, sigma);
     }
 
+    peakFnc->Update();
+    Info("SetFitParametersGaus", "%s: GausPol2 Fit params set.", peak->GetName());
+
     return peakFnc;
 }
 
-TF1 *SetFitParametersDG(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious)
+TF1 *SetFitParametersDG(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious, UInt_t bgFitIntervalSigma)
 {
     TString optBg = "QLNB MULTITHREAD";
+    if (peak->GetEntries() < 80)
+    {
+        optBg = "QLLNB MULTITHREAD";
+    }
 
-    /// double gaus fit
-    TF1 *bgFnc = new TF1("bgFnc_Pol2", Pol2Exclude, peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)), 6);
+    Double_t bgFitMin = 0.0;
+    Double_t bgFitMax = 0.0;
+    if (bgFitIntervalSigma > 0)
+    {
+        bgFitMin = mass - bgFitIntervalSigma * sigma;
+        bgFitMax = mass + bgFitIntervalSigma * sigma;
+    }
+    else
+    {
+        bgFitMin = peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.));
+        bgFitMax = peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.));
+    }
 
-    // TF1 *bgFnc = new TF1("bgFnc_Pol2", Pol2Exclude, mass - 15 * sigma, mass + 15 * sigma, 6);
+    /// background polynomial fit excluding estimated peak region
+    TF1 *bgFnc = new TF1("bgFnc_Pol2", Pol2Exclude, bgFitMin, bgFitMax, 6);
+
     bgFnc->SetParNames("p[0]", "p[1]", "p[2]", "initMass", "initFourSigma", "rejectBgFlag");
     bgFnc->SetParameter(2, peak->GetMaximum() * 0.05);
-    bgFnc->FixParameter(3, mass);        // "mass = mean of fit"
-    bgFnc->FixParameter(4, (4 * sigma)); // "4*sigma"
+    bgFnc->FixParameter(3, mass);             // "mass = mean of fit"
+    bgFnc->FixParameter(4, (nSigma * sigma)); // "4*sigma"
 
     bgFnc->FixParameter(5, 1); // "reject" (set 1 or 0)
 
     for (int iFitBg = 0; iFitBg < 3; iFitBg++)
-        peak->Fit(bgFnc, optBg.Data(), "", peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.)), peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.)));
+        peak->Fit(bgFnc, optBg.Data(), "", bgFitMin, bgFitMax);
 
     bgFnc->FixParameter(5, 0); // reject = off (set 1 or 0)
 
     peakFnc->SetParNames("Amp_{1}", "#mu_{1}", "#sigma_{1}", "Amp_{2}", "#sigma_{2}");
-    peakFnc->FixParameter(5, bgFnc->GetParameter(2));
-    peakFnc->FixParameter(6, bgFnc->GetParameter(1));
-    peakFnc->FixParameter(7, bgFnc->GetParameter(0));
+    peakFnc->FixParameter(5, bgFnc->GetParameter(2)); // constant term
+    peakFnc->FixParameter(6, bgFnc->GetParameter(1)); // linear term
+    peakFnc->FixParameter(7, bgFnc->GetParameter(0)); // quadratic term
 
     /// set params for mult integrated functions -> these params will be reused for mult differential too
     peakFnc->SetParLimits(0, 0, peak->GetMaximum() * 1.1);
@@ -1090,7 +1286,6 @@ TF1 *SetFitParametersDG(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *pea
 
     if (usePrevious)
     {
-
         if (previousPtBinFitParams)
         {
             // peakFnc->SetParameter(0, previousPtBinFitParams[0]);
@@ -1119,24 +1314,115 @@ TF1 *SetFitParametersDG(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *pea
     return peakFnc;
 }
 
-TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t fitMaxSig, Int_t binsMC[], TH2 *MCgen, bool fisMC, Bool_t isGausPol2, TString fitOptSig, TString fitOptBg)
+TF1 *SetFitParametersDGP3(TF1 *peakFnc, Double_t *previousPtBinFitParams, TH1 *peak, Double_t mass, Double_t sigma, Bool_t usePrevious, UInt_t bgFitIntervalSigma)
+{
+    TString optBg = "QLNB MULTITHREAD";
+    if (peak->GetEntries() < 80)
+    {
+        optBg = "QLLNB MULTITHREAD";
+    }
+
+    Double_t bgFitMin = 0.0;
+    Double_t bgFitMax = 0.0;
+    if (bgFitIntervalSigma > 0)
+    {
+        bgFitMin = mass - bgFitIntervalSigma * sigma;
+        bgFitMax = mass + bgFitIntervalSigma * sigma;
+    }
+    else
+    {
+        bgFitMin = peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.));
+        bgFitMax = peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.));
+    }
+
+    /// background polynomial fit excluding estimated peak region
+    TF1 *bgFnc = new TF1("bgFnc_Pol2", Pol2Exclude, bgFitMin, bgFitMax, 7);
+
+    bgFnc->SetParNames("p[0]", "p[1]", "p[2]", "initMass", "initFourSigma", "rejectBgFlag", "p[3]");
+    bgFnc->SetParameter(2, peak->GetMaximum() * 0.05);
+    bgFnc->FixParameter(3, mass);             // "mass = mean of fit"
+    bgFnc->FixParameter(4, (nSigma * sigma)); // "4*sigma"
+
+    bgFnc->FixParameter(5, 1); // "reject" (set 1 or 0)
+
+    for (int iFitBg = 0; iFitBg < 3; iFitBg++)
+        peak->Fit(bgFnc, optBg.Data(), "", bgFitMin, bgFitMax);
+
+    bgFnc->FixParameter(5, 0); // reject = off (set 1 or 0)
+
+    peakFnc->SetParNames("Amp_{1}", "#mu_{1}", "#sigma_{1}", "Amp_{2}", "#sigma_{2}");
+    peakFnc->FixParameter(5, bgFnc->GetParameter(6)); // constant term
+    peakFnc->FixParameter(6, bgFnc->GetParameter(2)); // linear term
+    peakFnc->FixParameter(7, bgFnc->GetParameter(1)); // quadratic term
+    peakFnc->FixParameter(8, bgFnc->GetParameter(0)); // cubic term
+
+    /// set params for mult integrated functions -> these params will be reused for mult differential too
+    peakFnc->SetParLimits(0, 0, peak->GetMaximum() * 1.1);
+    peakFnc->SetParLimits(1, mass - 2 * sigma, mass + 2 * sigma);
+    peakFnc->SetParLimits(2, 0.0009, 0.009);
+    peakFnc->SetParLimits(3, 0, peak->GetMaximum() * 0.6);
+    peakFnc->SetParLimits(4, 0.0005, 0.025);
+
+    peakFnc->SetParameter(0, peak->GetMaximum() * 0.9);
+    peakFnc->SetParameter(3, 0);
+
+    if (usePrevious)
+    {
+        if (previousPtBinFitParams)
+        {
+            // peakFnc->SetParameter(0, previousPtBinFitParams[0]);
+            peakFnc->SetParameter(1, previousPtBinFitParams[1]);
+            peakFnc->SetParameter(2, previousPtBinFitParams[2]);
+            // peakFnc->SetParameter(3, previousPtBinFitParams[3]);
+            peakFnc->SetParameter(4, previousPtBinFitParams[4]);
+            // peakFnc->SetParameter(5, previousPtBinFitParams[5]);
+            // peakFnc->SetParameter(6, previousPtBinFitParams[6]);
+            // peakFnc->SetParameter(7, previousPtBinFitParams[7]);
+        }
+        else
+        {
+            Error("SetFitParametersDGP3", "previousPtBinFitParams not passed for %s. Setting defaults ...", peak->GetName());
+            SetFitParametersDGP3(peakFnc, nullptr, peak, mass, sigma, kFALSE);
+        }
+    }
+    else
+    {
+        peakFnc->SetParameter(1, mass);
+        peakFnc->SetParameter(2, sigma);
+        peakFnc->SetParameter(4, 0.002);
+    }
+    peakFnc->Update();
+
+    Info("SetFitParametersDGP3", "%s: DGP3 Fit params set.", peak->GetName());
+
+    return peakFnc;
+}
+
+TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t fitMaxSig, Int_t binsMC[], TH2 *MCgen, bool fisMC, Int_t fitFunction, TString fitOptSig, TString fitOptBg, UInt_t bgFitIntervalSigma)
 {
     TH1 *resultParams;
+    TString tryFitOptSig, tryFitOptBg;
     Int_t histEntries = peak->GetEntries();
     if (histEntries < 40)
     {
         fitOptSig = "NSLL+ MULTITHREAD";
         fitOptBg = "NSB+ MULTITHREAD";
+        tryFitOptSig = "QLLN MULTITHREAD";
+        tryFitOptBg = "QLLNB MULTITHREAD";
         Warning("FitResults", "Very low statistics ! '%s' entries : %.1f, will try to fit with basic fit options: Sig = %s, Bg = %s", peak->GetName(), peak->GetEntries(), fitOptSig.Data(), fitOptBg.Data());
     }
     else if (histEntries < 80)
     {
         fitOptSig.ReplaceAll("NSL", "NSLL");
         fitOptBg.ReplaceAll("QLI", "QLL");
+        tryFitOptSig = "QLLN MULTITHREAD";
+        tryFitOptBg = "QLLNB MULTITHREAD";
         Warning("FitResults", "Low statistics ! '%s' entries : %.1f, will try to fit with option 'LL' instead of 'L': Sig = %s, Bg = %s", peak->GetName(), peak->GetEntries(), fitOptSig.Data(), fitOptBg.Data());
     }
     else
     {
+        tryFitOptSig = "QLIN MULTITHREAD";
+        tryFitOptBg = "QLNB MULTITHREAD";
         Info("FitResults", "Stat: '%s' entries : %.1f, will try to fit with options: Sig = %s, Bg = %s", peak->GetName(), peak->GetEntries(), fitOptSig.Data(), fitOptBg.Data());
     }
 
@@ -1154,16 +1440,8 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
 
     Double_t bgReject = 0.;
 
-    /// use different fit options:
-    // TString opt = "QLINES+ MULTITHREAD"; /// best for DG: QLINESR+ MULTITHREAD
-    // TString opt = "QMINLSR";
-
-    // TString optBg = "QMNLSR";
-    // TString optBg = "QNSFB+ MULTITHREAD"; /// best for DG bkg: QLINSRFB+ MULTITHREAD
-    // TString optBg = "QLINSB+ MULTITHREAD"; /// best for DG bkg: QLINSRFB+ MULTITHREAD
-
     for (int i = 0; i < 5; i++) // try to fit 5 times to get the best results
-        peak->Fit(peakFnc, "QLIN MULTITHREAD", "", fitMinSig, fitMaxSig);
+        peak->Fit(peakFnc, tryFitOptSig.Data(), "", fitMinSig, fitMaxSig);
 
     TFitResultPtr fFitResult = nullptr;
     fFitResult = peak->Fit(peakFnc, fitOptSig.Data(), "", fitMinSig, fitMaxSig);
@@ -1217,7 +1495,7 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
 
     peak->GetListOfFunctions()->Add(peakFnc);
 
-    if (isGausPol2)
+    if (fitFunction == kGausPol2)
     {
         peakFitMass = peakFnc->GetParameter(1); // getting peak (mass) from peakFnc to be used for excluding bg
         peakFitMass_err = peakFnc->GetParError(1);
@@ -1230,33 +1508,61 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
     TFitResultPtr fFitResult_bg = nullptr;
     if (!fisMC)
     {
-        Double_t bgFitMin = peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.));
-        Double_t bgFitMax = peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.));
+        TF1 *bgFnc;
+        Double_t bgFitMin = 0.0;
+        Double_t bgFitMax = 0.0;
+        if (bgFitIntervalSigma > 0)
+        {
+            bgFitMin = peakFitMass - bgFitIntervalSigma * peakFitSigma;
+            bgFitMax = peakFitMass + bgFitIntervalSigma * peakFitSigma;
+        }
+        else
+        {
+            bgFitMin = peak->GetXaxis()->GetBinCenter(peak->FindFirstBinAbove(0.));
+            bgFitMax = peak->GetXaxis()->GetBinCenter(peak->FindLastBinAbove(0.));
+        }
+
         // Double_t bgFitMin = peakFitMass - 15 * peakFitSigma; // Mean - 15*sigma (approx.)
         // Double_t bgFitMax = peakFitMass + 15 * peakFitSigma; // Mean + 15*sigma (approx.)
-        bgReject = 4 * peakFitSigma; // 4*sigma region to be excluded from bg fit
+        bgReject = nSigma * peakFitSigma; // 4*sigma region to be excluded from bg fit
 
         TString bgFncName = peakFnc->GetName();
-        bgFncName.ReplaceAll("GausPol2", "_bgPol2Exclude");
+        bgFncName.ReplaceAll("GausPol", "_bgPolExclude");
 
-        TF1 *bgFnc = new TF1(bgFncName.Data(), Pol2Exclude, bgFitMin, bgFitMax, 6);
-        bgFnc->SetParNames("p[0]", "p[1]", "p[2]", "peakFitMass", "bgRejectRegion", "rejectFlag");
+        if (fitFunction == kDoubleGausPol3)
+        {
+            bgFnc = new TF1(bgFncName.Data(), Pol3Exclude, bgFitMin, bgFitMax, 7);
+            bgFnc->SetParNames("p[0]", "p[1]", "p[2]", "peakFitMass", "bgRejectRegion", "rejectFlag", "p[3]");
+        }
+        else
+        {
+            bgFnc = new TF1(bgFncName.Data(), Pol2Exclude, bgFitMin, bgFitMax, 6);
+            bgFnc->SetParNames("p[0]", "p[1]", "p[2]", "peakFitMass", "bgRejectRegion", "rejectFlag");
+        }
+
         bgFnc->FixParameter(3, peakFitMass); // "mass = mean of fit"
         bgFnc->FixParameter(4, bgReject);    // "4*sigma"
         bgFnc->SetLineColor(kGreen);
         bgFnc->SetFillColor(kYellow);
         bgFnc->SetFillStyle(3009);
-        if (isGausPol2)
+        if (fitFunction == kGausPol2)
         {
-            bgFnc->SetParameter(0, peakFnc->GetParameter(3));
-            bgFnc->SetParameter(1, peakFnc->GetParameter(4));
-            bgFnc->SetParameter(2, peakFnc->GetParameter(5));
+            bgFnc->SetParameter(0, peakFnc->GetParameter(3)); // quadratic term
+            bgFnc->SetParameter(1, peakFnc->GetParameter(4)); // linear term
+            bgFnc->SetParameter(2, peakFnc->GetParameter(5)); // constant term
         }
-        else
+        else if (fitFunction == kDoubleGausPol2)
         {
-            bgFnc->SetParameter(0, peakFnc->GetParameter(7));
-            bgFnc->SetParameter(1, peakFnc->GetParameter(6));
-            bgFnc->SetParameter(2, peakFnc->GetParameter(5));
+            bgFnc->SetParameter(0, peakFnc->GetParameter(7)); // quadratic term
+            bgFnc->SetParameter(1, peakFnc->GetParameter(6)); // linear term
+            bgFnc->SetParameter(2, peakFnc->GetParameter(5)); // constant term
+        }
+        else if (fitFunction == kDoubleGausPol3)
+        {
+            bgFnc->SetParameter(0, peakFnc->GetParameter(8)); // cubic term
+            bgFnc->SetParameter(1, peakFnc->GetParameter(7)); // quadratic term
+            bgFnc->SetParameter(2, peakFnc->GetParameter(6)); // linear term
+            bgFnc->SetParameter(6, peakFnc->GetParameter(5)); // constant term
         }
 
         // Double_t fitMinBg = peakFitMass - 10 * peakFitSigma;
@@ -1270,7 +1576,7 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
         Bool_t fitBg = kTRUE;
 
         for (int i = 0; i < 3; i++)
-            bgFitStatus = peak->Fit(bgFnc, "QLNB MULTITHREAD", "", bgFitMin, bgFitMax);
+            bgFitStatus = peak->Fit(bgFnc, tryFitOptBg.Data(), "", bgFitMin, bgFitMax);
 
         if (bgFitStatus < 0)
         {
@@ -1358,17 +1664,17 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
     if (fisMC && (peak->GetEntries() < 50) && !fFitResult->IsValid())
     {
         TString histname = peak->GetName();
-        /// special case for MCs with very low stats where fit cannot be done.
-        /// set integration region by approximating sigma to  default values:
+        // special case for MCs with very low stats where fit cannot be done.
+        // set integration region by approximating sigma to  default values:
         if (histname.Contains("Xi"))
         {
-            minInt = fMass_Xi - (4 * sigmaXi); /// mean - 4*sigma
-            maxInt = fMass_Xi + (4 * sigmaXi); /// mean + 4*sigma
+            minInt = fMass_Xi - (nSigma * sigmaXi); /// mean - 4*sigma
+            maxInt = fMass_Xi + (nSigma * sigmaXi); /// mean + 4*sigma
         }
         else
         {
-            minInt = fMass_Om - (4 * sigmaOm); /// mean - 4*sigma
-            maxInt = fMass_Om + (4 * sigmaOm); /// mean + 4*sigma
+            minInt = fMass_Om - (nSigma * sigmaOm); /// mean - 4*sigma
+            maxInt = fMass_Om + (nSigma * sigmaOm); /// mean + 4*sigma
         }
 
         // minInt = peakFitMass - (4 * ((peakFitMass - fitMinSig) / nSigma)); /// mean - 4*sigma
@@ -1377,17 +1683,17 @@ TH1 *FitResults(TH1 *h_bg, TF1 *peakFnc, TH1 *peak, Double_t fitMinSig, Double_t
     }
     else
     {
-        minInt = peakFitMass - (4 * peakFitSigma); /// mean - 4*sigma
-        maxInt = peakFitMass + (4 * peakFitSigma); /// mean + 4*sigma
+        minInt = peakFitMass - (nSigma * peakFitSigma); /// mean - 4*sigma
+        maxInt = peakFitMass + (nSigma * peakFitSigma); /// mean + 4*sigma
         Info("FitResults", "%s: Fitting successful! Peak region = [%f, %f]. Filling parameters ...", peak->GetName(), minInt, maxInt);
     }
 
-    resultParams = FillParams(h_bg, fFitResult_bg, peakFnc, peak, fFitResult, minInt, maxInt, MCgen, binsMC, fisMC, isGausPol2);
+    resultParams = FillParams(h_bg, fFitResult_bg, peakFnc, peak, fFitResult, minInt, maxInt, MCgen, binsMC, fitFunction, fisMC);
     peak->SetOption("X0E1");
     return resultParams;
 }
 
-TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], bool fisMC, bool isGausPol2)
+TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak, TFitResultPtr fFitResult, Double_t minInt, Double_t maxInt, TH2 *MCgen, Int_t binsMC[], Int_t fitFunction, bool fisMC)
 {
     Double_t val = 0.;
     Double_t err = 0.;
@@ -1403,7 +1709,7 @@ TH1 *FillParams(TH1 *h_bg, TFitResultPtr fFitResult_bg, TF1 *sigBgFnc, TH1 *peak
     Double_t peakFitSigma_err = 0.;
     Double_t val_intBC, err_intBC, val_intFF, err_intFF;
 
-    if (isGausPol2)
+    if (fitFunction == kGausPol2)
     {
         peakFitMass = sigBgFnc->GetParameter(1); // getting peak (mass) from peakFnc to be used for excluding bg
         peakFitMass_err = sigBgFnc->GetParError(1);
@@ -1587,7 +1893,6 @@ void GetYieldBinCounting(TH1 *h_bg, TH1 *h, TFitResultPtr fFitResult_bg, Double_
                     bgErr = bgFnc->IntegralError(fnIntMin, fnIntMax, bgFnc->GetParameters(), fFitResult_bg->GetCovarianceMatrix().GetMatrixArray(), eps);
                     bgErr /= histWidth;
                 }
-                // }
                 else
                     Error("GetYieldBC", "Cannot calculate bg integral error as bgFitResultPtr is NULL! '%s' entries : %f ", h->GetName(), h->GetEntries());
 
