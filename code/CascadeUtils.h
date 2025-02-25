@@ -25,6 +25,18 @@ enum particles
     kOm,
     kNumPart
 };
+
+enum signedParticles
+{
+    kXip,
+    kXim,
+    kOmp,
+    kOmm,
+    kXiC,
+    kOmC,
+    kNumSignedPart
+};
+
 enum fitFunctions
 {
     kGausPol2 = 1,
@@ -253,19 +265,19 @@ inline TString SetOutputFolder(TString folderName = "")
 
 /**
  * @brief Opens a ROOT file with specified options and performs validity checks
- * 
+ *
  * @param fileName Name of the file to open. If no extension is provided, .root will be appended
  * @param options File access mode ("READ", "NEW", "CREATE", "RECREATE"). Defaults to "READ"
- * 
+ *
  * @return TFile* Pointer to the opened file, nullptr if operation fails
- * 
+ *
  * @details This function:
  * - Checks if the provided filename is not empty
  * - Appends .root extension if filename has no extension
  * - Creates directory structure if file is being created/recreated
  * - Opens the file and performs zombie check
  * - Prints informative messages about the operation
- * 
+ *
  * @note The caller is responsible for closing and deleting the returned TFile pointer
  */
 inline TFile *OpenFile(TString fileName, TString options = "READ")
