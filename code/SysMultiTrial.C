@@ -54,7 +54,7 @@ Double_t FitGaus(TH1 *hist, TString fitOptions = "BWLINQ+ MULTITHREAD");
  *
  * @note The function creates the output directory structure if it doesn't exist
  */
-void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TString imageFormat);
+void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TString imageFormat = "png", Int_t failedRbCount = 0);
 
 /**
  * @brief Calculates systematic uncertainties using the multi-trial method for Xi and Omega particles
@@ -184,6 +184,9 @@ int SysMultiTrial(
     TH1D *fitMeanYieldDev_omp_mult[fNmultbins_Om]; // mult binned yield deviation: mean of Gaussian fit
     TH1D *fitMeanYieldDev_xiC_mult[fNmultbins_Xi]; // mult binned yield deviation: mean of Gaussian fit
     TH1D *fitMeanYieldDev_omC_mult[fNmultbins_Om]; // mult binned yield deviation: mean of Gaussian fit
+
+    Int_t failedRbTest[kNumSignedPart][fNptbins_Xi] = {0};                     // failed RB test counter
+    Int_t failedRbTest_mult[kNumSignedPart][fNptbins_Xi][fNmultbins_Xi] = {0}; // failed RB test counter
 
     /// Getting default cut histograms:
     TString histName = "h3_ptmasscent_def";
@@ -346,28 +349,28 @@ int SysMultiTrial(
         /// Compute yield deviation of variation from default cut and pass RB criteria:
         for (Int_t ptBinXi = 0; ptBinXi < fNptbins_Xi; ptBinXi++)
         {
-            ComputeRogerBarlow(var_effCorrPt_xip, def_effCorrPt_xip, varDefYieldDev_xip_pt[ptBinXi], ptBinXi + 1, iVar, fDebug);
-            ComputeRogerBarlow(var_effCorrPt_xim, def_effCorrPt_xim, varDefYieldDev_xim_pt[ptBinXi], ptBinXi + 1, iVar, fDebug);
-            ComputeRogerBarlow(var_effCorrPt_xiC, def_effCorrPt_xiC, varDefYieldDev_xiC_pt[ptBinXi], ptBinXi + 1, iVar, fDebug);
+            failedRbTest[kXip][ptBinXi] += ComputeRogerBarlow(var_effCorrPt_xip, def_effCorrPt_xip, varDefYieldDev_xip_pt[ptBinXi], ptBinXi + 1, iVar, fDebug);
+            failedRbTest[kXim][ptBinXi] += ComputeRogerBarlow(var_effCorrPt_xim, def_effCorrPt_xim, varDefYieldDev_xim_pt[ptBinXi], ptBinXi + 1, iVar, fDebug);
+            failedRbTest[kXiC][ptBinXi] += ComputeRogerBarlow(var_effCorrPt_xiC, def_effCorrPt_xiC, varDefYieldDev_xiC_pt[ptBinXi], ptBinXi + 1, iVar, fDebug);
 
             for (Int_t multBinXi = 0; multBinXi < fNmultbins_Xi; multBinXi++)
             {
-                ComputeRogerBarlow(var_effCorrPt_xip_mult[multBinXi], def_effCorrPt_xip_mult[multBinXi], varDefYieldDev_xip_pt_mult[ptBinXi][multBinXi], ptBinXi + 1, iVar, fDebug);
-                ComputeRogerBarlow(var_effCorrPt_xim_mult[multBinXi], def_effCorrPt_xim_mult[multBinXi], varDefYieldDev_xim_pt_mult[ptBinXi][multBinXi], ptBinXi + 1, iVar, fDebug);
-                ComputeRogerBarlow(var_effCorrPt_xiC_mult[multBinXi], def_effCorrPt_xiC_mult[multBinXi], varDefYieldDev_xiC_pt_mult[ptBinXi][multBinXi], ptBinXi + 1, iVar, fDebug);
+                failedRbTest_mult[kXip][ptBinXi][multBinXi] += ComputeRogerBarlow(var_effCorrPt_xip_mult[multBinXi], def_effCorrPt_xip_mult[multBinXi], varDefYieldDev_xip_pt_mult[ptBinXi][multBinXi], ptBinXi + 1, iVar, fDebug);
+                failedRbTest_mult[kXim][ptBinXi][multBinXi] += ComputeRogerBarlow(var_effCorrPt_xim_mult[multBinXi], def_effCorrPt_xim_mult[multBinXi], varDefYieldDev_xim_pt_mult[ptBinXi][multBinXi], ptBinXi + 1, iVar, fDebug);
+                failedRbTest_mult[kXiC][ptBinXi][multBinXi] += ComputeRogerBarlow(var_effCorrPt_xiC_mult[multBinXi], def_effCorrPt_xiC_mult[multBinXi], varDefYieldDev_xiC_pt_mult[ptBinXi][multBinXi], ptBinXi + 1, iVar, fDebug);
             }
         }
         for (Int_t ptBinOm = 0; ptBinOm < fNptbins_Om; ptBinOm++)
         {
-            ComputeRogerBarlow(var_effCorrPt_omp, def_effCorrPt_omp, varDefYieldDev_omp_pt[ptBinOm], ptBinOm + 1, iVar, fDebug);
-            ComputeRogerBarlow(var_effCorrPt_omm, def_effCorrPt_omm, varDefYieldDev_omm_pt[ptBinOm], ptBinOm + 1, iVar, fDebug);
-            ComputeRogerBarlow(var_effCorrPt_omC, def_effCorrPt_omC, varDefYieldDev_omC_pt[ptBinOm], ptBinOm + 1, iVar, fDebug);
+            failedRbTest[kOmp][ptBinOm] += ComputeRogerBarlow(var_effCorrPt_omp, def_effCorrPt_omp, varDefYieldDev_omp_pt[ptBinOm], ptBinOm + 1, iVar, fDebug);
+            failedRbTest[kOmm][ptBinOm] += ComputeRogerBarlow(var_effCorrPt_omm, def_effCorrPt_omm, varDefYieldDev_omm_pt[ptBinOm], ptBinOm + 1, iVar, fDebug);
+            failedRbTest[kOmC][ptBinOm] += ComputeRogerBarlow(var_effCorrPt_omC, def_effCorrPt_omC, varDefYieldDev_omC_pt[ptBinOm], ptBinOm + 1, iVar, fDebug);
 
             for (Int_t multBinOm = 0; multBinOm < fNmultbins_Om; multBinOm++)
             {
-                ComputeRogerBarlow(var_effCorrPt_omp_mult[multBinOm], def_effCorrPt_omp_mult[multBinOm], varDefYieldDev_omp_pt_mult[ptBinOm][multBinOm], ptBinOm + 1, iVar, fDebug);
-                ComputeRogerBarlow(var_effCorrPt_omm_mult[multBinOm], def_effCorrPt_omm_mult[multBinOm], varDefYieldDev_omm_pt_mult[ptBinOm][multBinOm], ptBinOm + 1, iVar, fDebug);
-                ComputeRogerBarlow(var_effCorrPt_omC_mult[multBinOm], def_effCorrPt_omC_mult[multBinOm], varDefYieldDev_omC_pt_mult[ptBinOm][multBinOm], ptBinOm + 1, iVar, fDebug);
+                failedRbTest_mult[kOmp][ptBinOm][multBinOm] += ComputeRogerBarlow(var_effCorrPt_omp_mult[multBinOm], def_effCorrPt_omp_mult[multBinOm], varDefYieldDev_omp_pt_mult[ptBinOm][multBinOm], ptBinOm + 1, iVar, fDebug);
+                failedRbTest_mult[kOmm][ptBinOm][multBinOm] += ComputeRogerBarlow(var_effCorrPt_omm_mult[multBinOm], def_effCorrPt_omm_mult[multBinOm], varDefYieldDev_omm_pt_mult[ptBinOm][multBinOm], ptBinOm + 1, iVar, fDebug);
+                failedRbTest_mult[kOmC][ptBinOm][multBinOm] += ComputeRogerBarlow(var_effCorrPt_omC_mult[multBinOm], def_effCorrPt_omC_mult[multBinOm], varDefYieldDev_omC_pt_mult[ptBinOm][multBinOm], ptBinOm + 1, iVar, fDebug);
             }
         }
     }
@@ -514,9 +517,9 @@ int SysMultiTrial(
 
         if (saveImages)
         {
-            DrawAndSaveImage(varDefYieldDev_xip_pt[ptBinXi], outputFolder, "YieldDev_xip_pt", imageFormat);
-            DrawAndSaveImage(varDefYieldDev_xim_pt[ptBinXi], outputFolder, "YieldDev_xim_pt", imageFormat);
-            DrawAndSaveImage(varDefYieldDev_xiC_pt[ptBinXi], outputFolder, "YieldDev_xiC_pt", imageFormat);
+            DrawAndSaveImage(varDefYieldDev_xip_pt[ptBinXi], outputFolder, "YieldDev_xip_pt", imageFormat, failedRbTest[kXip][ptBinXi]);
+            DrawAndSaveImage(varDefYieldDev_xim_pt[ptBinXi], outputFolder, "YieldDev_xim_pt", imageFormat, failedRbTest[kXim][ptBinXi]);
+            DrawAndSaveImage(varDefYieldDev_xiC_pt[ptBinXi], outputFolder, "YieldDev_xiC_pt", imageFormat, failedRbTest[kXiC][ptBinXi]);
         }
 
         for (Int_t multBinXi = 0; multBinXi < fNmultbins_Xi; multBinXi++)
@@ -530,9 +533,9 @@ int SysMultiTrial(
 
             if (saveImages)
             {
-                DrawAndSaveImage(varDefYieldDev_xip_pt_mult[ptBinXi][multBinXi], outputFolder, "YieldDev_xip_pt_mult", imageFormat);
-                DrawAndSaveImage(varDefYieldDev_xim_pt_mult[ptBinXi][multBinXi], outputFolder, "YieldDev_xim_pt_mult", imageFormat);
-                DrawAndSaveImage(varDefYieldDev_xiC_pt_mult[ptBinXi][multBinXi], outputFolder, "YieldDev_xiC_pt_mult", imageFormat);
+                DrawAndSaveImage(varDefYieldDev_xip_pt_mult[ptBinXi][multBinXi], outputFolder, "YieldDev_xip_pt_mult", imageFormat, failedRbTest_mult[kXip][ptBinXi][multBinXi]);
+                DrawAndSaveImage(varDefYieldDev_xim_pt_mult[ptBinXi][multBinXi], outputFolder, "YieldDev_xim_pt_mult", imageFormat, failedRbTest_mult[kXim][ptBinXi][multBinXi]);
+                DrawAndSaveImage(varDefYieldDev_xiC_pt_mult[ptBinXi][multBinXi], outputFolder, "YieldDev_xiC_pt_mult", imageFormat, failedRbTest_mult[kXiC][ptBinXi][multBinXi]);
             }
         }
     }
@@ -547,9 +550,9 @@ int SysMultiTrial(
 
         if (saveImages)
         {
-            DrawAndSaveImage(varDefYieldDev_omp_pt[ptBinOm], outputFolder, "YieldDev_omp_pt", imageFormat);
-            DrawAndSaveImage(varDefYieldDev_omm_pt[ptBinOm], outputFolder, "YieldDev_omm_pt", imageFormat);
-            DrawAndSaveImage(varDefYieldDev_omC_pt[ptBinOm], outputFolder, "YieldDev_omC_pt", imageFormat);
+            DrawAndSaveImage(varDefYieldDev_omp_pt[ptBinOm], outputFolder, "YieldDev_omp_pt", imageFormat, failedRbTest[kOmp][ptBinOm]);
+            DrawAndSaveImage(varDefYieldDev_omm_pt[ptBinOm], outputFolder, "YieldDev_omm_pt", imageFormat, failedRbTest[kOmm][ptBinOm]);
+            DrawAndSaveImage(varDefYieldDev_omC_pt[ptBinOm], outputFolder, "YieldDev_omC_pt", imageFormat, failedRbTest[kOmC][ptBinOm]);
         }
         for (Int_t multBinOm = 0; multBinOm < fNmultbins_Om; multBinOm++)
         {
@@ -562,9 +565,9 @@ int SysMultiTrial(
 
             if (saveImages)
             {
-                DrawAndSaveImage(varDefYieldDev_omp_pt_mult[ptBinOm][multBinOm], outputFolder, "YieldDev_omp_pt_mult", imageFormat);
-                DrawAndSaveImage(varDefYieldDev_omm_pt_mult[ptBinOm][multBinOm], outputFolder, "YieldDev_omm_pt_mult", imageFormat);
-                DrawAndSaveImage(varDefYieldDev_omC_pt_mult[ptBinOm][multBinOm], outputFolder, "YieldDev_omC_pt_mult", imageFormat);
+                DrawAndSaveImage(varDefYieldDev_omp_pt_mult[ptBinOm][multBinOm], outputFolder, "YieldDev_omp_pt_mult", imageFormat, failedRbTest_mult[kOmp][ptBinOm][multBinOm]);
+                DrawAndSaveImage(varDefYieldDev_omm_pt_mult[ptBinOm][multBinOm], outputFolder, "YieldDev_omm_pt_mult", imageFormat, failedRbTest_mult[kOmm][ptBinOm][multBinOm]);
+                DrawAndSaveImage(varDefYieldDev_omC_pt_mult[ptBinOm][multBinOm], outputFolder, "YieldDev_omC_pt_mult", imageFormat, failedRbTest_mult[kOmC][ptBinOm][multBinOm]);
             }
         }
     }
@@ -584,6 +587,7 @@ Double_t ComputeRogerBarlow(TH1 *hVar, TH1 *hDef, TH1 *hYieldDev, Int_t ptBin, I
     Double_t yieldDev = 0.0;
     Double_t sigmaRB = 0.0;
     Double_t nSigmaRB = 0.0;
+    Int_t failedRbTest = 0;
 
     if (defVal > 1e-12)
     {
@@ -603,13 +607,16 @@ Double_t ComputeRogerBarlow(TH1 *hVar, TH1 *hDef, TH1 *hYieldDev, Int_t ptBin, I
         // if (fDebug)
         // Info("ComputeRogerBarlow", "iVar %d: Skipping %s: ptBin: %d, varVal: %f, defVal: %f, yieldDev: %f, nSigmaRB: %f. Failed RB criteria.", iVar, hYieldDev->GetName(), ptBin, varVal, defVal, yieldDev, nSigmaRB);
         // }
+        if (TMath::Abs(yieldDev) < (nSigmaRB))
+            failedRbTest = 1;
     }
     else
     {
         Warning("ComputeRogerBarlow", "iVar %d: Skipping %s: ptBin: %d, varVal: %f, defVal: %f. Division by zero.", iVar, hYieldDev->GetName(), ptBin, varVal, defVal);
     }
 
-    return nSigmaRB;
+    // return nSigmaRB;
+    return failedRbTest;
 }
 
 Double_t FitGaus(TH1 *hist, TString fitOptions)
@@ -667,7 +674,7 @@ Double_t FitGaus(TH1 *hist, TString fitOptions)
     return sigmaGaus;
 }
 
-void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TString imageFormat)
+void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TString imageFormat, Int_t failedRbCount)
 {
 
     TCanvas *cDraw = new TCanvas(hist->GetName(), hist->GetTitle(), 1920, 1080);
@@ -685,6 +692,7 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
         legend->AddEntry(func, TString::Format("Fit mean (#mu) = %.3f", func->GetParameter(1)), "l");
         legend->AddEntry(func, TString::Format("Fit sigma (#sigma)= %.3f", func->GetParameter(2)), "l");
         legend->AddEntry(func, TString::Format("#frac{#chi^{2}}{NDF} = %.1f", (func->GetChisquare() / ndf_sanitized)), "l");
+        legend->AddEntry(hist, TString::Format("Failed RB = %d", failedRbCount), "pe");
 
         hist->GetYaxis()->SetRangeUser(0., hist->GetMaximum() * 1.2);
         hist->SetMarkerStyle(kFullCircle);
