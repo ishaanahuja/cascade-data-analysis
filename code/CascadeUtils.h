@@ -25,6 +25,18 @@ enum particles
     kOm,
     kNumPart
 };
+
+enum signedParticles
+{
+    kXip,
+    kXim,
+    kOmp,
+    kOmm,
+    kXiC,
+    kOmC,
+    kNumSignedPart
+};
+
 enum fitFunctions
 {
     kGausPol2 = 1,
@@ -253,19 +265,19 @@ inline TString SetOutputFolder(TString folderName = "")
 
 /**
  * @brief Opens a ROOT file with specified options and performs validity checks
- * 
+ *
  * @param fileName Name of the file to open. If no extension is provided, .root will be appended
  * @param options File access mode ("READ", "NEW", "CREATE", "RECREATE"). Defaults to "READ"
- * 
+ *
  * @return TFile* Pointer to the opened file, nullptr if operation fails
- * 
+ *
  * @details This function:
  * - Checks if the provided filename is not empty
  * - Appends .root extension if filename has no extension
  * - Creates directory structure if file is being created/recreated
  * - Opens the file and performs zombie check
  * - Prints informative messages about the operation
- * 
+ *
  * @note The caller is responsible for closing and deleting the returned TFile pointer
  */
 inline TFile *OpenFile(TString fileName, TString options = "READ")
@@ -403,6 +415,40 @@ inline Double_t GetProb(TFitResultPtr fFitResult)
         return 0;
     else
         return prob;
+}
+
+/**
+ * @brief Calculates the Root Mean Square (RMS) value of an array of doubles
+ * 
+ * This function computes the RMS by:
+ * 1. Squaring each element
+ * 2. Finding the mean of squared values
+ * 3. Taking the square root of the mean
+ * 
+ * @param arraySize The number of elements in the input array
+ * @param array Pointer to the array of double values
+ * @return double The RMS value of the array elements. Returns 0.0 if array is nullptr or arraySize <= 0
+ */
+double CalculateRMS(int arraySize, double *array)
+{
+    if (!array || arraySize <= 0)
+        return 0.0;
+
+    double square = 0.0, mean = 0.0, root = 0.0;
+
+    // Calculate square
+    for (int iArr = 0; iArr < arraySize; iArr++)
+    {
+        square += array[iArr] * array[iArr];
+    }
+
+    // Calculate Mean
+    mean = square / arraySize;
+
+    // Calculate Root
+    root = sqrt(mean);
+
+    return root;
 }
 
 /**
