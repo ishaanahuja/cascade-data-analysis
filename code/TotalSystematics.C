@@ -7,14 +7,24 @@
 
 #include "CascadeUtils.h"
 
+enum sysTypeSigExt
+{
+    kFitFunction,
+    kSignalRange,
+    kBackgroundRange,
+    kNumSysTypeSigExt
+};
+
+TString gSysTypeSigExt[kNumSysTypeSigExt] = {"FitFunction", "SignalExtractionRegion", "BackgroundFitRange"};
+
 /**
  * @brief Styles a ROOT histogram with specified formatting options
- * 
+ *
  * @param hist Pointer to the histogram to be styled
  * @param title Optional title for the histogram (default: empty string)
  * @param isHighlighted Optional flag to apply highlighting style (default: false)
- * 
- * @details This function applies consistent styling to ROOT histograms for 
+ *
+ * @details This function applies consistent styling to ROOT histograms for
  * visualization purposes. The styling includes setting colors, line styles,
  * markers, and other visual properties.
  */
@@ -38,8 +48,8 @@ void StyleSystematics(TH1 *hist, Int_t particle = -1, Int_t multBin = -1);
  * @brief Applies a custom style configuration to a given histogram.
  *
  * This function modifies the appearance of the provided histogram
- * by adjusting its visual style based on the specified particle 
- * type and multiplicity bin. This includes settings such as 
+ * by adjusting its visual style based on the specified particle
+ * type and multiplicity bin. This includes settings such as
  * marker style, color, and other related aesthetic parameters.
  *
  * @param hist Pointer to a histogram object (TH1).
@@ -49,9 +59,9 @@ void StyleSystematics(TH1 *hist, Int_t particle = -1, Int_t multBin = -1);
 void StyleStatistics(TH1 *hist, Int_t particle = -1, Int_t multBin = -1);
 
 /**
- * @brief Like PaintStack(), but modified for overlapping stat and sys corrected spectra, 
+ * @brief Like PaintStack(), but modified for overlapping stat and sys corrected spectra,
  * with a new legend support.
- * 
+ *
  * Draws a THStack on a specified canvas with optional log-scale on the y-axis.
  * This function overlays the histograms contained in the given THStack onto the
  * provided TCanvas. The user can specify whether to use a logarithmic scale for the
@@ -70,11 +80,11 @@ void PaintStackOverlap(TCanvas &c, THStack &hs, Bool_t setLogY = kTRUE, TString 
 
 /**
  * @brief Computes and combines total systematic uncertainties for Xi and Omega spectra analysis
- * 
+ *
  * This function:
  * - Takes efficiency corrected spectra with statistical uncertainties as input
  * - Combines systematic uncertainties from:
- *   - Multi-trial analysis (track/topological cuts) 
+ *   - Multi-trial analysis (track/topological cuts)
  *   - Signal extraction
  *   - Material budget (constant 4%)
  * - Handles both multiplicity-integrated and multiplicity-dependent results
@@ -86,7 +96,7 @@ void PaintStackOverlap(TCanvas &c, THStack &hs, Bool_t setLogY = kTRUE, TString 
  *
  * @param inputEffCorrDefault Path to input ROOT file containing efficiency corrected spectra
  * @param inputSysMultiTrial Path to input ROOT file containing multi-trial systematic uncertainties
- * @param inputSysSigExtraction Path to input ROOT file containing signal extraction systematic uncertainties 
+ * @param inputSysSigExtraction Path to input ROOT file containing signal extraction systematic uncertainties
  * @param outputFolder Output folder path for plots and results
  * @param outputFileName Output ROOT file name
  * @param saveStack Whether to save THStack plots (default: true)
@@ -97,16 +107,17 @@ void PaintStackOverlap(TCanvas &c, THStack &hs, Bool_t setLogY = kTRUE, TString 
  *
  * The function handles:
  * - Xi minus/plus
- * - Omega minus/plus  
+ * - Omega minus/plus
  * - Combined charge (Xi/Omega)
  * Both for multiplicity integrated and multiplicity binned cases
  */
 int TotalSystematics(
     TString inputEffCorrDefault = "/var/home/ishaan/Work/git/analysis/results/RandomVars/100225_EfficiencyCorrected_Vars/h3_ptmasscent_def/100225_effCorr_h3_ptmasscent_def.root",
-    TString inputSysMultiTrial = "/var/home/ishaan/Work/git/analysis/results/RandomVars/220225_SysUncertainty_MultiTrial_212DevBins/220225_sysUncertainty_multiTrial.root",
-    TString inputSysSigExtraction = "/var/home/ishaan/Work/git/analysis/results/RandomVars/210225_Systematics_SigExt/210225_SystematicUncertainty_SigExt.root",
-    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/230225_SysUncertainty_Total",
-    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/230225_SysUncertainty_Total/230225_sysUncertainty_Total.root",
+    TString inputSysMultiTrial = "/var/home/ishaan/Work/git/analysis/results/RandomVars/240225_SysUncertainty_MultiTrial_212noRBErr/240225_sysUncertainty_noRB_multiTrial.root",
+    TString inputSysSigExtractionPrefix = "/var/home/ishaan/Work/git/analysis/results/RandomVars/250225_Systematics_SigExt",
+    TString inputSysSigExtractionFileName = "250225_SystematicUncertainty_SigExt.root",
+    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/260225_SysUncertainty_Total",
+    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/260225_SysUncertainty_Total/260225_sysUncertainty_Total.root",
     Bool_t saveStack = kTRUE,
     TString imageFormat = "png",
     Int_t verbosity = kInfo)
@@ -149,31 +160,30 @@ int TotalSystematics(
     TH1D *sys_effCorrPt_xiC_mult[fNmultbins_Xi]; // mult binned efficiency corrected spectra for default cuts: errors are systematic uncertainties
     TH1D *sys_effCorrPt_omC_mult[fNmultbins_Om]; // mult binned efficiency corrected spectra for default cuts: errors are systematic uncertainties
 
-    TH1D *sysMultiTrial_xim;                     // mult integrated systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_xip;                     // mult integrated systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_omm;                     // mult integrated systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_omp;                     // mult integrated systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_xiC;                     // mult integrated systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_omC;                     // mult integrated systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_xim_mult[fNmultbins_Xi]; // mult binned systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_xip_mult[fNmultbins_Xi]; // mult binned systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_omm_mult[fNmultbins_Om]; // mult binned systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_omp_mult[fNmultbins_Om]; // mult binned systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_xiC_mult[fNmultbins_Xi]; // mult binned systematic uncertainty from MultiTrial
-    TH1D *sysMultiTrial_omC_mult[fNmultbins_Om]; // mult binned systematic uncertainty from MultiTrial
-
-    TH1D *sysSigExtraction_xim;                     // mult integrated systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_xip;                     // mult integrated systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_omm;                     // mult integrated systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_omp;                     // mult integrated systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_xiC;                     // mult integrated systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_omC;                     // mult integrated systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_xim_mult[fNmultbins_Xi]; // mult binned systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_xip_mult[fNmultbins_Xi]; // mult binned systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_omm_mult[fNmultbins_Om]; // mult binned systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_omp_mult[fNmultbins_Om]; // mult binned systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_xiC_mult[fNmultbins_Xi]; // mult binned systematic uncertainty from Signal Extraction
-    TH1D *sysSigExtraction_omC_mult[fNmultbins_Om]; // mult binned systematic uncertainty from Signal Extraction
+    TH1D *sysMultiTrial_xim;                                           // mult integrated systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_xip;                                           // mult integrated systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_omm;                                           // mult integrated systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_omp;                                           // mult integrated systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_xiC;                                           // mult integrated systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_omC;                                           // mult integrated systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_xim_mult[fNmultbins_Xi];                       // mult binned systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_xip_mult[fNmultbins_Xi];                       // mult binned systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_omm_mult[fNmultbins_Om];                       // mult binned systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_omp_mult[fNmultbins_Om];                       // mult binned systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_xiC_mult[fNmultbins_Xi];                       // mult binned systematic uncertainty from MultiTrial
+    TH1D *sysMultiTrial_omC_mult[fNmultbins_Om];                       // mult binned systematic uncertainty from MultiTrial
+    TH1D *sysSigExtraction_xim[kNumSysTypeSigExt];                     // mult integrated systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_xip[kNumSysTypeSigExt];                     // mult integrated systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_omm[kNumSysTypeSigExt];                     // mult integrated systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_omp[kNumSysTypeSigExt];                     // mult integrated systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_xiC[kNumSysTypeSigExt];                     // mult integrated systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_omC[kNumSysTypeSigExt];                     // mult integrated systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_xim_mult[kNumSysTypeSigExt][fNmultbins_Xi]; // mult binned systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_xip_mult[kNumSysTypeSigExt][fNmultbins_Xi]; // mult binned systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_omm_mult[kNumSysTypeSigExt][fNmultbins_Om]; // mult binned systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_omp_mult[kNumSysTypeSigExt][fNmultbins_Om]; // mult binned systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_xiC_mult[kNumSysTypeSigExt][fNmultbins_Xi]; // mult binned systematic uncertainty from Signal Extraction
+    TH1D *sysSigExtraction_omC_mult[kNumSysTypeSigExt][fNmultbins_Om]; // mult binned systematic uncertainty from Signal Extraction
 
     TH1D *sysMaterialBudget_xi; // material budget systematic uncertainty: constant at 4%
     TH1D *sysMaterialBudget_om; // material budget systematic uncertainty: constant at 4%
@@ -228,12 +238,6 @@ int TotalSystematics(
     outputFile->mkdir("dirSysMultiTrial/omp");
     outputFile->mkdir("dirSysMultiTrial/xiC");
     outputFile->mkdir("dirSysMultiTrial/omC");
-    outputFile->mkdir("dirSysSigExtraction/xim");
-    outputFile->mkdir("dirSysSigExtraction/xip");
-    outputFile->mkdir("dirSysSigExtraction/omm");
-    outputFile->mkdir("dirSysSigExtraction/omp");
-    outputFile->mkdir("dirSysSigExtraction/xiC");
-    outputFile->mkdir("dirSysSigExtraction/omC");
     outputFile->mkdir("dirSysTotal/xim");
     outputFile->mkdir("dirSysTotal/xip");
     outputFile->mkdir("dirSysTotal/omm");
@@ -405,74 +409,88 @@ int TotalSystematics(
     delete sysMultiTrialFile;
 
     /// Getting Signal Extraction systematic uncertainty histograms:
-    TFile *sysSigExtractionFile = OpenFile(inputSysSigExtraction);
-    Info("TotalSystematics: sysSigExtractionInput", "Getting Signal Extraction systematic uncertainty histograms from '%s'", inputSysSigExtraction.Data());
-    sysSigExtraction_xim = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_xim");
-    sysSigExtraction_xip = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_xip");
-    sysSigExtraction_omm = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_omm");
-    sysSigExtraction_omp = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_omp");
-    sysSigExtraction_xiC = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_xiC");
-    sysSigExtraction_omC = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_omC");
-    /// Add to output file as no other changes are needed:
-    outputFile->cd("dirSysSigExtraction/xim");
-    sysSigExtraction_xim->Write();
-    outputFile->cd("dirSysSigExtraction/xip");
-    sysSigExtraction_xip->Write();
-    outputFile->cd("dirSysSigExtraction/omm");
-    sysSigExtraction_omm->Write();
-    outputFile->cd("dirSysSigExtraction/omp");
-    sysSigExtraction_omp->Write();
-    outputFile->cd("dirSysSigExtraction/xiC");
-    sysSigExtraction_xiC->Write();
-    outputFile->cd("dirSysSigExtraction/omC");
-    sysSigExtraction_omC->Write();
-
-    StyleHistogram(sysSigExtraction_xim, "Signal Extraction");
-    StyleHistogram(sysSigExtraction_xip, "Signal Extraction");
-    StyleHistogram(sysSigExtraction_omm, "Signal Extraction");
-    StyleHistogram(sysSigExtraction_omp, "Signal Extraction");
-    StyleHistogram(sysSigExtraction_xiC, "Signal Extraction");
-    StyleHistogram(sysSigExtraction_omC, "Signal Extraction");
-
-    // Add Signal Extraction systematic uncertainties to uncertainty stack (mult integrated):
-    hs_uncertainty_xim->Add(sysSigExtraction_xim, "TEXT00");
-    hs_uncertainty_xip->Add(sysSigExtraction_xip, "TEXT00");
-    hs_uncertainty_omm->Add(sysSigExtraction_omm, "TEXT00");
-    hs_uncertainty_omp->Add(sysSigExtraction_omp, "TEXT00");
-    hs_uncertainty_xiC->Add(sysSigExtraction_xiC, "TEXT00");
-    hs_uncertainty_omC->Add(sysSigExtraction_omC, "TEXT00");
-    for (Int_t multBinXi = 0; multBinXi < fNmultbins_Xi; multBinXi++)
+    for (Int_t iType = 0; iType < kNumSysTypeSigExt; iType++)
     {
-        sysSigExtraction_xim_mult[multBinXi] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_xim_mult[%d]", multBinXi));
-        sysSigExtraction_xip_mult[multBinXi] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_xip_mult[%d]", multBinXi));
-        sysSigExtraction_xiC_mult[multBinXi] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_xiC_mult[%d]", multBinXi));
+        TString fullSigExtName = TString::Format("%s/%s/%s", inputSysSigExtractionPrefix.Data(), gSysTypeSigExt[iType].Data(), inputSysSigExtractionFileName.Data());
 
-        outputFile->cd("dirSysSigExtraction/xim");
-        sysSigExtraction_xim_mult[multBinXi]->Write();
-        outputFile->cd("dirSysSigExtraction/xip");
-        sysSigExtraction_xip_mult[multBinXi]->Write();
-        outputFile->cd("dirSysSigExtraction/xiC");
-        sysSigExtraction_xiC_mult[multBinXi]->Write();
-    }
-    for (Int_t multBinOm = 0; multBinOm < fNmultbins_Om; multBinOm++)
-    {
-        sysSigExtraction_omm_mult[multBinOm] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_omm_mult[%d]", multBinOm));
-        sysSigExtraction_omp_mult[multBinOm] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_omp_mult[%d]", multBinOm));
-        sysSigExtraction_omC_mult[multBinOm] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_omC_mult[%d]", multBinOm));
+        TFile *sysSigExtractionFile = OpenFile(fullSigExtName);
+        Info("TotalSystematics: sysSigExtractionInput", "Getting Signal Extraction systematic uncertainty histograms from '%s'", fullSigExtName.Data());
+        sysSigExtraction_xim[iType] = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_xim");
+        sysSigExtraction_xip[iType] = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_xip");
+        sysSigExtraction_omm[iType] = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_omm");
+        sysSigExtraction_omp[iType] = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_omp");
+        sysSigExtraction_xiC[iType] = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_xiC");
+        sysSigExtraction_omC[iType] = (TH1D *)sysSigExtractionFile->FindObjectAny("sysSigExt_omC");
 
-        outputFile->cd("dirSysSigExtraction/omm");
-        sysSigExtraction_omm_mult[multBinOm]->Write();
-        outputFile->cd("dirSysSigExtraction/omp");
-        sysSigExtraction_omp_mult[multBinOm]->Write();
-        outputFile->cd("dirSysSigExtraction/omC");
-        sysSigExtraction_omC_mult[multBinOm]->Write();
+        // make output directories
+        outputFile->mkdir(TString::Format("dirSysSigExtraction/%s/xim", gSysTypeSigExt[iType].Data()));
+        outputFile->mkdir(TString::Format("dirSysSigExtraction/%s/xip", gSysTypeSigExt[iType].Data()));
+        outputFile->mkdir(TString::Format("dirSysSigExtraction/%s/omm", gSysTypeSigExt[iType].Data()));
+        outputFile->mkdir(TString::Format("dirSysSigExtraction/%s/omp", gSysTypeSigExt[iType].Data()));
+        outputFile->mkdir(TString::Format("dirSysSigExtraction/%s/xiC", gSysTypeSigExt[iType].Data()));
+        outputFile->mkdir(TString::Format("dirSysSigExtraction/%s/omC", gSysTypeSigExt[iType].Data()));
+
+        /// Add to output file as no other changes are needed:
+        outputFile->cd(TString::Format("dirSysSigExtraction/%s/xim", gSysTypeSigExt[iType].Data()));
+        sysSigExtraction_xim[iType]->Write();
+        outputFile->cd(TString::Format("dirSysSigExtraction/%s/xip", gSysTypeSigExt[iType].Data()));
+        sysSigExtraction_xip[iType]->Write();
+        outputFile->cd(TString::Format("dirSysSigExtraction/%s/omm", gSysTypeSigExt[iType].Data()));
+        sysSigExtraction_omm[iType]->Write();
+        outputFile->cd(TString::Format("dirSysSigExtraction/%s/omp", gSysTypeSigExt[iType].Data()));
+        sysSigExtraction_omp[iType]->Write();
+        outputFile->cd(TString::Format("dirSysSigExtraction/%s/xiC", gSysTypeSigExt[iType].Data()));
+        sysSigExtraction_xiC[iType]->Write();
+        outputFile->cd(TString::Format("dirSysSigExtraction/%s/omC", gSysTypeSigExt[iType].Data()));
+        sysSigExtraction_omC[iType]->Write();
+
+        StyleHistogram(sysSigExtraction_xim[iType], gSysTypeSigExt[iType]);
+        StyleHistogram(sysSigExtraction_xip[iType], gSysTypeSigExt[iType]);
+        StyleHistogram(sysSigExtraction_omm[iType], gSysTypeSigExt[iType]);
+        StyleHistogram(sysSigExtraction_omp[iType], gSysTypeSigExt[iType]);
+        StyleHistogram(sysSigExtraction_xiC[iType], gSysTypeSigExt[iType]);
+        StyleHistogram(sysSigExtraction_omC[iType], gSysTypeSigExt[iType]);
+
+        // Add Signal Extraction systematic uncertainties to uncertainty stack (mult integrated):
+        hs_uncertainty_xim->Add(sysSigExtraction_xim[iType], "TEXT00");
+        hs_uncertainty_xip->Add(sysSigExtraction_xip[iType], "TEXT00");
+        hs_uncertainty_omm->Add(sysSigExtraction_omm[iType], "TEXT00");
+        hs_uncertainty_omp->Add(sysSigExtraction_omp[iType], "TEXT00");
+        hs_uncertainty_xiC->Add(sysSigExtraction_xiC[iType], "TEXT00");
+        hs_uncertainty_omC->Add(sysSigExtraction_omC[iType], "TEXT00");
+        for (Int_t multBinXi = 0; multBinXi < fNmultbins_Xi; multBinXi++)
+        {
+            sysSigExtraction_xim_mult[iType][multBinXi] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_xim_mult[%d]", multBinXi));
+            sysSigExtraction_xip_mult[iType][multBinXi] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_xip_mult[%d]", multBinXi));
+            sysSigExtraction_xiC_mult[iType][multBinXi] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_xiC_mult[%d]", multBinXi));
+
+            outputFile->cd(TString::Format("dirSysSigExtraction/%s/xim", gSysTypeSigExt[iType].Data()));
+            sysSigExtraction_xim_mult[iType][multBinXi]->Write();
+            outputFile->cd(TString::Format("dirSysSigExtraction/%s/xip", gSysTypeSigExt[iType].Data()));
+            sysSigExtraction_xip_mult[iType][multBinXi]->Write();
+            outputFile->cd(TString::Format("dirSysSigExtraction/%s/xiC", gSysTypeSigExt[iType].Data()));
+            sysSigExtraction_xiC_mult[iType][multBinXi]->Write();
+        }
+        for (Int_t multBinOm = 0; multBinOm < fNmultbins_Om; multBinOm++)
+        {
+            sysSigExtraction_omm_mult[iType][multBinOm] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_omm_mult[%d]", multBinOm));
+            sysSigExtraction_omp_mult[iType][multBinOm] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_omp_mult[%d]", multBinOm));
+            sysSigExtraction_omC_mult[iType][multBinOm] = (TH1D *)sysSigExtractionFile->FindObjectAny(TString::Format("sysSigExt_omC_mult[%d]", multBinOm));
+
+            outputFile->cd(TString::Format("dirSysSigExtraction/%s/omm", gSysTypeSigExt[iType].Data()));
+            sysSigExtraction_omm_mult[iType][multBinOm]->Write();
+            outputFile->cd(TString::Format("dirSysSigExtraction/%s/omp", gSysTypeSigExt[iType].Data()));
+            sysSigExtraction_omp_mult[iType][multBinOm]->Write();
+            outputFile->cd(TString::Format("dirSysSigExtraction/%s/omC", gSysTypeSigExt[iType].Data()));
+            sysSigExtraction_omC_mult[iType][multBinOm]->Write();
+        }
+        // input ended for sysSigExtractionFile
+        delete sysSigExtractionFile;
     }
-    // input ended for sysSigExtractionFile
-    delete sysSigExtractionFile;
 
     /// Compute material budget systematic uncertainty (4% of yield - constant as a function of pT):
-    sysMaterialBudget_xi = (TH1D *)sysSigExtraction_xiC->Clone("sysMaterialBudget_xi");
-    sysMaterialBudget_om = (TH1D *)sysSigExtraction_omC->Clone("sysMaterialBudget_om");
+    sysMaterialBudget_xi = (TH1D *)sysSigExtraction_xiC[kSignalRange]->Clone("sysMaterialBudget_xi");
+    sysMaterialBudget_om = (TH1D *)sysSigExtraction_omC[kSignalRange]->Clone("sysMaterialBudget_om");
     for (Int_t iBin = 1; iBin <= sysMaterialBudget_xi->GetNbinsX(); iBin++)
     {
         sysMaterialBudget_xi->SetBinContent(iBin, 0.04);
@@ -531,9 +549,9 @@ int TotalSystematics(
 
     for (Int_t ptBinXi = 0; ptBinXi < fNptbins_Xi; ptBinXi++)
     {
-        val_sysTotal_xip = TMath::Sqrt(TMath::Power(sysMultiTrial_xip->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xip->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
-        val_sysTotal_xim = TMath::Sqrt(TMath::Power(sysMultiTrial_xim->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xim->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
-        val_sysTotal_xiC = TMath::Sqrt(TMath::Power(sysMultiTrial_xiC->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xiC->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+        val_sysTotal_xip = TMath::Sqrt(TMath::Power(sysMultiTrial_xip->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xip[kFitFunction]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xip[kSignalRange]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xip[kBackgroundRange]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+        val_sysTotal_xim = TMath::Sqrt(TMath::Power(sysMultiTrial_xim->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xim[kFitFunction]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xim[kSignalRange]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xim[kBackgroundRange]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+        val_sysTotal_xiC = TMath::Sqrt(TMath::Power(sysMultiTrial_xiC->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xiC[kFitFunction]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xiC[kSignalRange]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xiC[kBackgroundRange]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
         sysTotal_xip->SetBinContent(ptBinXi + 1, val_sysTotal_xip);
         sysTotal_xim->SetBinContent(ptBinXi + 1, val_sysTotal_xim);
         sysTotal_xiC->SetBinContent(ptBinXi + 1, val_sysTotal_xiC);
@@ -552,9 +570,9 @@ int TotalSystematics(
 
         for (Int_t multBinXi = 0; multBinXi < fNmultbins_Xi; multBinXi++)
         {
-            val_sysTotal_xip = TMath::Sqrt(TMath::Power(sysMultiTrial_xip_mult[multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xip_mult[multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
-            val_sysTotal_xim = TMath::Sqrt(TMath::Power(sysMultiTrial_xim_mult[multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xim_mult[multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
-            val_sysTotal_xiC = TMath::Sqrt(TMath::Power(sysMultiTrial_xiC_mult[multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xiC_mult[multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+            val_sysTotal_xip = TMath::Sqrt(TMath::Power(sysMultiTrial_xip_mult[multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xip_mult[kFitFunction][multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xip_mult[kSignalRange][multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xip_mult[kBackgroundRange][multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+            val_sysTotal_xim = TMath::Sqrt(TMath::Power(sysMultiTrial_xim_mult[multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xim_mult[kFitFunction][multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xim_mult[kSignalRange][multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xim_mult[kBackgroundRange][multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+            val_sysTotal_xiC = TMath::Sqrt(TMath::Power(sysMultiTrial_xiC_mult[multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xiC_mult[kFitFunction][multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xiC_mult[kSignalRange][multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(sysSigExtraction_xiC_mult[kBackgroundRange][multBinXi]->GetBinContent(ptBinXi + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
             sysTotal_xip_mult[multBinXi]->SetBinContent(ptBinXi + 1, val_sysTotal_xip);
             sysTotal_xim_mult[multBinXi]->SetBinContent(ptBinXi + 1, val_sysTotal_xim);
             sysTotal_xiC_mult[multBinXi]->SetBinContent(ptBinXi + 1, val_sysTotal_xiC);
@@ -571,9 +589,9 @@ int TotalSystematics(
 
     for (Int_t ptBinOm = 0; ptBinOm < fNptbins_Om; ptBinOm++)
     {
-        val_sysTotal_omp = TMath::Sqrt(TMath::Power(sysMultiTrial_omp->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omp->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
-        val_sysTotal_omm = TMath::Sqrt(TMath::Power(sysMultiTrial_omm->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omm->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
-        val_sysTotal_omC = TMath::Sqrt(TMath::Power(sysMultiTrial_omC->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omC->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+        val_sysTotal_omp = TMath::Sqrt(TMath::Power(sysMultiTrial_omp->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omp[kFitFunction]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omp[kSignalRange]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omp[kBackgroundRange]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+        val_sysTotal_omm = TMath::Sqrt(TMath::Power(sysMultiTrial_omm->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omm[kFitFunction]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omm[kSignalRange]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omm[kBackgroundRange]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+        val_sysTotal_omC = TMath::Sqrt(TMath::Power(sysMultiTrial_omC->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omC[kFitFunction]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omC[kSignalRange]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omC[kBackgroundRange]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
         sysTotal_omp->SetBinContent(ptBinOm + 1, val_sysTotal_omp);
         sysTotal_omm->SetBinContent(ptBinOm + 1, val_sysTotal_omm);
         sysTotal_omC->SetBinContent(ptBinOm + 1, val_sysTotal_omC);
@@ -592,9 +610,9 @@ int TotalSystematics(
 
         for (Int_t multBinOm = 0; multBinOm < fNmultbins_Om; multBinOm++)
         {
-            val_sysTotal_omp = TMath::Sqrt(TMath::Power(sysMultiTrial_omp_mult[multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omp_mult[multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
-            val_sysTotal_omm = TMath::Sqrt(TMath::Power(sysMultiTrial_omm_mult[multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omm_mult[multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
-            val_sysTotal_omC = TMath::Sqrt(TMath::Power(sysMultiTrial_omC_mult[multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omC_mult[multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+            val_sysTotal_omp = TMath::Sqrt(TMath::Power(sysMultiTrial_omp_mult[multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omp_mult[kFitFunction][multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omp_mult[kSignalRange][multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omp_mult[kBackgroundRange][multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+            val_sysTotal_omm = TMath::Sqrt(TMath::Power(sysMultiTrial_omm_mult[multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omm_mult[kFitFunction][multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omm_mult[kSignalRange][multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omm_mult[kBackgroundRange][multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
+            val_sysTotal_omC = TMath::Sqrt(TMath::Power(sysMultiTrial_omC_mult[multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omC_mult[kFitFunction][multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omC_mult[kSignalRange][multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(sysSigExtraction_omC_mult[kBackgroundRange][multBinOm]->GetBinContent(ptBinOm + 1), 2) + TMath::Power(0.04, 2) /*const 4% material budget*/);
             sysTotal_omp_mult[multBinOm]->SetBinContent(ptBinOm + 1, val_sysTotal_omp);
             sysTotal_omm_mult[multBinOm]->SetBinContent(ptBinOm + 1, val_sysTotal_omm);
             sysTotal_omC_mult[multBinOm]->SetBinContent(ptBinOm + 1, val_sysTotal_omC);
