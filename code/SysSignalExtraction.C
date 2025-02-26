@@ -38,7 +38,7 @@ Double_t ComputeYieldDev(TH1 *hVar, TH1 *hDef, TH1 *hYieldDev, Int_t ptBin, Int_
  * the associated uncertainty. The calculation method is determined
  * by the stat parameter (enum).
  */
-Double_t GetUncertainty(TH1 *hYieldDev, Int_t stat = kRMS);
+Double_t GetUncertainty(TH1 *hYieldDev, Int_t stat = kMean);
 
 /**
  * @brief Draws a histogram and saves it as an image
@@ -87,8 +87,8 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
 int SysSignalExtraction(
     TString inputPath = "/var/home/ishaan/Work/git/analysis/results/RandomVars/SysVars_SignalExtraction/200225_SysSigExt_effCorr",
     TString effCorrInputFilePrefix = "200225_SysSigExt",
-    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/210225_Systematics_SigExt/210225_SystematicUncertainty_SigExt.root",
-    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/210225_Systematics_SigExt",
+    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/250225_Systematics_SigExt/BackgroundFitRange/250225_SystematicUncertainty_SigExt.root",
+    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/250225_Systematics_SigExt/BackgroundFitRange",
     Bool_t fDebug = kFALSE,
     Bool_t saveImages = kTRUE,
     TString imageFormat = "png",
@@ -105,7 +105,7 @@ int SysSignalExtraction(
 
     outputFolder = SetOutputFolder(outputFolder);
 
-    TString varName[] = {"GP2_def", "DGP3_def", "DGP2_3sig", "DGP2_5sig", "DGP2_10bg", "DGP2_15bg"};
+    TString varName[] = /*{"GP2_def", "DGP3_def"};*/ /*{"DGP2_3sig", "DGP2_5sig"}*/ {"DGP2_10bg", "DGP2_15bg"};
     UInt_t nVar = sizeof(varName) / sizeof(varName[0]);
 
     TH1 *def_effCorrPt_xim;                     // mult integrated efficiency corrected spectra for default cuts
@@ -507,7 +507,7 @@ Double_t GetUncertainty(TH1 *hYieldDev, Int_t stat)
     if (stat == kMean)
         uncertainty = TMath::Mean(nVar, yArray);
     else if (stat == kRMS)
-        uncertainty = TMath::RMS(nVar, yArray);
+        uncertainty = CalculateRMS(nVar, yArray);
     else if (stat == kMax)
         uncertainty = TMath::MaxElement(nVar, yArray);
 
@@ -556,7 +556,7 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
             yArray[iBin] = hist->GetBinContent(iBin + 1);
         }
         Double_t yMean = TMath::Mean(nVar, yArray);
-        Double_t yRMS = TMath::RMS(nVar, yArray);
+        Double_t yRMS = CalculateRMS(nVar, yArray);
         Double_t yMax = TMath::MaxElement(nVar, yArray);
 
         TLine *lMaxLine = new TLine(xMin, yMax, xMax, yMax);
@@ -579,6 +579,7 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
         legend->AddEntry(lRmsLine, TString::Format("RMS = %.5f", yRMS), "l");
 
         hist->SetMaximum(TMath::Max(yMax, yRMS) * 1.2);
+        hist->SetMinimum(TMath::Min(hist->GetMinimum(), yRMS) * 0.8);
         hist->Draw("TEXT00");
         lMaxLine->Draw("SAME");
         lMeanLine->Draw("SAME");
