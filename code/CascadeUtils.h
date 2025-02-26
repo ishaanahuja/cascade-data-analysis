@@ -418,6 +418,40 @@ inline Double_t GetProb(TFitResultPtr fFitResult)
 }
 
 /**
+ * @brief Calculates the Root Mean Square (RMS) value of an array of doubles
+ * 
+ * This function computes the RMS by:
+ * 1. Squaring each element
+ * 2. Finding the mean of squared values
+ * 3. Taking the square root of the mean
+ * 
+ * @param arraySize The number of elements in the input array
+ * @param array Pointer to the array of double values
+ * @return double The RMS value of the array elements. Returns 0.0 if array is nullptr or arraySize <= 0
+ */
+double CalculateRMS(int arraySize, double *array)
+{
+    if (!array || arraySize <= 0)
+        return 0.0;
+
+    double square = 0.0, mean = 0.0, root = 0.0;
+
+    // Calculate square
+    for (int iArr = 0; iArr < arraySize; iArr++)
+    {
+        square += array[iArr] * array[iArr];
+    }
+
+    // Calculate Mean
+    mean = square / arraySize;
+
+    // Calculate Root
+    root = sqrt(mean);
+
+    return root;
+}
+
+/**
  * Calculates the integral and its error for a specified region in a 2D histogram
  *
  * @param h2 Pointer to the 2D histogram
