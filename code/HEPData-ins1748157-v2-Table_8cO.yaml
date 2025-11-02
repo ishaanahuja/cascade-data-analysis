@@ -1,0 +1,73 @@
+dependent_variables:
+- header: {name: 'dN/dy'} 
+  qualifiers:
+  - {name: Multiplicity, value: V0M multiplicity classes}
+  - {name: RE, value: 'P P --> $\Omega$ + X'}
+  - {name: SQRT(S), units: GEV, value: '13000.0'}
+  - {name: YRAP(CM), value: -0.5 0.5}
+  values:
+  - errors:
+    - {label: stat, symerror: 0.0005386190}
+    - {label: 'syst,total', symerror: 0.0009359367}
+    - {label: 'syst,uncorrelated', symerror: 0.0002365463}
+    value: 0.0103214156
+  - errors:
+    - {label: stat, symerror: 0.0002650247}
+    - {label: 'syst,total', symerror: 0.0006899374}
+    - {label: 'syst,uncorrelated', symerror: 0.0002728606}
+    value: 0.0070094986
+  - errors:
+    - {label: stat, symerror: 0.0002384983}
+    - {label: 'syst,total', symerror: 0.0004698625}
+    - {label: 'syst,uncorrelated', symerror: 0.0003023038}
+    value: 0.0043486953
+  - errors:
+    - {label: stat, symerror: 0.0001724946}
+    - {label: 'syst,total', symerror: 0.0003108356}
+    - {label: 'syst,uncorrelated', symerror: 0.0002756373}
+    value: 0.0022854405
+  - errors:
+    - {label: stat, symerror: 0.0000597499}
+    - {label: 'syst,total', symerror: 0.0000987166}
+    - {label: 'syst,uncorrelated', symerror: 0.0000812981}
+    value: 0.0006284247
+- header: {name: 'dN/dy'} 
+  qualifiers:
+  - {name: Multiplicity, value: V0M multiplicity classes}
+  - {name: RE, value: 'P P --> $K^{0}_{S}$ + X'}
+  - {name: SQRT(S), units: GEV, value: '13000.0'}
+  - {name: YRAP(CM), value: -0.5 0.5}
+  values:
+  - errors:
+    - {label: stat, symerror: 0.0030685058}
+    - {label: 'syst,total', symerror: 0.0463679871}
+    - {label: 'syst,uncorrelated', symerror: 0.0172609538}
+    value: 1.3216734642
+  - errors:
+    - {label: stat, symerror: 0.0018931695}
+    - {label: 'syst,total', symerror: 0.0334307596}
+    - {label: 'syst,uncorrelated', symerror: 0.0125095111}
+    value: 0.9436003942
+  - errors:
+    - {label: stat, symerror: 0.0012614760}
+    - {label: 'syst,total', symerror: 0.0244625151}
+    - {label: 'syst,uncorrelated', symerror: 0.0091865429}
+    value: 0.6826969639
+  - errors:
+    - {label: stat, symerror: 0.0009784293}
+    - {label: 'syst,total', symerror: 0.0167277122}
+    - {label: 'syst,uncorrelated', symerror: 0.0063156891}
+    value: 0.4622119353
+  - errors:
+    - {label: stat, symerror: 0.0004880194}
+    - {label: 'syst,total', symerror: 0.0089789354}
+    - {label: 'syst,uncorrelated', symerror: 0.0031068852}
+    value: 0.2187538099
+independent_variables:
+- header: {name: '$\langle dN_{ch}/d_{\eta} \rangle_{|\eta|<0.5}$'}
+  values:
+  - {high: 21.33, low: 20.69, value: 21.01}
+  - {high: 15.17, low: 14.72, value: 14.94}
+  - {high: 10.92, low: 10.60, value: 10.76}
+  - {high: 7.39, low: 7.17, value: 7.28}
+  - {high: 3.42, low: 3.32, value: 3.37}
