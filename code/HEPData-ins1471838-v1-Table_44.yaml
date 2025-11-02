@@ -1,0 +1,70 @@
+dependent_variables:
+- header: {name: $dN/dy$}
+  qualifiers:
+  - {name: RE, value: 'P P --> $\Xi^{-}+\bar{\Xi}^{+}$ + X'}
+  - {name: SQRT(S), units: GEV, value: '7000.0'}
+  - {name: YRAP(CM), value: -0.5 0.5}
+  values:
+  - errors:
+    - {label: stat, symerror: 0.001598}
+    - {label: 'sys,total', symerror: 0.006081}
+    - {label: 'sys,uncorr', symerror: 0.002571}
+    value: 0.09616
+  - errors:
+    - {label: stat, symerror: 0.0007437}
+    - {label: 'sys,total', symerror: 0.004629}
+    - {label: 'sys,uncorr', symerror: 0.002123}
+    value: 0.07169
+  - errors:
+    - {label: stat, symerror: 0.0006245}
+    - {label: 'sys,total', symerror: 0.003992}
+    - {label: 'sys,uncorr', symerror: 0.002057}
+    value: 0.05931
+  - errors:
+    - {label: stat, symerror: 0.0005393}
+    - {label: 'sys,total', symerror: 0.003352}
+    - {label: 'sys,uncorr', symerror: 0.001864}
+    value: 0.04832
+  - errors:
+    - {label: stat, symerror: 0.0004974}
+    - {label: 'sys,total', symerror: 0.003042}
+    - {label: 'sys,uncorr', symerror: 0.00193}
+    value: 0.04068
+  - errors:
+    - {label: stat, symerror: 0.0003545}
+    - {label: 'sys,total', symerror: 0.002549}
+    - {label: 'sys,uncorr', symerror: 0.001663}
+    value: 0.03333
+  - errors:
+    - {label: stat, symerror: 0.0002936}
+    - {label: 'sys,total', symerror: 0.002045}
+    - {label: 'sys,uncorr', symerror: 0.00144}
+    value: 0.02485
+  - errors:
+    - {label: stat, symerror: 0.0002831}
+    - {label: 'sys,total', symerror: 0.001698}
+    - {label: 'sys,uncorr', symerror: 0.001312}
+    value: 0.01889
+  - errors:
+    - {label: stat, symerror: 0.0001746}
+    - {label: 'sys,total', symerror: 0.001275}
+    - {label: 'sys,uncorr', symerror: 0.001086}
+    value: 0.01205
+  - errors:
+    - {label: stat, symerror: 0.0001069}
+    - {label: 'sys,total', symerror: 0.0007461}
+    - {label: 'sys,uncorr', symerror: 0.0006779}
+    value: 0.005199
+independent_variables:
+- header: {name: '$\langle dN_{ch}/d\eta \rangle_{|\eta|<0.5}$'}
+  values:
+  - {high: 21.93, low: 20.65, value: 21.29}
+  - {high: 17.01, low: 16.01, value: 16.51}
+  - {high: 13.86, low: 13.06, value: 13.46}
+  - {high: 11.86, low: 11.16, value: 11.51}
+  - {high: 10.38, low: 9.78, value: 10.08}
+  - {high: 8.7, low: 8.2, value: 8.45}
+  - {high: 6.93, low: 6.51, value: 6.72}
+  - {high: 5.57, low: 5.23, value: 5.4}
+  - {high: 4.04, low: 3.76, value: 3.9}
+  - {high: 2.38, low: 2.14, value: 2.26}
