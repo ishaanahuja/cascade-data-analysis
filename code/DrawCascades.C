@@ -4,7 +4,6 @@
 #include <TStyle.h>
 #include <TLine.h>
 #include <TLegend.h>
-#include <TLatex.h>
 
 #include "CascadeUtils.h"
 
@@ -83,121 +82,15 @@ void DrawRatioLine(TCanvas &c, THStack &hs, Double_t hs_yMin = -100, Double_t hs
  * @note This is not mandatory to run anymore, as the functionality is replicated in EfficiencyEstimation.C, but can be used to generate raw pT spectra, fitting and efficiency plots
  */
 
-void PaintStack_Draw(TCanvas &c, THStack &hs, Bool_t setLogY = kTRUE, TString yAxisTitle = "#frac{1}{#it{N}_{inel}} #frac{d#it{N}_{raw}}{d#it{p}_{T}} (GeV/#it{c})^{-1}", TString xAxisTitle = "#it{p}_{T} (GeV/#it{c})")
-{
-    c.Clear();
-    c.cd();
-
-    c.SetLeftMargin(0.12);  // New mod for final thesis plots
-    c.SetRightMargin(0.03); // New mod for final thesis plots
-    c.SetTopMargin(0.03);   // New mod for final thesis plots
-    if (setLogY)
-        gPad->SetLogy();
-
-    // New mod for final thesis plots
-    TString hsTitle = hs.GetTitle();
-    TLegend *legend;
-    Double_t xmin, ymin = 0.0;
-    Double_t xmax, ymax = 10.0; // Default x-axis maximum
-    if (hsTitle.Contains("Xi"))
-    {
-        legend = new TLegend(0.15, 0.12, 0.8, 0.3, "V0A Multiplicity Percentile");
-        legend->SetNColumns(4); // Set number of columns in the legend
-        xmin = fPtbins_Xi[0];
-        ymin = 8e-7;
-        xmax = fPtbins_Xi[fNptbins_Xi]; // Set x-axis maximum for Xi
-        ymax =  hs.GetMaximum() * 7;
-    }
-    else
-    {
-        legend = new TLegend(0.17, 0.13, 0.68, 0.26, "V0A Multiplicity Percentile");
-        legend->SetNColumns(3); // Set number of columns in the legend
-        xmin = fPtbins_Om[0];
-        ymin = 1e-6;
-        xmax = fPtbins_Om[fNptbins_Om]; // Set x-axis maximum for Om
-        ymax =  hs.GetMaximum() * 3;
-    }
-
-    TH1F *frame = c.DrawFrame(xmin, ymin, xmax, ymax); // New mod for final thesis plots
-    frame->SetXTitle(xAxisTitle.Data());
-    frame->SetYTitle(yAxisTitle.Data());
-    frame->SetTitleOffset(1.8, "Y"); // New mod for final thesis plots
-    frame->SetTitleOffset(1.5, "X"); // New mod for final thesis plots
-    frame->SetTitleSize(0.03, "Y");  // New mod for final thesis plots
-    frame->SetTitleSize(0.03, "X");  // New mod for final thesis plots
-    frame->SetLabelSize(0.028, "Y"); // New mod for final thesis plots
-    // hs.SetMinimum(1e-7);                // Set minimum to 80% of the lowest bin content
-    // hs.SetMaximum(hs.GetMaximum() * 5); // Set maximum to 150% of the highest bin content
-    // hs.SetMinimum(hs.GetMinimum() * 0.000001); // Set minimum to 80% of the lowest bin content
-    hs.Draw("plc pmc nostack same");
-
-    // Info("PaintStackOverlap", "xAxisTitle: %s, yAxisTitle: %s", xAxisTitle.Data(), yAxisTitle.Data());
-    // hs.GetXaxis()->SetTitle(xAxisTitle.Data());
-    // hs.GetYaxis()->SetTitle(yAxisTitle.Data());
-
-    // TString hsTitle = hs.GetTitle();
-    // // TLegend *legend = new TLegend(0.9, 0.6, 1., 1., "");
-    // // New mod for final thesis plots
-    // TLegend *legend;
-    // if (hsTitle.Contains("Xi"))
-    // {
-    //     legend = new TLegend(0.15, 0.12, 0.8, 0.3, "V0A Multiplicity Percentile");
-    //     legend->SetNColumns(4); // Set number of columns in the legend
-    // }
-    // else
-    // {
-    //     legend = new TLegend(0.17, 0.15, 0.68, 0.3, "V0A Multiplicity Percentile");
-    //     legend->SetNColumns(3); // Set number of columns in the legend
-    // }
-    legend->SetBorderSize(0); // Remove border around the legend
-    // legend->SetHeader("Sources", "C"); // Set header for the legend
-    legend->SetFillColor(0); // Set legend background color to transparent
-    legend->SetFillStyle(0); // Set fill style to transparent
-    legend->SetTextSize(0.025);
-    TLatex *latexCollTitle = new TLatex(0.68, 0.9, "p-Pb #sqrt{s_{NN}} = 8.16 TeV, This work");
-    TLatex *latexPlotTitle = new TLatex(0.68, 0.86, hsTitle.Data());
-    // TLatex *latexInfo = new TLatex(0.65, 0.81, "Uncertainties: stat.(bars), sys.(boxes)");
-    latexCollTitle->SetTextSize(0.025);
-    latexPlotTitle->SetTextSize(0.025);
-    // latexInfo->SetTextSize(0.022);
-    // latexInfo->SetTextFont(42);
-    latexCollTitle->SetNDC(kTRUE);
-    latexPlotTitle->SetNDC(kTRUE);
-    // latexInfo->SetNDC(kTRUE);
-    latexCollTitle->Draw();
-    latexPlotTitle->Draw();
-    // latexInfo->Draw();
-    hs.SetTitle("");
-
-    TList *histList = hs.GetHists();
-    for (int iHist = 0; iHist < histList->GetSize(); iHist++)
-    {
-        TH1 *hist = (TH1 *)histList->At(iHist);
-        // if (TString(hist->GetName()).Contains("stat"))
-        // {
-        legend->AddEntry(hist, hist->GetTitle(), "lpe");
-        // }
-    }
-    // TH1D *h = (TH1D *)histList->At(histList->GetSize() - 1); // Get the last histogram in the list
-
-    // Add Levy fit of 0-100% stat effcorr to legend:
-    // if (fit)
-    //     legend->AddEntry(h->GetListOfFunctions()->At(0), "L#acute{e}vy-Tsallis fit", "l");
-
-    legend->Draw();
-    c.Modified();
-    c.ForceUpdate();
-}
-
 int DrawCascades(
     TString inputFilename = "/var/home/ishaan/Work/git/analysis/results/RandomVars/SysVars_SignalExtraction/190225_SysSigExt_Fit/190225_SysSigExt_DGP2_def_6Runs.root",
-    TString outputFilename = "/var/home/ishaan/Work/git/thesis/final/images/120625_InvMassRawPt/120625_InvMassRawPt_def_6Runs_draw.root",
-    TString outputFolder = "/var/home/ishaan/Work/git/thesis/final/images/120625_InvMassRawPt",
+    TString outputFilename = "/var/home/ishaan/Work/git/analysis/results/RandomVars/SysVars_SignalExtraction/190225_SysSigExt_Draw/190225_SysSigExt_DGP2_def_6Runs_draw.root",
+    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/SysVars_SignalExtraction/SysSigExt_Draw/230225_DGP2_def_6Runs",
     TString ptRatioFilename = "",
     Bool_t fisMC = kFALSE,
-    Bool_t saveImages = kFALSE,
+    Bool_t saveImages = kTRUE,
     Bool_t saveStack = kTRUE,
-    TString imageFormat = "pdf",
+    TString imageFormat = "png",
     Int_t verbosity = kInfo)
 {
     // gPrintViaErrorHandler = kTRUE;
@@ -206,13 +99,6 @@ int DrawCascades(
 
     outputFolder = SetOutputFolder(outputFolder);
     gStyle->SetOptFit(1111);
-
-    // SetCustomColorPalette();
-    // extra options for decorating final plots (pdf) in thesis
-    gStyle->SetLineScalePS(2);
-    gStyle->SetStatFontSize(0.03);
-    gStyle->SetPadTickX(1); // Ticks on both top and bottom for X axis
-    gStyle->SetPadTickY(1); // Ticks on both left and right for Y axis
 
     TH1 *h_MassXim;
     TH1 *h_MassXip;
@@ -271,12 +157,12 @@ int DrawCascades(
     TH1D *eff_xiC_ratio[fNmultbins_Xi];
     TH1D *eff_omC_ratio[fNmultbins_Om];
 
-    TH1D *eff_pt_xim = new TH1D("eff_pt_xim", "V0A 0-100%", fNptbins_Xi, fPtbins_Xi); /// mult integrated efficiency
-    TH1D *eff_pt_xip = new TH1D("eff_pt_xip", "V0A 0-100%", fNptbins_Xi, fPtbins_Xi);
-    TH1D *eff_pt_omm = new TH1D("eff_pt_omm", "V0A 0-100%", fNptbins_Om, fPtbins_Om);
-    TH1D *eff_pt_omp = new TH1D("eff_pt_omp", "V0A 0-100%", fNptbins_Om, fPtbins_Om);
-    TH1D *eff_pt_xiC = new TH1D("eff_pt_xiC", "V0A 0-100%", fNptbins_Xi, fPtbins_Xi);
-    TH1D *eff_pt_omC = new TH1D("eff_pt_omC", "V0A 0-100%", fNptbins_Om, fPtbins_Om);
+    TH1D *eff_pt_xim = new TH1D("eff_pt_xim", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi); /// mult integrated efficiency
+    TH1D *eff_pt_xip = new TH1D("eff_pt_xip", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi);
+    TH1D *eff_pt_omm = new TH1D("eff_pt_omm", "Mult: 0-100%", fNptbins_Om, fPtbins_Om);
+    TH1D *eff_pt_omp = new TH1D("eff_pt_omp", "Mult: 0-100%", fNptbins_Om, fPtbins_Om);
+    TH1D *eff_pt_xiC = new TH1D("eff_pt_xiC", "Mult: 0-100%", fNptbins_Xi, fPtbins_Xi);
+    TH1D *eff_pt_omC = new TH1D("eff_pt_omC", "Mult: 0-100%", fNptbins_Om, fPtbins_Om);
 
     /// background estimation hist through TSpectrum
     TH1 *h_bgXim_pt_mult[fNptbins_Xi][fNmultbins_Xi];
@@ -441,17 +327,17 @@ int DrawCascades(
 
         eff_pt_xim->SetMarkerStyle(markerStyles[10]);
         eff_pt_xim->Write();
-        eff_pt_xim->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Xi[0], fMultbins_Xi[fNmultbins_Xi]));
+        eff_pt_xim->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Xi[0], fMultbins_Xi[fNmultbins_Xi]));
         hs_xim_eff->Add(eff_pt_xim);
 
         eff_pt_xip->SetMarkerStyle(markerStyles[10]);
         eff_pt_xip->Write();
-        eff_pt_xip->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Xi[0], fMultbins_Xi[fNmultbins_Xi]));
+        eff_pt_xip->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Xi[0], fMultbins_Xi[fNmultbins_Xi]));
         hs_xip_eff->Add(eff_pt_xip);
 
         eff_pt_xiC->SetMarkerStyle(markerStyles[10]);
         eff_pt_xiC->Write();
-        eff_pt_xiC->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Xi[0], fMultbins_Xi[fNmultbins_Xi]));
+        eff_pt_xiC->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Xi[0], fMultbins_Xi[fNmultbins_Xi]));
         hs_xiC_eff->Add(eff_pt_xiC);
 
         for (Int_t ptBinOm = 0; ptBinOm < fNptbins_Om; ptBinOm++)
@@ -467,26 +353,26 @@ int DrawCascades(
 
         eff_pt_omm->SetMarkerStyle(markerStyles[10]);
         eff_pt_omm->Write();
-        eff_pt_omm->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[0], fMultbins_Om[fNmultbins_Om]));
+        eff_pt_omm->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[0], fMultbins_Om[fNmultbins_Om]));
         hs_omm_eff->Add(eff_pt_omm);
 
         eff_pt_omp->SetMarkerStyle(markerStyles[10]);
         eff_pt_omp->Write();
-        eff_pt_omp->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[0], fMultbins_Om[fNmultbins_Om]));
+        eff_pt_omp->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[0], fMultbins_Om[fNmultbins_Om]));
         hs_omp_eff->Add(eff_pt_omp);
 
         eff_pt_omC->SetMarkerStyle(markerStyles[10]);
         eff_pt_omC->Write();
-        eff_pt_omC->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[0], fMultbins_Om[fNmultbins_Om]));
+        eff_pt_omC->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[0], fMultbins_Om[fNmultbins_Om]));
         hs_omC_eff->Add(eff_pt_omC);
     }
 
     /// XI:
     Info("DrawCascades", "Plotting Xi Data ...");
 
-    h_MassXim->GetXaxis()->SetTitle("M_{#Lambda^{0}#pi^{#pm}} (GeV/ #it{c}^{2})");
-    h_MassXip->GetXaxis()->SetTitle("M_{#Lambda^{0}#pi^{#pm}} (GeV/ #it{c}^{2})");
-    h_MassXiC->GetXaxis()->SetTitle("M_{#Lambda^{0}#pi^{#pm}} (GeV/ #it{c}^{2})");
+    h_MassXim->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+    h_MassXip->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+    h_MassXiC->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
 
     DrawAndSave(h_MassXim, nullptr, resultParams_Xim_allInt, saveImages, outputFolder, imageFormat);
     DrawAndSave(h_MassXip, nullptr, resultParams_Xip_allInt, saveImages, outputFolder, imageFormat);
@@ -495,9 +381,9 @@ int DrawCascades(
     /// Begin mult integrated part
     for (Int_t ptBinXi = 0; ptBinXi < fNptbins_Xi; ptBinXi++)
     {
-        h_MassXim_pt[ptBinXi]->GetXaxis()->SetTitle("M_{#Lambda^{0}#pi^{#pm}} (GeV/ #it{c}^{2})");
-        h_MassXip_pt[ptBinXi]->GetXaxis()->SetTitle("M_{#Lambda^{0}#pi^{#pm}} (GeV/ #it{c}^{2})");
-        h_MassXiC_pt[ptBinXi]->GetXaxis()->SetTitle("M_{#Lambda^{0}#pi^{#pm}} (GeV/ #it{c}^{2})");
+        h_MassXim_pt[ptBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+        h_MassXip_pt[ptBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+        h_MassXiC_pt[ptBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
         DrawAndSave(h_MassXim_pt[ptBinXi], nullptr, resultParXim_pt[ptBinXi], saveImages, outputFolder, imageFormat);
         DrawAndSave(h_MassXip_pt[ptBinXi], nullptr, resultParXip_pt[ptBinXi], saveImages, outputFolder, imageFormat);
         DrawAndSave(h_MassXiC_pt[ptBinXi], nullptr, resultParXiC_pt[ptBinXi], saveImages, outputFolder, imageFormat);
@@ -506,9 +392,10 @@ int DrawCascades(
     /// Begin differential part
     for (Int_t multBinXi = 0; multBinXi < fNmultbins_Xi; multBinXi++)
     {
-        rawPt_xim[multBinXi] = new TH1D(TString::Format(("rawPt_xim[%d]"), multBinXi), TString::Format(("%.0f-%.0f%% #times2^{%d}"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1], (fNmultbins_Xi - 1) - multBinXi), fNptbins_Xi, fPtbins_Xi);
-        rawPt_xip[multBinXi] = new TH1D(TString::Format(("rawPt_xip[%d]"), multBinXi), TString::Format(("%.0f-%.0f%% #times2^{%d}"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1], (fNmultbins_Xi - 1) - multBinXi), fNptbins_Xi, fPtbins_Xi);
-        rawPt_xiC[multBinXi] = new TH1D(TString::Format(("rawPt_xiC[%d]"), multBinXi), TString::Format(("%.0f-%.0f%% #times2^{%d}"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1], (fNmultbins_Xi - 1) - multBinXi), fNptbins_Xi, fPtbins_Xi);
+        rawPt_xim[multBinXi] = new TH1D(TString::Format(("rawPt_xim[%d]"), multBinXi), "", fNptbins_Xi, fPtbins_Xi);
+        rawPt_xip[multBinXi] = new TH1D(TString::Format(("rawPt_xip[%d]"), multBinXi), "", fNptbins_Xi, fPtbins_Xi);
+
+        rawPt_xiC[multBinXi] = new TH1D(TString::Format(("rawPt_xiC[%d]"), multBinXi), "", fNptbins_Xi, fPtbins_Xi);
 
         if (fisMC)
         {
@@ -544,9 +431,9 @@ int DrawCascades(
             // rawPt_xim[multBinXi]->Scale(1, "width");
             // rawPt_xip[multBinXi]->Scale(1, "width");
 
-            h_MassXim_pt_mult[ptBinXi][multBinXi]->GetXaxis()->SetTitle("M_{#Lambda^{0}#pi^{#pm}} (GeV/ #it{c}^{2})");
-            h_MassXip_pt_mult[ptBinXi][multBinXi]->GetXaxis()->SetTitle("M_{#Lambda^{0}#pi^{#pm}} (GeV/ #it{c}^{2})");
-            h_MassXiC_pt_mult[ptBinXi][multBinXi]->GetXaxis()->SetTitle("M_{#Lambda^{0}#pi^{#pm}} (GeV/ #it{c}^{2})");
+            h_MassXim_pt_mult[ptBinXi][multBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+            h_MassXip_pt_mult[ptBinXi][multBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
+            h_MassXiC_pt_mult[ptBinXi][multBinXi]->GetXaxis()->SetTitle("#Lambda^{0}-#pi^{#pm} Inv. Mass (GeV/c^{2})");
 
             DrawAndSave(h_MassXim_pt_mult[ptBinXi][multBinXi], h_bgXim_pt_mult[ptBinXi][multBinXi], resultParXim_pt_mult[ptBinXi][multBinXi], saveImages, outputFolder, imageFormat);
             DrawAndSave(h_MassXip_pt_mult[ptBinXi][multBinXi], h_bgXip_pt_mult[ptBinXi][multBinXi], resultParXip_pt_mult[ptBinXi][multBinXi], saveImages, outputFolder, imageFormat);
@@ -555,7 +442,7 @@ int DrawCascades(
         outputFile->cd("dirRawPt_xip");
         rawPt_xip[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
         rawPt_xip[multBinXi]->Write();
-        rawPt_xip[multBinXi]->SetName(TString::Format(("V0A %.0f-%.0f%% #times2^{%d}"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1], (fNmultbins_Xi - 1) - multBinXi));
+        rawPt_xip[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%, #times2^{%d}"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1], (fNmultbins_Xi - 1) - multBinXi));
         rawPt_xip[multBinXi]->Scale(pow(2, (fNmultbins_Xi - 1) - multBinXi));
         hs_xip->Add(rawPt_xip[multBinXi]);
 
@@ -563,7 +450,7 @@ int DrawCascades(
         {
             eff_xip[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
             eff_xip[multBinXi]->Write();
-            eff_xip[multBinXi]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
+            eff_xip[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
             // eff_xip[multBinXi]->Scale(pow(2, (fNmultbins_Xi - 1) - multBinXi));
             hs_xip_eff->Add(eff_xip[multBinXi]);
         }
@@ -571,7 +458,7 @@ int DrawCascades(
         outputFile->cd("dirRawPt_xim");
         rawPt_xim[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
         rawPt_xim[multBinXi]->Write();
-        rawPt_xim[multBinXi]->SetName(TString::Format(("V0A %.0f-%.0f%% #times2^{%d}"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1], (fNmultbins_Xi - 1) - multBinXi));
+        rawPt_xim[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%, #times2^{%d}"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1], (fNmultbins_Xi - 1) - multBinXi));
         rawPt_xim[multBinXi]->Scale(pow(2, (fNmultbins_Xi - 1) - multBinXi));
         hs_xim->Add(rawPt_xim[multBinXi]);
 
@@ -579,14 +466,14 @@ int DrawCascades(
         {
             eff_xim[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
             eff_xim[multBinXi]->Write();
-            eff_xim[multBinXi]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
+            eff_xim[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
             // eff_xim[multBinXi]->Scale(pow(2, (fNmultbins_Xi - 1) - multBinXi));
             hs_xim_eff->Add(eff_xim[multBinXi]);
         }
         outputFile->cd("dirRawPt_xiC");
         rawPt_xiC[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
         rawPt_xiC[multBinXi]->Write();
-        rawPt_xiC[multBinXi]->SetName(TString::Format(("V0A %.0f-%.0f%% #times2^{%d}"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1], (fNmultbins_Xi - 1) - multBinXi));
+        rawPt_xiC[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%, #times2^{%d}"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1], (fNmultbins_Xi - 1) - multBinXi));
         rawPt_xiC[multBinXi]->Scale(pow(2, (fNmultbins_Xi - 1) - multBinXi));
         hs_xiC->Add(rawPt_xiC[multBinXi]);
 
@@ -594,7 +481,7 @@ int DrawCascades(
         {
             eff_xiC[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
             eff_xiC[multBinXi]->Write();
-            eff_xiC[multBinXi]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
+            eff_xiC[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
             // eff_xiC[multBinXi]->Scale(pow(2, (fNmultbins_Xi - 1) - multBinXi));
             hs_xiC_eff->Add(eff_xiC[multBinXi]);
 
@@ -602,7 +489,7 @@ int DrawCascades(
             eff_xiC_ratio[multBinXi]->Divide(eff_xiC[multBinXi], eff_pt_xiC);
             eff_xiC_ratio[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
             eff_xiC_ratio[multBinXi]->Write();
-            eff_xiC_ratio[multBinXi]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
+            eff_xiC_ratio[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
             hs_xiC_eff_ratio->Add(eff_xiC_ratio[multBinXi]);
         }
     }
@@ -610,9 +497,9 @@ int DrawCascades(
     /// OMEGA:
     Info("DrawCascades", "Plotting Omega Data ...");
 
-    h_MassOmm->GetXaxis()->SetTitle("M_{#Lambda^{0}K^{#pm}} (GeV/ #it{c}^{2})");
-    h_MassOmp->GetXaxis()->SetTitle("M_{#Lambda^{0}K^{#pm}} (GeV/ #it{c}^{2})");
-    h_MassOmC->GetXaxis()->SetTitle("M_{#Lambda^{0}K^{#pm}} (GeV/ #it{c}^{2})");
+    h_MassOmm->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+    h_MassOmp->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+    h_MassOmC->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
 
     DrawAndSave(h_MassOmm, nullptr, resultParams_Omm_allInt, saveImages, outputFolder, imageFormat);
     DrawAndSave(h_MassOmp, nullptr, resultParams_Omp_allInt, saveImages, outputFolder, imageFormat);
@@ -621,9 +508,9 @@ int DrawCascades(
     /// Begin mult integrated part
     for (Int_t ptBinOm = 0; ptBinOm < fNptbins_Om; ptBinOm++)
     {
-        h_MassOmm_pt[ptBinOm]->GetXaxis()->SetTitle("M_{#Lambda^{0}K^{#pm}} (GeV/ #it{c}^{2})");
-        h_MassOmp_pt[ptBinOm]->GetXaxis()->SetTitle("M_{#Lambda^{0}K^{#pm}} (GeV/ #it{c}^{2})");
-        h_MassOmC_pt[ptBinOm]->GetXaxis()->SetTitle("M_{#Lambda^{0}K^{#pm}} (GeV/ #it{c}^{2})");
+        h_MassOmm_pt[ptBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+        h_MassOmp_pt[ptBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+        h_MassOmC_pt[ptBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
 
         DrawAndSave(h_MassOmm_pt[ptBinOm], nullptr, resultParOmm_pt[ptBinOm], saveImages, outputFolder, imageFormat);
         DrawAndSave(h_MassOmp_pt[ptBinOm], nullptr, resultParOmp_pt[ptBinOm], saveImages, outputFolder, imageFormat);
@@ -633,16 +520,17 @@ int DrawCascades(
     /// Begin differential part
     for (Int_t multBinOm = 0; multBinOm < fNmultbins_Om; multBinOm++)
     {
-        rawPt_omm[multBinOm] = new TH1D(TString::Format(("rawPt_omm[%d]"), multBinOm), TString::Format(("%.0f-%.0f%% #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm), fNptbins_Om, fPtbins_Om);
-        rawPt_omp[multBinOm] = new TH1D(TString::Format(("rawPt_omp[%d]"), multBinOm), TString::Format(("%.0f-%.0f%% #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm), fNptbins_Om, fPtbins_Om);
-        rawPt_omC[multBinOm] = new TH1D(TString::Format(("rawPt_omC[%d]"), multBinOm), TString::Format(("%.0f-%.0f%% #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm), fNptbins_Om, fPtbins_Om);
+        rawPt_omm[multBinOm] = new TH1D(TString::Format(("rawPt_omm[%d]"), multBinOm), TString::Format(("Mult: %.0f-%.0f%%, #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm), fNptbins_Om, fPtbins_Om);
+        rawPt_omp[multBinOm] = new TH1D(TString::Format(("rawPt_omp[%d]"), multBinOm), TString::Format(("Mult: %.0f-%.0f%%, #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm), fNptbins_Om, fPtbins_Om);
+
+        rawPt_omC[multBinOm] = new TH1D(TString::Format(("rawPt_omC[%d]"), multBinOm), TString::Format(("Mult: %.0f-%.0f%%, #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm), fNptbins_Om, fPtbins_Om);
 
         if (fisMC)
         {
-            eff_omm[multBinOm] = new TH1D(TString::Format(("eff_omm[%d]"), multBinOm), TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
-            eff_omp[multBinOm] = new TH1D(TString::Format(("eff_omp[%d]"), multBinOm), TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
+            eff_omm[multBinOm] = new TH1D(TString::Format(("eff_omm[%d]"), multBinOm), TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
+            eff_omp[multBinOm] = new TH1D(TString::Format(("eff_omp[%d]"), multBinOm), TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
 
-            eff_omC[multBinOm] = new TH1D(TString::Format(("eff_omC[%d]"), multBinOm), TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
+            eff_omC[multBinOm] = new TH1D(TString::Format(("eff_omC[%d]"), multBinOm), TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
         }
         for (Int_t ptBinOm = 0; ptBinOm < fNptbins_Om; ptBinOm++)
         {
@@ -669,9 +557,9 @@ int DrawCascades(
             // rawPt_omm[multBinOm]->Scale(1, "width");
             // rawPt_omp[multBinOm]->Scale(1, "width");
 
-            h_MassOmm_pt_mult[ptBinOm][multBinOm]->GetXaxis()->SetTitle("M_{#Lambda^{0}K^{#pm}} (GeV/ #it{c}^{2})");
-            h_MassOmp_pt_mult[ptBinOm][multBinOm]->GetXaxis()->SetTitle("M_{#Lambda^{0}K^{#pm}} (GeV/ #it{c}^{2})");
-            h_MassOmC_pt_mult[ptBinOm][multBinOm]->GetXaxis()->SetTitle("M_{#Lambda^{0}K^{#pm}} (GeV/ #it{c}^{2})");
+            h_MassOmm_pt_mult[ptBinOm][multBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+            h_MassOmp_pt_mult[ptBinOm][multBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
+            h_MassOmC_pt_mult[ptBinOm][multBinOm]->GetXaxis()->SetTitle("#Lambda^{0}-K^{#pm} Inv. Mass (GeV/c^{2})");
 
             DrawAndSave(h_MassOmm_pt_mult[ptBinOm][multBinOm], h_bgOmm_pt_mult[ptBinOm][multBinOm], resultParOmm_pt_mult[ptBinOm][multBinOm], saveImages, outputFolder, imageFormat);
             DrawAndSave(h_MassOmp_pt_mult[ptBinOm][multBinOm], h_bgOmp_pt_mult[ptBinOm][multBinOm], resultParOmp_pt_mult[ptBinOm][multBinOm], saveImages, outputFolder, imageFormat);
@@ -680,7 +568,7 @@ int DrawCascades(
         outputFile->cd("dirRawPt_omp");
         rawPt_omp[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
         rawPt_omp[multBinOm]->Write();
-        rawPt_omp[multBinOm]->SetName(TString::Format(("V0A %.0f-%.0f%% #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm));
+        rawPt_omp[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%, #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm));
         rawPt_omp[multBinOm]->Scale(pow(2, (fNmultbins_Om - 1) - multBinOm));
         hs_omp->Add(rawPt_omp[multBinOm]);
 
@@ -688,7 +576,7 @@ int DrawCascades(
         {
             eff_omp[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
             eff_omp[multBinOm]->Write();
-            eff_omp[multBinOm]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
+            eff_omp[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
             // eff_omp[multBinOm]->Scale(pow(2, (fNmultbins_Om - 1) - multBinOm));
             hs_omp_eff->Add(eff_omp[multBinOm]);
         }
@@ -696,7 +584,7 @@ int DrawCascades(
         outputFile->cd("dirRawPt_omm");
         rawPt_omm[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
         rawPt_omm[multBinOm]->Write();
-        rawPt_omm[multBinOm]->SetName(TString::Format(("V0A %.0f-%.0f%% #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm));
+        rawPt_omm[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%, #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm));
         rawPt_omm[multBinOm]->Scale(pow(2, (fNmultbins_Om - 1) - multBinOm));
         hs_omm->Add(rawPt_omm[multBinOm]);
 
@@ -704,7 +592,7 @@ int DrawCascades(
         {
             eff_omm[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
             eff_omm[multBinOm]->Write();
-            eff_omm[multBinOm]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
+            eff_omm[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
             // eff_omm[multBinOm]->Scale(pow(2, (fNmultbins_Om - 1) - multBinOm));
             hs_omm_eff->Add(eff_omm[multBinOm]);
         }
@@ -712,7 +600,7 @@ int DrawCascades(
         outputFile->cd("dirRawPt_omC");
         rawPt_omC[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
         rawPt_omC[multBinOm]->Write();
-        rawPt_omC[multBinOm]->SetName(TString::Format(("V0A %.0f-%.0f%% #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm));
+        rawPt_omC[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%, #times2^{%d}"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1], (fNmultbins_Om - 1) - multBinOm));
         rawPt_omC[multBinOm]->Scale(pow(2, (fNmultbins_Om - 1) - multBinOm));
         hs_omC->Add(rawPt_omC[multBinOm]);
 
@@ -720,7 +608,7 @@ int DrawCascades(
         {
             eff_omC[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
             eff_omC[multBinOm]->Write();
-            eff_omC[multBinOm]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
+            eff_omC[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
             // eff_omC[multBinOm]->Scale(pow(2, (fNmultbins_Om - 1) - multBinOm));
             hs_omC_eff->Add(eff_omC[multBinOm]);
 
@@ -728,7 +616,7 @@ int DrawCascades(
             eff_omC_ratio[multBinOm]->Divide(eff_omC[multBinOm], eff_pt_omC);
             eff_omC_ratio[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
             eff_omC_ratio[multBinOm]->Write();
-            eff_omC_ratio[multBinOm]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
+            eff_omC_ratio[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
             hs_omC_eff_ratio->Add(eff_omC_ratio[multBinOm]);
         }
     }
@@ -739,15 +627,15 @@ int DrawCascades(
     TCanvas *cPtSpectra[8];
     for (Int_t iCanvas = 0; iCanvas < 8; iCanvas++)
     {
-        cPtSpectra[iCanvas] = new TCanvas(TString::Format("cPtSpectra%d", iCanvas), TString::Format("cPtSpectra%d", iCanvas), 1200, 900);
+        cPtSpectra[iCanvas] = new TCanvas(TString::Format("cPtSpectra%d", iCanvas), TString::Format("cPtSpectra%d", iCanvas), 1920, 1080);
     }
 
-    PaintStack_Draw(*cPtSpectra[0], *hs_xip);
-    PaintStack_Draw(*cPtSpectra[1], *hs_omp);
-    PaintStack_Draw(*cPtSpectra[2], *hs_xim);
-    PaintStack_Draw(*cPtSpectra[3], *hs_omm);
-    PaintStack_Draw(*cPtSpectra[4], *hs_xiC);
-    PaintStack_Draw(*cPtSpectra[5], *hs_omC);
+    PaintStack(*cPtSpectra[0], *hs_xip);
+    PaintStack(*cPtSpectra[1], *hs_omp);
+    PaintStack(*cPtSpectra[2], *hs_xim);
+    PaintStack(*cPtSpectra[3], *hs_omm);
+    PaintStack(*cPtSpectra[4], *hs_xiC);
+    PaintStack(*cPtSpectra[5], *hs_omC);
 
     outputFile->cd();
 
@@ -781,15 +669,15 @@ int DrawCascades(
 
     if (fisMC)
     {
-        PaintStack_Draw(*cPtSpectra[0], *hs_xip_eff, kFALSE, "Efficiency");
-        PaintStack_Draw(*cPtSpectra[1], *hs_omp_eff, kFALSE, "Efficiency");
-        PaintStack_Draw(*cPtSpectra[2], *hs_xim_eff, kFALSE, "Efficiency");
-        PaintStack_Draw(*cPtSpectra[3], *hs_omm_eff, kFALSE, "Efficiency");
-        PaintStack_Draw(*cPtSpectra[4], *hs_xiC_eff, kFALSE, "Efficiency");
-        PaintStack_Draw(*cPtSpectra[5], *hs_omC_eff, kFALSE, "Efficiency");
+        PaintStack(*cPtSpectra[0], *hs_xip_eff, kFALSE, "Efficiency");
+        PaintStack(*cPtSpectra[1], *hs_omp_eff, kFALSE, "Efficiency");
+        PaintStack(*cPtSpectra[2], *hs_xim_eff, kFALSE, "Efficiency");
+        PaintStack(*cPtSpectra[3], *hs_omm_eff, kFALSE, "Efficiency");
+        PaintStack(*cPtSpectra[4], *hs_xiC_eff, kFALSE, "Efficiency");
+        PaintStack(*cPtSpectra[5], *hs_omC_eff, kFALSE, "Efficiency");
 
-        PaintStack_Draw(*cPtSpectra[6], *hs_xiC_eff_ratio, kFALSE, "Multiplicity classes/0-100%");
-        PaintStack_Draw(*cPtSpectra[7], *hs_omC_eff_ratio, kFALSE, "Multiplicity classes/0-100%");
+        PaintStack(*cPtSpectra[6], *hs_xiC_eff_ratio, kFALSE, "Multiplicity classes/0-100%");
+        PaintStack(*cPtSpectra[7], *hs_omC_eff_ratio, kFALSE, "Multiplicity classes/0-100%");
 
         hs_xip_eff->Write();
         hs_xim_eff->Write();
@@ -896,21 +784,21 @@ int DrawCascades(
             outputFile->cd("dirRawPt_xim");
             ratioPt_xim[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
             ratioPt_xim[multBinXi]->Write();
-            ratioPt_xim[multBinXi]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
+            ratioPt_xim[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
             hs_ratio_xim->Add(ratioPt_xim[multBinXi]);
 
             ratioPt_xip[multBinXi]->Divide(rawPt_xip[multBinXi], rawPt_xip_compare[multBinXi]);
             outputFile->cd("dirRawPt_xip");
             ratioPt_xip[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
             ratioPt_xip[multBinXi]->Write();
-            ratioPt_xip[multBinXi]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
+            ratioPt_xip[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
             hs_ratio_xip->Add(ratioPt_xip[multBinXi]);
 
             ratioPt_xiC[multBinXi]->Divide(rawPt_xiC[multBinXi], rawPt_xiC_compare[multBinXi]);
             outputFile->cd("dirRawPt_xiC");
             ratioPt_xiC[multBinXi]->SetMarkerStyle(markerStyles[multBinXi]);
             ratioPt_xiC[multBinXi]->Write();
-            ratioPt_xiC[multBinXi]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
+            ratioPt_xiC[multBinXi]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]));
             hs_ratio_xiC->Add(ratioPt_xiC[multBinXi]);
         }
 
@@ -930,30 +818,30 @@ int DrawCascades(
             outputFile->cd("dirRawPt_omm");
             ratioPt_omm[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
             ratioPt_omm[multBinOm]->Write();
-            ratioPt_omm[multBinOm]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
+            ratioPt_omm[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
             hs_ratio_omm->Add(ratioPt_omm[multBinOm]);
 
             ratioPt_omp[multBinOm]->Divide(rawPt_omp[multBinOm], rawPt_omp_compare[multBinOm]);
             outputFile->cd("dirRawPt_omp");
             ratioPt_omp[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
             ratioPt_omp[multBinOm]->Write();
-            ratioPt_omp[multBinOm]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
+            ratioPt_omp[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
             hs_ratio_omp->Add(ratioPt_omp[multBinOm]);
 
             ratioPt_omC[multBinOm]->Divide(rawPt_omC[multBinOm], rawPt_omC_compare[multBinOm]);
             outputFile->cd("dirRawPt_omC");
             ratioPt_omC[multBinOm]->SetMarkerStyle(markerStyles[multBinOm]);
             ratioPt_omC[multBinOm]->Write();
-            ratioPt_omC[multBinOm]->SetName(TString::Format(("V0A %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
+            ratioPt_omC[multBinOm]->SetName(TString::Format(("Mult: %.0f-%.0f%%"), fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]));
             hs_ratio_omC->Add(ratioPt_omC[multBinOm]);
         }
 
-        PaintStack_Draw(*cPtSpectra[0], *hs_ratio_xip, kFALSE, yAxisTitle);
-        PaintStack_Draw(*cPtSpectra[1], *hs_ratio_omp, kFALSE, yAxisTitle);
-        PaintStack_Draw(*cPtSpectra[2], *hs_ratio_xim, kFALSE, yAxisTitle);
-        PaintStack_Draw(*cPtSpectra[3], *hs_ratio_omm, kFALSE, yAxisTitle);
-        PaintStack_Draw(*cPtSpectra[4], *hs_ratio_xiC, kFALSE, yAxisTitle);
-        PaintStack_Draw(*cPtSpectra[5], *hs_ratio_omC, kFALSE, yAxisTitle);
+        PaintStack(*cPtSpectra[0], *hs_ratio_xip, kFALSE, yAxisTitle);
+        PaintStack(*cPtSpectra[1], *hs_ratio_omp, kFALSE, yAxisTitle);
+        PaintStack(*cPtSpectra[2], *hs_ratio_xim, kFALSE, yAxisTitle);
+        PaintStack(*cPtSpectra[3], *hs_ratio_omm, kFALSE, yAxisTitle);
+        PaintStack(*cPtSpectra[4], *hs_ratio_xiC, kFALSE, yAxisTitle);
+        PaintStack(*cPtSpectra[5], *hs_ratio_omC, kFALSE, yAxisTitle);
 
         /// Draw a line at y=1 for ratio histStack
         DrawRatioLine(*cPtSpectra[0], *hs_ratio_xip, 0.5, 1.5);
@@ -1005,93 +893,44 @@ int DrawCascades(
 
 void DrawAndSave(TH1 *peak, TH1 *bg, TH1 *resultParams, Bool_t saveImages, TString outputFolder, TString imageFormat)
 {
-    TString peakName = peak->GetName();
-    TString peakTitle = peak->GetTitle();
-    TCanvas *cDraw = new TCanvas(peakName, peakTitle, 1200, 900);
+
+    TCanvas *cDraw = new TCanvas(peak->GetName(), peak->GetTitle(), 1920, 1080);
     cDraw->cd();
 
     Double_t pPosition = resultParams->GetBinContent(4); // avg mean for DGaus fit is stored in resultParams bin 4
     Double_t pWidth = resultParams->GetBinContent(5);    // avg sigma for DGaus fit is stored in resultParams bin 5
-    // auto legend = new TLegend(0.1, 0.7, 0.28, 0.9);
-    // legend->SetHeader("Fit Stats", "C"); // option "C" allows to center the header
-    // legend->AddEntry(peak->GetListOfFunctions()->At(0), "", "l");
-    // legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit mean = %.3f +/- %.3f", pPosition, resultParams->GetBinError(4)), "l");
-    // legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit sigma = %.3f +/- %.3f", pWidth, resultParams->GetBinError(5)), "l");
+    auto legend = new TLegend(0.1, 0.7, 0.28, 0.9);
+    legend->SetHeader("Fit Stats", "C"); // option "C" allows to center the header
+    legend->AddEntry(peak->GetListOfFunctions()->At(0), "", "l");
+    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit mean = %.3f +/- %.3f", pPosition, resultParams->GetBinError(4)), "l");
+    legend->AddEntry(peak->GetListOfFunctions()->At(0), TString::Format("Fit sigma = %.3f +/- %.3f", pWidth, resultParams->GetBinError(5)), "l");
     // legend->AddEntry(peak->GetListOfFunctions()->At(1), "", "lpf");
-    // legend->AddEntry(peak, TString::Format("Sig - Bg (BC-FF) = %.3f +/- %.3f", resultParams->GetBinContent(1), resultParams->GetBinError(1)), "pe");
+    legend->AddEntry(peak, TString::Format("Sig - Bg (BC-FF) = %.3f +/- %.3f", resultParams->GetBinContent(1), resultParams->GetBinError(1)), "pe");
 
-    /// Legend for final plots:
-    peak->SetStats(0);
-    auto legend = new TLegend(0.72, 0.72, 0.88, 0.88);
-    legend->SetBorderSize(0);
-    legend->SetHeader("Invariant Mass"); // option "C" allows to center the header
-    // legend->AddEntry(peak, "p-Pb #sqrt{s_{NN}} = 8.16 TeV", "");
-    // legend->AddEntry(peak, TString::Format("%s, %s", ptRange.Data(), multRange.Data()), "");
-    legend->AddEntry(peak, "Data", "lpe");
-    legend->AddEntry(peak->GetListOfFunctions()->At(1), "Background", "lpf");
-    legend->AddEntry(peak->GetListOfFunctions()->At(0), "Signal Fit", "l");
-
-    // TString plotTitle = peakTitle(0, peakTitle.Index(":"));
-    TString partTitle = "#bf{" + peakTitle(15, peakTitle.Index(":") - 15);
-    if (!partTitle.EndsWith("}"))
-        partTitle += "^{#pm}}";
-    else
-        partTitle += "}";
-    TString collInfo = "p-Pb #sqrt{s_{NN}} = 8.16 TeV, This work";
-    TString ptRange = peakTitle(peakTitle.Index(":") + 8, peakTitle.Index(", ") - peakTitle.Index(":") - 9) + " GeV/#it{c}";
-    TString multRange = peakTitle(peakTitle.Index(", ") + 7, peakTitle.Length() - peakTitle.Index(", ") - 8) + "% V0A";
-    ptRange.ReplaceAll(",", " < #it{p}_{T} < ");
-    multRange.ReplaceAll(",", "-");
-    TLatex *latexPartTitle = new TLatex(0.15, 0.84, partTitle.Data());
-    TLatex *latexCollInfo = new TLatex(0.15, 0.80, collInfo.Data());
-    TLatex *latexPtRange = new TLatex(0.15, 0.76, ptRange.Data());
-    TLatex *latexMultRange = new TLatex(0.15, 0.72, multRange.Data());
-    latexPartTitle->SetTextSize(0.03);
-    latexCollInfo->SetTextSize(0.025);
-    latexPtRange->SetTextSize(0.025);
-    latexMultRange->SetTextSize(0.025);
-    latexPartTitle->SetNDC(kTRUE);
-    latexCollInfo->SetNDC(kTRUE);
-    latexPtRange->SetNDC(kTRUE);
-    latexMultRange->SetNDC(kTRUE);
-
-    peak->SetTitle("");
-    if (peakName.Contains("Xi"))
-        peak->GetYaxis()->SetTitle("Counts / (1 MeV/ #it{c}^{2})");
-    else
-        peak->GetYaxis()->SetTitle("Counts / (2 MeV/ #it{c}^{2})");
-
-    ///  Defining peak limits for signal region (magenta lines):
+    ///  Defining peak limits for signal region (green lines):
     ///   par[1] = peak position, par[2] = peak width
     Double_t lPeakLeftLimit = pPosition - 1. * 4 * TMath::Abs(pWidth);
     Double_t lPeakRightLimit = pPosition + 1. * 4 * TMath::Abs(pWidth);
+    TLine *lLineLeft = new TLine(lPeakLeftLimit, 0, lPeakLeftLimit, peak->GetMaximum());
+    TLine *lLineRight = new TLine(lPeakRightLimit, 0, lPeakRightLimit, peak->GetMaximum());
+    lLineLeft->SetLineColor(kMagenta);
+    lLineRight->SetLineColor(kMagenta);
 
     peak->Draw();
     if (bg)
         bg->Draw("same");
-    cDraw->Update();
-    TLine *lLineLeft = new TLine(lPeakLeftLimit, gPad->GetUymin(), lPeakLeftLimit, gPad->GetUymax());
-    TLine *lLineRight = new TLine(lPeakRightLimit, gPad->GetUymin(), lPeakRightLimit, gPad->GetUymax());
-    lLineLeft->SetLineColor(kMagenta);
-    lLineLeft->SetLineStyle(kDashed);
-    lLineRight->SetLineColor(kMagenta);
-    lLineRight->SetLineStyle(kDashed);
     lLineLeft->Draw("same");
-    lLineRight->Draw();
+    lLineRight->Draw("same");
     legend->Draw();
-    latexPartTitle->Draw();
-    latexCollInfo->Draw();
-    latexPtRange->Draw();
-    latexMultRange->Draw();
 
     if (saveImages)
     {
-        TString imageFolder = peakName;
+        TString imageFolder = peak->GetName();
         if (imageFolder.Contains("["))
             imageFolder.Remove(imageFolder.First('[')); /// getting substring for folder naming purpose
         else
             imageFolder = "h_allInt";
-        SaveImage(outputFolder, imageFolder, peakName, imageFormat, cDraw);
+        SaveImage(outputFolder, imageFolder, peak->GetName(), imageFormat);
     }
 
     delete legend;
