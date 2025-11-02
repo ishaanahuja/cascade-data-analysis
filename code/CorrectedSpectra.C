@@ -1,3 +1,5 @@
+/// DEPRECATED AND OBSOLETE. Read note in function definition.
+
 #include <fstream>
 #include <vector>
 

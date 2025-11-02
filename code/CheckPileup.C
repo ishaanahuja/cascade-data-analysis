@@ -1,5 +1,13 @@
 /// DEPRECATED: Needs rewrite. Use at your own risk.
 
+/**
+ * @file CheckPileup.C
+ * @brief Deprecated.
+ * 
+ * @note Was supposed to check for pileup - initial version. Don't use. For refernce only. Obsolete and probably incorrect.
+ * @version 0.1
+ * @date 2025-11-02
+*/
 
 #include <TString.h>
 

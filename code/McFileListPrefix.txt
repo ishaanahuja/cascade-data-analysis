@@ -1,5 +1,5 @@
-/var/home/ishaan/Work/git/analysis/results/140125_McRand_LHC17l7a2_fit/140125_McRand_LHC17l7a2
-/var/home/ishaan/Work/git/analysis/results/180125_McRand_LHC17f3a_fit/180125_McRand_LHC17f3a
-/var/home/ishaan/Work/git/analysis/results/180125_McRand_LHC18f3b_fit/180125_McRand_LHC18f3b
-/var/home/ishaan/Work/git/analysis/results/160125_McRand_LHC17e1a_fit/160125_McRand_OmLHC17e1a
-/var/home/ishaan/Work/git/analysis/results/160125_McRand_LHC17e1b_fit/160125_McRand_XiLHC17e1b
+/var/home/ishaan/Work/git/analysis/results/RandomVars/140125_McRand_LHC17l7a2_fit/140125_McRand_LHC17l7a2
+/var/home/ishaan/Work/git/analysis/results/RandomVars/180125_McRand_LHC17f3a_fit/180125_McRand_LHC17f3a
+/var/home/ishaan/Work/git/analysis/results/RandomVars/180125_McRand_LHC18f3b_fit/180125_McRand_LHC18f3b
+/var/home/ishaan/Work/git/analysis/results/RandomVars/160125_McRand_LHC17e1a_fit/160125_McRand_OmLHC17e1a
+/var/home/ishaan/Work/git/analysis/results/RandomVars/160125_McRand_LHC17e1b_fit/160125_McRand_XiLHC17e1b

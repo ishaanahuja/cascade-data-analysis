@@ -1,3 +1,14 @@
+/**
+ * @file SysMultiTrial.C
+ * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
+ * @brief Systematic Uncertainty Calculation using Multi-Trial Method for Xi and Omega Particles
+ * @version 1
+ * @date 12-06-2025
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #include <TROOT.h>
 #include <TStyle.h>
 #include <TLegend.h>
@@ -91,11 +102,11 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
 int SysMultiTrial(
     TString inputPath = "/var/home/ishaan/Work/git/analysis/results/RandomVars/100225_EfficiencyCorrected_Vars",
     TString effCorrInputFilePrefix = "100225_effCorr",
-    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/240225_SysUncertainty_MultiTrial_212noRBErr/240225_sysUncertainty_noRB_multiTrial.root",
-    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/240225_SysUncertainty_MultiTrial_212noRBErr",
+    TString outputFileName = "/var/home/ishaan/Work/git/thesis/final/images/120625_SysUncertainty_MultiTrial_212noRBErr/120625_sysUncertainty_noRB_multiTrial.root",
+    TString outputFolder = "/var/home/ishaan/Work/git/thesis/final/images/120625_SysUncertainty_MultiTrial_212noRBErr",
     Bool_t fDebug = kFALSE,
     Bool_t saveImages = kTRUE,
-    TString imageFormat = "png",
+    TString imageFormat = "pdf",
     Int_t verbosity = kInfo)
 {
     ROOT::EnableImplicitMT();
@@ -108,6 +119,13 @@ int SysMultiTrial(
     gStyle->SetOptFit(1111);
     gStyle->SetPaintTextFormat("1.3f");
     gErrorIgnoreLevel = verbosity;
+
+    // SetCustomColorPalette();
+    // extra options for decorating final plots (pdf) in thesis
+    gStyle->SetLineScalePS(2);
+    gStyle->SetStatFontSize(0.03);
+    gStyle->SetPadTickX(1); // Ticks on both top and bottom for X axis
+    gStyle->SetPadTickY(1); // Ticks on both left and right for Y axis
 
     // remove ownership of objects from file so we can delete the file ptr
     TH1::AddDirectory(kFALSE);
@@ -249,23 +267,23 @@ int SysMultiTrial(
 
     /// Generate output objects
     /// Final output object - Systematic uncertainty from MultiTrial:
-    sysMultiTrial_xip = new TH1D("sysMultiTrial_xip", "#Xi^{+}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fNptbins_Xi, fPtbins_Xi);
-    sysMultiTrial_xim = new TH1D("sysMultiTrial_xim", "#Xi^{-}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fNptbins_Xi, fPtbins_Xi);
-    sysMultiTrial_omp = new TH1D("sysMultiTrial_omp", "#Omega^{+}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fNptbins_Om, fPtbins_Om);
-    sysMultiTrial_omm = new TH1D("sysMultiTrial_omm", "#Omega^{-}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fNptbins_Om, fPtbins_Om);
-    sysMultiTrial_xiC = new TH1D("sysMultiTrial_xiC", "#Xi^{+} + #Xi^{-}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fNptbins_Xi, fPtbins_Xi);
-    sysMultiTrial_omC = new TH1D("sysMultiTrial_omC", "#Omega^{+} + #Omega^{-}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fNptbins_Om, fPtbins_Om);
+    sysMultiTrial_xip = new TH1D("sysMultiTrial_xip", "#Xi^{+}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fNptbins_Xi, fPtbins_Xi);
+    sysMultiTrial_xim = new TH1D("sysMultiTrial_xim", "#Xi^{-}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fNptbins_Xi, fPtbins_Xi);
+    sysMultiTrial_omp = new TH1D("sysMultiTrial_omp", "#Omega^{+}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fNptbins_Om, fPtbins_Om);
+    sysMultiTrial_omm = new TH1D("sysMultiTrial_omm", "#Omega^{-}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fNptbins_Om, fPtbins_Om);
+    sysMultiTrial_xiC = new TH1D("sysMultiTrial_xiC", "#Xi^{+} + #Xi^{-}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fNptbins_Xi, fPtbins_Xi);
+    sysMultiTrial_omC = new TH1D("sysMultiTrial_omC", "#Omega^{+} + #Omega^{-}: Systematic uncertainty from MultiTrial: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fNptbins_Om, fPtbins_Om);
     for (Int_t multBinXi = 0; multBinXi < fNmultbins_Xi; multBinXi++)
     {
-        sysMultiTrial_xip_mult[multBinXi] = new TH1D(TString::Format("sysMultiTrial_xip_mult[%d]", multBinXi), TString::Format("#Xi^{+}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]), fNptbins_Xi, fPtbins_Xi);
-        sysMultiTrial_xim_mult[multBinXi] = new TH1D(TString::Format("sysMultiTrial_xim_mult[%d]", multBinXi), TString::Format("#Xi^{-}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]), fNptbins_Xi, fPtbins_Xi);
-        sysMultiTrial_xiC_mult[multBinXi] = new TH1D(TString::Format("sysMultiTrial_xiC_mult[%d]", multBinXi), TString::Format("#Xi^{+} + #Xi^{-}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]), fNptbins_Xi, fPtbins_Xi);
+        sysMultiTrial_xip_mult[multBinXi] = new TH1D(TString::Format("sysMultiTrial_xip_mult[%d]", multBinXi), TString::Format("#Xi^{+}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]), fNptbins_Xi, fPtbins_Xi);
+        sysMultiTrial_xim_mult[multBinXi] = new TH1D(TString::Format("sysMultiTrial_xim_mult[%d]", multBinXi), TString::Format("#Xi^{-}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]), fNptbins_Xi, fPtbins_Xi);
+        sysMultiTrial_xiC_mult[multBinXi] = new TH1D(TString::Format("sysMultiTrial_xiC_mult[%d]", multBinXi), TString::Format("#Xi^{+} + #Xi^{-}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fMultbins_Xi[multBinXi], fMultbins_Xi[multBinXi + 1]), fNptbins_Xi, fPtbins_Xi);
     }
     for (Int_t multBinOm = 0; multBinOm < fNmultbins_Om; multBinOm++)
     {
-        sysMultiTrial_omp_mult[multBinOm] = new TH1D(TString::Format("sysMultiTrial_omp_mult[%d]", multBinOm), TString::Format("#Omega^{+}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
-        sysMultiTrial_omm_mult[multBinOm] = new TH1D(TString::Format("sysMultiTrial_omm_mult[%d]", multBinOm), TString::Format("#Omega^{-}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
-        sysMultiTrial_omC_mult[multBinOm] = new TH1D(TString::Format("sysMultiTrial_omC_mult[%d]", multBinOm), TString::Format("#Omega^{+} + #Omega^{-}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Uncertainty(#sigma_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
+        sysMultiTrial_omp_mult[multBinOm] = new TH1D(TString::Format("sysMultiTrial_omp_mult[%d]", multBinOm), TString::Format("#Omega^{+}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
+        sysMultiTrial_omm_mult[multBinOm] = new TH1D(TString::Format("sysMultiTrial_omm_mult[%d]", multBinOm), TString::Format("#Omega^{-}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
+        sysMultiTrial_omC_mult[multBinOm] = new TH1D(TString::Format("sysMultiTrial_omC_mult[%d]", multBinOm), TString::Format("#Omega^{+} + #Omega^{-}: Systematic uncertainty from MultiTrial: Mult %.0f-%.0f%%;#it{p}_{T} (GeV/#it{c});Relative Uncertainty(#sigma_{Gaus})", fMultbins_Om[multBinOm], fMultbins_Om[multBinOm + 1]), fNptbins_Om, fPtbins_Om);
     }
 
     fitMeanYieldDev_xip = new TH1D("fitMeanYieldDev_xip", "#Xi^{+}: Mean of Gaussian fit: Mult 0-100%;#it{p}_{T} (GeV/#it{c});Mean(#mu_{Gaus})", fNptbins_Xi, fPtbins_Xi);
@@ -676,10 +694,17 @@ Double_t FitGaus(TH1 *hist, TString fitOptions)
 
 void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TString imageFormat, Int_t failedRbCount)
 {
-
-    TCanvas *cDraw = new TCanvas(hist->GetName(), hist->GetTitle(), 1920, 1080);
-    auto legend = new TLegend(0.1, 0.7, 0.28, 0.9);
+    TString histTitle = hist->GetTitle();
+    TCanvas *cDraw = new TCanvas(hist->GetName(), hist->GetTitle(), 1200, 900);
     cDraw->cd();
+    // cDraw->SetLeftMargin(0.8);  // New mod for final thesis plots
+    cDraw->SetRightMargin(0.03); // New mod for final thesis plots
+    cDraw->SetTopMargin(0.03);   // New mod for final thesis plots
+    // auto legend = new TLegend(0.1, 0.7, 0.28, 0.9);
+    /// Legend for final plots:
+    hist->SetStats(0);
+    auto legend = new TLegend(0.72, 0.72, 0.92, 0.92);
+    legend->SetBorderSize(0);
 
     TF1 *func = (TF1 *)hist->GetListOfFunctions()->At(0);
     if (func)
@@ -687,12 +712,37 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
         Int_t ndf_sanitized = func->GetNDF();
         if (ndf_sanitized == 0)
             ndf_sanitized = 1;
-        legend->SetTextSize(0.02);
+
+        // New mod for final thesis plots
+        // legend->AddEntry(peak, "p-Pb #sqrt{s_{NN}} = 8.16 TeV", "");
+        // legend->AddEntry(peak, TString::Format("%s, %s", ptRange.Data(), multRange.Data()), "");
+        legend->SetTextSize(0.025);
         legend->SetHeader("Fit Stats (Gaus)", "C"); // option "C" allows to center the header
+        legend->AddEntry(hist, "Random Trial", "lpe");
         legend->AddEntry(func, TString::Format("Fit mean (#mu) = %.3f", func->GetParameter(1)), "l");
         legend->AddEntry(func, TString::Format("Fit sigma (#sigma)= %.3f", func->GetParameter(2)), "l");
         legend->AddEntry(func, TString::Format("#frac{#chi^{2}}{NDF} = %.1f", (func->GetChisquare() / ndf_sanitized)), "l");
-        legend->AddEntry(hist, TString::Format("Failed RB = %d", failedRbCount), "pe");
+        // legend->AddEntry(hist, TString::Format("Failed RB = %d", failedRbCount), "pe");
+
+        TString partTitle = histTitle(0, histTitle.First(":"));
+        TString collInfo = "p-Pb #sqrt{s_{NN}} = 8.16 TeV, This work";
+        TString ptRange = histTitle(histTitle.First("<") + 1, histTitle.First(">") - histTitle.First("<") - 1) + " GeV/#it{c}";
+        TString multRange = histTitle(histTitle.Index("Mult: ") + 6, histTitle.Length()) + " V0A";
+        ptRange.ReplaceAll(",", " < #it{p}_{T} < ");
+        // multRange.ReplaceAll(",", "-");
+        TLatex *latexPartTitle = new TLatex(0.15, 0.88, partTitle.Data());
+        TLatex *latexCollInfo = new TLatex(0.15, 0.84, collInfo.Data());
+        TLatex *latexPtRange = new TLatex(0.15, 0.80, ptRange.Data());
+        TLatex *latexMultRange = new TLatex(0.15, 0.76, multRange.Data());
+        latexPartTitle->SetTextSize(0.035);
+        latexCollInfo->SetTextSize(0.028);
+        latexPtRange->SetTextSize(0.028);
+        latexMultRange->SetTextSize(0.028);
+        latexPartTitle->SetNDC(kTRUE);
+        latexCollInfo->SetNDC(kTRUE);
+        latexPtRange->SetNDC(kTRUE);
+        latexMultRange->SetNDC(kTRUE);
+        hist->SetTitle("");
 
         hist->GetYaxis()->SetRangeUser(0., hist->GetMaximum() * 1.2);
         hist->SetMarkerStyle(kFullCircle);
@@ -703,6 +753,10 @@ void DrawAndSaveImage(TH1 *hist, TString outputFolder, TString imageFolder, TStr
         func->Draw("same");
 
         legend->Draw();
+        latexPartTitle->Draw();
+        latexCollInfo->Draw();
+        latexPtRange->Draw();
+        latexMultRange->Draw();
     }
     else if (TString(hist->GetName()).Contains("Mean"))
     {

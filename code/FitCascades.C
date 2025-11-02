@@ -1,3 +1,14 @@
+/**
+ * @file FitCascades.C
+ * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
+ * @brief Macro to fit Invariant Mass Plots for Xi and Omega Cascades (ALICE RUN 2 LHC16r). Check function definitions.
+ * @version 1
+ * @date 24-02-2025
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #include <TROOT.h>
 #include <THashList.h>
 

@@ -1,3 +1,18 @@
+
+/**
+ * @file AliAnalysisTaskStrangeCascadesRun2.cxx
+ * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
+ * @date 14-02-2025
+ * @brief Analyse Xi and Omega cascade candidates
+ *
+ * Thesis: Multi-strange particle production in p–Pb collisions at √sNN = 8.16 TeV
+ * DOI: https://doi.org/10.17181/g906v-7xe35 (02-11-2025: Prospective)
+ *
+ * @version 1.0
+ * 
+ * @copyright Copyright (c) 2025
+ */
+
 class TTree;
 class TParticle;
 class TVector3;
@@ -368,67 +383,7 @@ void AliAnalysisTaskStrangeCascadesRun2::UserCreateOutputObjects()
             fHistos_XiPlu->CreateTH3(TString::Format("h3Var_%d", iVar), TString::Format("h3Var_%d", iVar), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
             fHistos_OmMin->CreateTH3(TString::Format("h3Var_%d", iVar), TString::Format("h3Var_%d", iVar), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
             fHistos_OmPlu->CreateTH3(TString::Format("h3Var_%d", iVar), TString::Format("h3Var_%d", iVar), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-
-            /// TODO: To store the value of cuts applied for each variation, create TH1 x nVars OR create a THnSparse with nVars axes
         }
-        // for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
-        // {
-        //     if (iCutEv == kRapidityIntervalMin || iCutEv == kRapidityIntervalMax || iCutEv == kEtaDaughter || iCutEv == kBacBarCosPa)
-        //         continue;
-        //     if (nvarcut_Ev[iCutEv] == -1) // skip the cut if value == -1 -> unused variations
-        //         continue;
-        //     for (int iVarEv = 0; iVarEv < nvarcut_Ev[iCutEv]; iVarEv++)
-        //     {
-        //         if (iCutEv != kCompetingCascRejectOm)
-        //         {
-        //             if (fParticleAnalysisStatus[kxip])
-        //             {
-        //                 // if (icut != kCasc_PropLifetOm)
-        //                 // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
-        //                 fHistos_XiMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
-        //                 // if (icut != kCasc_PropLifetOm)
-        //                 // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
-        //                 fHistos_XiPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
-        //             }
-        //         }
-        //         if (fParticleAnalysisStatus[komp])
-        //         {
-        //             // if (icut != kCasc_PropLifetXi)
-        //             fHistos_OmMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-        //             // if (icut != kCasc_PropLifetXi)
-        //             fHistos_OmPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), TString::Format("h3Var_%s[%d][%d]", cutNamesEv[iCutEv].Data(), iCutEv, iVarEv), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-        //         }
-        //     }
-        // }
-
-        // for (int iCutTopo = 0; iCutTopo < kNumCascTopoCuts; iCutTopo++)
-        // {
-        //     if (nvarcut_Topo[iCutTopo] == -1) // skip the cut if value == -1 -> unused variations
-        //         continue;
-        //     for (int iVarTopo = 0; iVarTopo < nvarcut_Topo[iCutTopo]; iVarTopo++)
-        //     {
-
-        //         // if (fParticleAnalysisStatus[kxip] && (var_cutValTopo[kXi][iCutTopo][kMid][iVarTopo] != -1))
-        //         // {
-        //         if (fParticleAnalysisStatus[kxip])
-        //         {
-        //             // if (icut != kCasc_PropLifetOm)
-        //             // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
-        //             fHistos_XiMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
-        //             // if (icut != kCasc_PropLifetOm)
-        //             // if (icut != kCasc_PropLifetOm && icut != kCompetingCascRejectOm)
-        //             fHistos_XiPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kXi], fptbinning[kXi], fnmassbins[kXi], fmassbinning[kXi], fncentbins[kXi], fcentbinning[kXi]);
-        //         }
-        //         //
-        //         if (fParticleAnalysisStatus[komp])
-        //         {
-        //             // if (icut != kCasc_PropLifetXi)
-        //             fHistos_OmMin->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-        //             // if (icut != kCasc_PropLifetXi)
-        //             fHistos_OmPlu->CreateTH3(TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), TString::Format("h3Var_%s[%d][%d]", cutNamesTopo[iCutTopo].Data(), iCutTopo, iVarTopo), fnptbins[kOm], fptbinning[kOm], fnmassbins[kOm], fmassbinning[kOm], fncentbins[kOm], fcentbinning[kOm]);
-        //         }
-        //     }
-        // }
     }
     //// PID Setup
     AliAnalysisManager *man = AliAnalysisManager::GetAnalysisManager();
@@ -600,15 +555,12 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
     fHistos_eve->FillTH1("henum", 3.);
 
     /// Inel>0 in the |eta|<1 range
-    // check validity of this step (i.e. if it is needed)?
     const AliMultiplicity *mult = (AliMultiplicity *)lAODevent->GetMultiplicity();
-    // Bool_t inelgt0 = kFALSE;
     Int_t counterTracklets = 0;
     for (Int_t i = 0; i < mult->GetNumberOfTracklets(); ++i)
     {
         if (TMath::Abs(mult->GetEta(i)) < 1.)
         {
-            // inelgt0 = kTRUE;
             counterTracklets++;
         }
     }
@@ -673,7 +625,6 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
     int pdgBachelor = 0;
     int pdgV0 = 0;
     int pdgCasc = 0;
-    //  bool assFlag[ksignednumpart] = {1, 1, 1, 1, 1, 1, 1}; ////MC ass flags are true if associated and, by construction, always for data. They can be false only if fisMC && notassociated
     bool assFlag[ksignednumpart]; // MC ass flags are true if associated and, by construction, always for data. They can be false only if fisMC && notassociated
     // double fdmtx_ptxi = 0;        // 0 if no secondary lambda, value corresponding to generated-xi pT, - for lambda (from xim) and + for anti-lambda (from xip)
 
@@ -764,7 +715,6 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
             double_t lTPCclsBac = bTrackCasc->GetTPCsignalN();
             fCasc_LeastTPCcls = (int)(lTPCclsPos < lTPCclsNeg ? std::min(lTPCclsPos, lTPCclsBac) : std::min(lTPCclsNeg, lTPCclsBac));
 
-            /// New: check effectiveness?
             // track length cut
             fCasc_TrackLengthCut = (pTrackCasc->GetTPCsignalN() > fTPCsignalNCut && nTrackCasc->GetTPCsignalN() > fTPCsignalNCut && bTrackCasc->GetTPCsignalN() > fTPCsignalNCut) ? 1 : 0;
             if (fESDTrackCuts.AcceptVTrack(pTrackCasc) && fESDTrackCuts.AcceptVTrack(nTrackCasc) && fESDTrackCuts.AcceptVTrack(bTrackCasc))
@@ -802,15 +752,6 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
             fCasc_NegTrackStatus = nTrackCasc->GetStatus();
             fCasc_PosTrackStatus = pTrackCasc->GetStatus();
             fCasc_BacTrackStatus = bTrackCasc->GetStatus();
-
-            // /// check if at least one of candidate's daughter has a hit in the TOF or has ITSrefit flag (removes Out Of Bunch Pileup)
-            // fCasc_ITSTOFtracks = 0;
-            // if ((fCasc_NegTrackStatus & AliESDtrack::kITSrefit) || (nTrackCasc->GetTOFBunchCrossing(lMagField) > -95.))
-            //     fCasc_ITSTOFtracks++;
-            // if ((fCasc_PosTrackStatus & AliESDtrack::kITSrefit) || (pTrackCasc->GetTOFBunchCrossing(lMagField) > -95.))
-            //     fCasc_ITSTOFtracks++;
-            // if ((fCasc_BacTrackStatus & AliESDtrack::kITSrefit) || (bTrackCasc->GetTOFBunchCrossing(lMagField) > -95.))
-            //     fCasc_ITSTOFtracks++;
 
             // check if at least one of candidate's daughter has a hit in the TOF or has ITSrefit flag (removes Out Of Bunch Pileup)
             fCasc_ITSTOFtracks = ((fCasc_NegTrackStatus & AliESDtrack::kITSrefit) || (nTrackCasc->GetTOFBunchCrossing(lMagField) > -95.)) ? 1 : 0;
@@ -873,6 +814,7 @@ void AliAnalysisTaskStrangeCascadesRun2::UserExec(Option_t *)
                     assFlag[komp] = kFALSE;
             }
 
+            /// OLD_REMNANTS:
             /// Apply parametric BacBarCosPA cut, if requested
             // if (fisParametricBacBarCosPA)
             // {
@@ -1173,29 +1115,7 @@ void AliAnalysisTaskStrangeCascadesRun2::RandomiseCuts(Int_t seed = 1)
     temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kDcaV0ToPv, SetCutValue(kTRUE, kDcaV0ToPv, randGen.Uniform(0.02, 0.12)));
     temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kDcaMesV0ToPv, SetCutValue(kTRUE, kDcaMesV0ToPv, randGen.Uniform(0.02, 0.3)));
     temp_h2CutVarVals->SetBinContent(seed, kNumCascEvCuts + kDcaBarV0ToPv, SetCutValue(kTRUE, kDcaBarV0ToPv, randGen.Uniform(0.02, 0.12)));
-
-    // SetCutValue(kFALSE, kTpcDedxPidSigma, randGen.Uniform(2, 6));
-    // SetCutValue(kFALSE, kDeviationPropLifetime, randGen.Uniform(2, 7));       // kCasc_PropLifetXi
-    // SetCutValue(kFALSE, kLeastTpcClusters, randGen.Uniform(50, 90));          // kCasc_LeastTPCcls,    // --> DON'T USE
-    // SetCutValue(kFALSE, kCompetingCascRejectOm, randGen.Uniform(0.0, 0.012)); // kCasc_CompetingXiMass
-    // SetCutValue(kFALSE, kLeastCRows, randGen.Uniform(60, 90));                // kCasc_LeastCRaws: not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
-    // SetCutValue(kFALSE, kLeastCRowsOvF, randGen.Uniform(0.7, 0.9));           // not used --> USE -> (0.8)
-    // SetCutValue(kFALSE, kTrackLengthCut, randGen.Uniform(0, 3));
-    // SetCutValue(kFALSE, kV0InvMassWindow, randGen.Uniform(0.005, 0.011)); // kCasc_InvMassLam,     // set to 0.008 instead of 0.005 (lambda == v0)
-
-    // /// topological cuts
-    // SetCutValue(kTRUE, kV0CosPa, randGen.Uniform(0.95, 0.999));
-    // SetCutValue(kTRUE, kCascCosPa, randGen.Uniform(0.95, 0.999));
-    // SetCutValue(kTRUE, kDcaBachToV0, randGen.Uniform(0.6, 2.));
-    // SetCutValue(kTRUE, kDcaV0Daughters, randGen.Uniform(0.6, 2.));
-    // SetCutValue(kTRUE, kCascTransDecayRadius, randGen.Uniform(0.3, 2.));
-    // SetCutValue(kTRUE, kV0TransDecayRadius, randGen.Uniform(1., 5.));
-    // SetCutValue(kTRUE, kDcaBachToPv, randGen.Uniform(0.02, 0.2));
-    // SetCutValue(kTRUE, kDcaV0ToPv, randGen.Uniform(0.02, 0.12));
-    // SetCutValue(kTRUE, kDcaMesV0ToPv, randGen.Uniform(0.02, 0.3));
-    // SetCutValue(kTRUE, kDcaBarV0ToPv, randGen.Uniform(0.02, 0.12));
-
-    /// store values of cut variation in h2CutVarVals
+    // store values of cut variation in h2CutVarVals
 }
 
 ///________________________________________________________________________
@@ -1720,6 +1640,8 @@ void AliAnalysisTaskStrangeCascadesRun2::DataPosting()
 }
 
 /*
+/// OLDER (TRADITIONAL) METHOD REMNANTS (can be skipped):
+
 void AliAnalysisTaskStrangeCascadesRun2::FillHistCutVariations(double perc, bool phypri, bool *associFlag)
 {
     for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
@@ -1856,6 +1778,8 @@ void AliAnalysisTaskStrangeCascadesRun2::FillHistCutVariations(double perc, bool
     }
 
     SetDefCuts(); // reset defaults
+
+    /// OLDER (TRADITIONAL) METHOD REMNANTS (can be skipped):
 
     // for (int iCutEv = 0; iCutEv < kNumCascEvCuts; iCutEv++)
     // {

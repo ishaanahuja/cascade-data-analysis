@@ -1,3 +1,15 @@
+/**
+ * @file OptimiseCascades.C
+ * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
+ * @brief Optimise cuts by calculating signal significance and signal loss for different cut values. Working, but was replaced by the multi-trial method. Use for reference.
+ * @version 1
+ * @date 17-10-2024
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
+
+
 #include <TROOT.h>
 
 #include <TStyle.h>
@@ -87,6 +99,34 @@ void DrawAndSave(TGraphErrors *graph1, TGraphErrors *graph2, Double_t xDefLine, 
 
 void FindOptimumDefVal(cutInfo &cut, cutInfo &defCut);
 
+/**
+ * @brief Optimises selection cuts for cascade particle analysis by evaluating signal significance and signal loss across multiple input files.
+ *
+ * This function processes a list of ROOT files containing analysis results for different cut variations, computes signal significance and signal loss
+ * for each cut, and generates corresponding TGraphErrors for each particle species and pT interval. It also compares each cut variation to a set of default cuts,
+ * updates the graphs with default values, and saves the results and images to output files and folders.
+ *
+ * @param inputFilename Path to a text file containing a list of input ROOT files with cut variations (default: fileList.txt).
+ * @param inputFileDefaultCuts Path to the ROOT file containing results for the default cuts.
+ * @param outputFilename Name of the output ROOT file to save significance and signal loss graphs.
+ * @param outputFolder Name of the folder to save output images.
+ * @param saveImages If true, saves images of the significance and signal loss graphs.
+ * @param imageFormat Format for saved images (e.g., "png").
+ * @param verbosity ROOT error level (e.g., kInfo, kWarning, kError).
+ * @return int Returns 0 on success, 3 if the input file list could not be read.
+ *
+ * The function performs the following steps:
+ *  - Reads the list of input files and the default cuts file.
+ *  - For each file, extracts histograms for Xi and Omega candidates in each pT bin.
+ *  - Computes signal and background yields, significance, and signal loss for each cut.
+ *  - Updates graphs with default cut values and ensures consistency.
+ *  - Saves all graphs and optionally images to the specified output locations.
+ *  - Provides detailed logging and error handling for missing files or histograms.
+ *
+ * Dependencies:
+ *  - ROOT framework (TFile, TH1, TGraphErrors, etc.)
+ *  - Custom types and functions: cutInfo, GetFileList, Initialise, OpenFile, CheckFileName, GetSignalBg, CalculateSignificance, CalculateSigLoss, FindOptimumDefVal, PrintCutInfo, DrawAndSave, SetOutputFolder, etc.
+ */
 int OptimiseCascades(std::string inputFilename = "/var/home/ishaan/Work/git/analysis/results/230924_results_6Runs/230924_results_6Runs_fileList.txt", TString inputFileDefaultCuts = "/var/home/ishaan/Work/git/analysis/results/230924_results_6Runs/230924_6Runs_h3_ptmasscent_def.root", TString outputFilename = "significance_test2.root", TString outputFolder = "031024_images_significance", Bool_t saveImages = kTRUE, TString imageFormat = "png", Int_t verbosity = kInfo)
 {
     gErrorIgnoreLevel = verbosity;
