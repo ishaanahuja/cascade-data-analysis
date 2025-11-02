@@ -1,3 +1,14 @@
+/**
+ * @file SysSignalExtraction.C
+ * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
+ * @brief Systematic Uncertainty Calculation from Signal Extraction Variations for Xi and Omega Particles
+ * @version 1
+ * @date 26-02-2025
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #include <TROOT.h>
 #include <TStyle.h>
 #include <TLegend.h>
