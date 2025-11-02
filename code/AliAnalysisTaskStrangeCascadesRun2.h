@@ -1,3 +1,17 @@
+/**
+ * @file AliAnalysisTaskStrangeCascadesRun2.h
+ * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
+ * @date 14-02-2025
+ * @brief Analyse Xi and Omega cascade candidates
+ *
+ * Thesis: Multi-strange particle production in p–Pb collisions at √sNN = 8.16 TeV
+ * DOI: https://doi.org/10.17181/g906v-7xe35 (02-11-2025: Prospective)
+ *
+ * @version 1.0
+ * 
+ * @copyright Copyright (c) 2025
+ */
+
 #ifndef AliAnalysisTaskStrangeCascadesRun2_H
 #define AliAnalysisTaskStrangeCascadesRun2_H
 
@@ -77,7 +91,7 @@ public:
         kDeviationPropLifetime, // kCasc_PropLifetXi
         kLeastTpcClusters,      // kCasc_LeastTPCcls,    // --> DON'T USE
         kCompetingCascRejectOm, // kCasc_CompetingXiMass
-        kLeastCRows,            // not used --> USE -> 70 (emily), 80 (marek's suggestion - from Michal)
+        kLeastCRows,            // not used --> USE -> 70 (Emily), 80 (Marek's suggestion - from Michal)
         kLeastCRowsOvF,         // not used --> USE -> (0.8)
         kTrackLengthCut,        // not used --> USE
         kEtaDaughter,           // kCasc_etaDaugh
@@ -309,8 +323,7 @@ private:
     AliAnalysisTaskStrangeCascadesRun2(const AliAnalysisTaskStrangeCascadesRun2 &);            // not implemented
     AliAnalysisTaskStrangeCascadesRun2 &operator=(const AliAnalysisTaskStrangeCascadesRun2 &); // not implemented
 
-    ClassDef(AliAnalysisTaskStrangeCascadesRun2, 6);
-    // version 6: introduced variations for # of TPC PID clusters and # of ITS-TOF tracks
+    ClassDef(AliAnalysisTaskStrangeCascadesRun2, 1);
 };
 
 #endif

@@ -1,3 +1,14 @@
+/**
+ * @file EfficiencyCorrection.C
+ * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
+ * @brief Perform efficiency correction on particle spectra.
+ * @version 1
+ * @date 04-06-2025
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #include <TROOT.h>
 #include <TStyle.h>
 
@@ -5,6 +16,9 @@
 
 /**
  * @brief Perform efficiency correction on particle spectra.
+ *
+ * Generates raw pt spectra, gets efficiency values from effEst.root (MC Avg 0-100% xiC/omC),
+ * and divides raw spectra by efficiency to generate corrected spectra with stat errors only.
  *
  * This function reads histograms from fit and corresponding efficiency input files,
  * applies efficiency corrections, and saves the corrected histograms to an output
@@ -21,11 +35,11 @@
  * @return int Status code (0 for success).
  */
 int EfficiencyCorrection(
-    TString fitInputFilePrefix = "/var/home/ishaan/Work/git/analysis/results/RandomVars/190225_SysUncertSigExt_Fit/190225_SysSigExt_DGP2_15bg_6Runs.root",
-    TString effInputFilePrefix = "/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt_effEst/200225_SysSigExt_DGP2_15bg_effEst.root",
-    TString histName = "DGP2_15bg",
-    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt_effCorr/200225_SysSigExt_DGP2_15bg_effCorr.root",
-    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt_effCorr",
+    TString fitInputFilePrefix = "/var/home/ishaan/Work/git/analysis/results/RandomVars/050225_6RunsRandDiff_fit/050225_6RunsRandDiff",                                    //"/var/home/ishaan/Work/git/analysis/results/RandomVars/190225_SysUncertSigExt_Fit/190225_SysSigExt_DGP2_15bg_6Runs.root",
+    TString effInputFilePrefix = "/var/home/ishaan/Work/git/analysis/results/RandomVars/030225_EfficiencyEstimation_Vars/030225_eff",                                      //"/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt_effEst/200225_SysSigExt_DGP2_15bg_effEst.root",
+    TString histName = "h3_ptmasscent_def",                                                                                                                                //"DGP2_15bg",
+    TString outputFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/040625_effCorr_multIntCorrected_v2/040625_effCorr_multIntCorrected_def_6runs_v2.root", //"/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt_effCorr/200225_SysSigExt_DGP2_15bg_effCorr.root",
+    TString outputFolder = "/var/home/ishaan/Work/git/analysis/results/RandomVars/040625_effCorr_multIntCorrected_v2",                                                     //"/var/home/ishaan/Work/git/analysis/results/RandomVars/200225_SysSigExt_effCorr",
     Bool_t saveStack = kTRUE,
     TString imageFormat = "png",
     Int_t verbosity = kInfo)
@@ -101,11 +115,11 @@ int EfficiencyCorrection(
     auto hs_xiC_effCorr = new THStack("hs_xiC_effCorr", "Efficiency corrected #it{p}_{T} spectra #Xi^{+} + #Xi^{-}");
     auto hs_omC_effCorr = new THStack("hs_omC_effCorr", "Efficiency corrected #it{p}_{T} spectra #Omega^{+} + #Omega^{-}");
 
-    // TString fitInputFileName = TString::Format("%s_%s.root", fitInputFilePrefix.Data(), histName.Data());
-    // TString effInputFileName = TString::Format("%s_%s.root", effInputFilePrefix.Data(), histName.Data());
+    TString fitInputFileName = TString::Format("%s_%s.root", fitInputFilePrefix.Data(), histName.Data());
+    TString effInputFileName = TString::Format("%s_%s.root", effInputFilePrefix.Data(), histName.Data());
 
-    TString fitInputFileName = fitInputFilePrefix; // only for SysSigExt
-    TString effInputFileName = effInputFilePrefix; // only for SysSigExt
+    // TString fitInputFileName = fitInputFilePrefix; // only for SysSigExt
+    // TString effInputFileName = effInputFilePrefix; // only for SysSigExt
 
     /// Getting histograms from fit input file:
     TFile *fitInputFile = OpenFile(fitInputFileName);
@@ -180,6 +194,10 @@ int EfficiencyCorrection(
     eff_xiC_avg->Write();
     eff_omC_avg->Write();
 
+    // Calculate total multiplicity entries for 0-100% multiplicity range for Xi and Omega:
+    Double_t multEntriesXi = h_multBinEntries_Xi->Integral();
+    Double_t multEntriesOm = h_multBinEntries_Om->Integral();
+
     /// XI:
     {
         /// Mult integrated raw + efficiency corrected spectra:
@@ -193,12 +211,12 @@ int EfficiencyCorrection(
 
         for (Int_t ptBinXi = 0; ptBinXi < fNptbins_Xi; ptBinXi++)
         {
-            rawPt_xip->SetBinContent(ptBinXi + 1, resultParXip_pt[ptBinXi]->GetBinContent(1) / (rawPt_xip->GetBinWidth(ptBinXi + 1))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xip->SetBinError(ptBinXi + 1, resultParXip_pt[ptBinXi]->GetBinError(1) / (rawPt_xip->GetBinWidth(ptBinXi + 1)));
-            rawPt_xim->SetBinContent(ptBinXi + 1, resultParXim_pt[ptBinXi]->GetBinContent(1) / (rawPt_xim->GetBinWidth(ptBinXi + 1))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xim->SetBinError(ptBinXi + 1, resultParXim_pt[ptBinXi]->GetBinError(1) / (rawPt_xim->GetBinWidth(ptBinXi + 1)));
-            rawPt_xiC->SetBinContent(ptBinXi + 1, resultParXiC_pt[ptBinXi]->GetBinContent(1) / (rawPt_xiC->GetBinWidth(ptBinXi + 1))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_xiC->SetBinError(ptBinXi + 1, resultParXiC_pt[ptBinXi]->GetBinError(1) / (rawPt_xiC->GetBinWidth(ptBinXi + 1)));
+            rawPt_xip->SetBinContent(ptBinXi + 1, (resultParXip_pt[ptBinXi]->GetBinContent(1) * 0.97) / ((rawPt_xip->GetBinWidth(ptBinXi + 1)) * multEntriesXi)); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xip->SetBinError(ptBinXi + 1, (resultParXip_pt[ptBinXi]->GetBinError(1) * 0.97) / ((rawPt_xip->GetBinWidth(ptBinXi + 1)) * multEntriesXi));
+            rawPt_xim->SetBinContent(ptBinXi + 1, (resultParXim_pt[ptBinXi]->GetBinContent(1) * 0.97) / ((rawPt_xim->GetBinWidth(ptBinXi + 1)) * multEntriesXi)); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xim->SetBinError(ptBinXi + 1, (resultParXim_pt[ptBinXi]->GetBinError(1) * 0.97) / ((rawPt_xim->GetBinWidth(ptBinXi + 1)) * multEntriesXi));
+            rawPt_xiC->SetBinContent(ptBinXi + 1, (resultParXiC_pt[ptBinXi]->GetBinContent(1) * 0.97) / ((rawPt_xiC->GetBinWidth(ptBinXi + 1)) * multEntriesXi)); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_xiC->SetBinError(ptBinXi + 1, (resultParXiC_pt[ptBinXi]->GetBinError(1) * 0.97) / ((rawPt_xiC->GetBinWidth(ptBinXi + 1)) * multEntriesXi));
         }
 
         // Xi+: Mult:0-100%: write to file
@@ -257,12 +275,19 @@ int EfficiencyCorrection(
 
             for (Int_t ptBinXi = 0; ptBinXi < fNptbins_Xi; ptBinXi++)
             {
-                rawPt_xip_mult[multBinXi]->SetBinContent(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xip_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-                rawPt_xip_mult[multBinXi]->SetBinError(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xip_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
-                rawPt_xim_mult[multBinXi]->SetBinContent(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xim_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-                rawPt_xim_mult[multBinXi]->SetBinError(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xim_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
-                rawPt_xiC_mult[multBinXi]->SetBinContent(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xiC_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-                rawPt_xiC_mult[multBinXi]->SetBinError(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xiC_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+                // Trigger and primary vertex reconstruction efficiency = 0.97
+                rawPt_xip_mult[multBinXi]->SetBinContent(ptBinXi + 1, (resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) * 0.97) / ((rawPt_xip_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * h_multBinEntries_Xi->GetBinContent(multBinXi + 1))); // Bin 1 in resultparams is raw pt's bin counting
+                rawPt_xip_mult[multBinXi]->SetBinError(ptBinXi + 1, (resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(1) * 0.97) / ((rawPt_xip_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * h_multBinEntries_Xi->GetBinContent(multBinXi + 1)));
+                rawPt_xim_mult[multBinXi]->SetBinContent(ptBinXi + 1, (resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) * 0.97) / ((rawPt_xim_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * h_multBinEntries_Xi->GetBinContent(multBinXi + 1))); // Bin 1 in resultparams is raw pt's bin counting
+                rawPt_xim_mult[multBinXi]->SetBinError(ptBinXi + 1, (resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(1) * 0.97) / ((rawPt_xim_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * h_multBinEntries_Xi->GetBinContent(multBinXi + 1)));
+                rawPt_xiC_mult[multBinXi]->SetBinContent(ptBinXi + 1, (resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) * 0.97) / ((rawPt_xiC_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * h_multBinEntries_Xi->GetBinContent(multBinXi + 1))); // Bin 1 in resultparams is raw pt's bin counting
+                rawPt_xiC_mult[multBinXi]->SetBinError(ptBinXi + 1, (resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(1) * 0.97) / ((rawPt_xiC_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * h_multBinEntries_Xi->GetBinContent(multBinXi + 1)));
+                // rawPt_xip_mult[multBinXi]->SetBinContent(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xip_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+                // rawPt_xip_mult[multBinXi]->SetBinError(ptBinXi + 1, resultParXip_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xip_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+                // rawPt_xim_mult[multBinXi]->SetBinContent(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xim_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+                // rawPt_xim_mult[multBinXi]->SetBinError(ptBinXi + 1, resultParXim_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xim_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
+                // rawPt_xiC_mult[multBinXi]->SetBinContent(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinContent(1) / ((rawPt_xiC_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+                // rawPt_xiC_mult[multBinXi]->SetBinError(ptBinXi + 1, resultParXiC_pt_mult[ptBinXi][multBinXi]->GetBinError(1) / ((rawPt_xiC_mult[multBinXi]->GetBinWidth(ptBinXi + 1)) * (h_multBinEntries_Xi->GetBinContent(multBinXi + 1))));
             }
 
             // Xi+: Mult diff: write to file
@@ -328,12 +353,19 @@ int EfficiencyCorrection(
 
         for (Int_t ptBinOm = 0; ptBinOm < fNptbins_Om; ptBinOm++)
         {
-            rawPt_omp->SetBinContent(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinContent(1) / (rawPt_omp->GetBinWidth(ptBinOm + 1))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omp->SetBinError(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinError(1) / (rawPt_omp->GetBinWidth(ptBinOm + 1)));
-            rawPt_omm->SetBinContent(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinContent(1) / (rawPt_omm->GetBinWidth(ptBinOm + 1))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omm->SetBinError(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinError(1) / (rawPt_omm->GetBinWidth(ptBinOm + 1)));
-            rawPt_omC->SetBinContent(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinContent(1) / (rawPt_omC->GetBinWidth(ptBinOm + 1))); // Bin 1 in resultparams is raw pt's bin counting
-            rawPt_omC->SetBinError(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinError(1) / (rawPt_omC->GetBinWidth(ptBinOm + 1)));
+            // Trigger and primary vertex reconstruction efficiency = 0.97
+            rawPt_omp->SetBinContent(ptBinOm + 1, (resultParOmp_pt[ptBinOm]->GetBinContent(1) * 0.97) / ((rawPt_omp->GetBinWidth(ptBinOm + 1)) * multEntriesOm)); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omp->SetBinError(ptBinOm + 1, (resultParOmp_pt[ptBinOm]->GetBinError(1) * 0.97) / ((rawPt_omp->GetBinWidth(ptBinOm + 1)) * multEntriesOm));
+            rawPt_omm->SetBinContent(ptBinOm + 1, (resultParOmm_pt[ptBinOm]->GetBinContent(1) * 0.97) / ((rawPt_omm->GetBinWidth(ptBinOm + 1)) * multEntriesOm)); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omm->SetBinError(ptBinOm + 1, (resultParOmm_pt[ptBinOm]->GetBinError(1) * 0.97) / ((rawPt_omm->GetBinWidth(ptBinOm + 1)) * multEntriesOm));
+            rawPt_omC->SetBinContent(ptBinOm + 1, (resultParOmC_pt[ptBinOm]->GetBinContent(1) * 0.97) / ((rawPt_omC->GetBinWidth(ptBinOm + 1)) * multEntriesOm)); // Bin 1 in resultparams is raw pt's bin counting
+            rawPt_omC->SetBinError(ptBinOm + 1, (resultParOmC_pt[ptBinOm]->GetBinError(1) * 0.97) / ((rawPt_omC->GetBinWidth(ptBinOm + 1)) * multEntriesOm));
+            // rawPt_omp->SetBinContent(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinContent(1) / ((rawPt_omp->GetBinWidth(ptBinOm + 1)) * multEntriesOm)); // Bin 1 in resultparams is raw pt's bin counting
+            // rawPt_omp->SetBinError(ptBinOm + 1, resultParOmp_pt[ptBinOm]->GetBinError(1) / ((rawPt_omp->GetBinWidth(ptBinOm + 1)) * multEntriesOm));
+            // rawPt_omm->SetBinContent(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinContent(1) / ((rawPt_omm->GetBinWidth(ptBinOm + 1)) * multEntriesOm)); // Bin 1 in resultparams is raw pt's bin counting
+            // rawPt_omm->SetBinError(ptBinOm + 1, resultParOmm_pt[ptBinOm]->GetBinError(1) / ((rawPt_omm->GetBinWidth(ptBinOm + 1)) * multEntriesOm));
+            // rawPt_omC->SetBinContent(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinContent(1) / ((rawPt_omC->GetBinWidth(ptBinOm + 1)) * multEntriesOm)); // Bin 1 in resultparams is raw pt's bin counting
+            // rawPt_omC->SetBinError(ptBinOm + 1, resultParOmC_pt[ptBinOm]->GetBinError(1) / ((rawPt_omC->GetBinWidth(ptBinOm + 1)) * multEntriesOm));
         }
 
         // Om+: Mult:0-100%: write to file
@@ -392,12 +424,18 @@ int EfficiencyCorrection(
 
             for (Int_t ptBinOm = 0; ptBinOm < fNptbins_Om; ptBinOm++)
             {
-                rawPt_omp_mult[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omp_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-                rawPt_omp_mult[multBinOm]->SetBinError(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omp_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
-                rawPt_omm_mult[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omm_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-                rawPt_omm_mult[multBinOm]->SetBinError(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omm_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
-                rawPt_omC_mult[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omC_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
-                rawPt_omC_mult[multBinOm]->SetBinError(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omC_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+                rawPt_omp_mult[multBinOm]->SetBinContent(ptBinOm + 1, (resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) * 0.97) / ((rawPt_omp_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * h_multBinEntries_Om->GetBinContent(multBinOm + 1))); // Bin 1 in resultparams is raw pt's bin counting
+                rawPt_omp_mult[multBinOm]->SetBinError(ptBinOm + 1, (resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(1) * 0.97) / ((rawPt_omp_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * h_multBinEntries_Om->GetBinContent(multBinOm + 1)));
+                rawPt_omm_mult[multBinOm]->SetBinContent(ptBinOm + 1, (resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) * 0.97) / ((rawPt_omm_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * h_multBinEntries_Om->GetBinContent(multBinOm + 1))); // Bin 1 in resultparams is raw pt's bin counting
+                rawPt_omm_mult[multBinOm]->SetBinError(ptBinOm + 1, (resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(1) * 0.97) / ((rawPt_omm_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * h_multBinEntries_Om->GetBinContent(multBinOm + 1)));
+                rawPt_omC_mult[multBinOm]->SetBinContent(ptBinOm + 1, (resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) * 0.97) / ((rawPt_omC_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * h_multBinEntries_Om->GetBinContent(multBinOm + 1))); // Bin 1 in resultparams is raw pt's bin counting
+                rawPt_omC_mult[multBinOm]->SetBinError(ptBinOm + 1, (resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(1) * 0.97) / ((rawPt_omC_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * h_multBinEntries_Om->GetBinContent(multBinOm + 1)));
+                // rawPt_omp_mult[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omp_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+                // rawPt_omp_mult[multBinOm]->SetBinError(ptBinOm + 1, resultParOmp_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omp_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+                // rawPt_omm_mult[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omm_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+                // rawPt_omm_mult[multBinOm]->SetBinError(ptBinOm + 1, resultParOmm_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omm_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
+                // rawPt_omC_mult[multBinOm]->SetBinContent(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinContent(1) / ((rawPt_omC_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1)))); // Bin 1 in resultparams is raw pt's bin counting
+                // rawPt_omC_mult[multBinOm]->SetBinError(ptBinOm + 1, resultParOmC_pt_mult[ptBinOm][multBinOm]->GetBinError(1) / ((rawPt_omC_mult[multBinOm]->GetBinWidth(ptBinOm + 1)) * (h_multBinEntries_Om->GetBinContent(multBinOm + 1))));
             }
 
             // Om+: Mult diff: write to file
