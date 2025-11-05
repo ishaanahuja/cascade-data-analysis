@@ -1,6 +1,9 @@
 /**
  * @file FitCascades.C
  * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
+ * Thesis: Multi-strange particle production in p–Pb collisions at √sNN = 8.16 TeV
+ * DOI: https://doi.org/10.17181/cwcde-g1z94
+ * 
  * @brief Macro to fit Invariant Mass Plots for Xi and Omega Cascades (ALICE RUN 2 LHC16r). Check function definitions.
  * @version 1
  * @date 24-02-2025

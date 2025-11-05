@@ -23,4 +23,4 @@ test*
 **/results/*    
 
 # except... backup current results
-!**/results/0_current_best/
+!**/results/finalResults/

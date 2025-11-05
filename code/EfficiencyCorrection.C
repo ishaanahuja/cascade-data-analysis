@@ -1,6 +1,9 @@
 /**
  * @file EfficiencyCorrection.C
  * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
+ * Thesis: Multi-strange particle production in p–Pb collisions at √sNN = 8.16 TeV
+ * DOI: https://doi.org/10.17181/cwcde-g1z94
+ *
  * @brief Perform efficiency correction on particle spectra.
  * @version 1
  * @date 04-06-2025
