@@ -2,6 +2,9 @@
  * @file IntYieldsMeanPtCompare.C
  * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
  * @version 1
+ * Thesis: Multi-strange particle production in p–Pb collisions at √sNN = 8.16 TeV
+ * DOI: https://doi.org/10.17181/cwcde-g1z94
+ * 
  * @brief Macro for generating final integrated yield and mean pT plots with fit overlays and ratio plots.
  * @date 13-06-2025
  *
@@ -165,6 +168,52 @@ TString GetLogHistogramName(const char *baseHistName, const char *funcName, cons
 //-----------------------------------------------------------------------------
 // Main Plotting Function
 //-----------------------------------------------------------------------------
+/**
+ * @brief Comprehensive analysis and plotting function for integrated yields and mean pT from cascade particle spectra
+ * 
+ * This function performs a complete analysis of integrated yields and mean transverse momentum (pT) 
+ * for cascade particles (Xi and Omega) across different multiplicity bins. It reads results from 
+ * spectral fitting analysis, combines systematic uncertainties, generates comparison plots with 
+ * published data, and produces publication-quality figures.
+ * 
+ * @param inputSpectraFile Path to ROOT file containing the original particle spectra histograms
+ *                        (default: systematic uncertainty results file)
+ * @param resultsFileName Path to ROOT file containing yield and mean pT results from RunYieldMean
+ *                       (default: integrated yield results file)
+ * @param inputLogFolder Path to folder containing log files from RunYieldMean with fit functions
+ *                      (default: yield calculation logs folder)
+ * @param outputPlotFolder Path to output folder where plots will be saved
+ *                        (default: plots output folder)
+ * @param imageFormat File format for output plots (default: "pdf")
+ * 
+ * Key functionality:
+ * - Reads spectral fitting results for Xi and Omega particles across multiplicity bins
+ * - Combines systematic uncertainties from spectra analysis and extrapolation function choice
+ * - Calculates extrapolation systematic uncertainties by comparing different fit functions
+ * - Generates formatted summary tables with final results including all uncertainties
+ * - Creates yield vs multiplicity plots with statistical and systematic error representation
+ * - Performs linear fits to yield evolution and creates ratio plots (Omega/Xi)
+ * - Compares results with published data from pp, p-Pb, and Pb-Pb collisions
+ * - Generates individual spectra fit plots for all multiplicity bins with ratio panels
+ * - Produces mean pT vs multiplicity evolution plots
+ * 
+ * Output plots include:
+ * - Individual yield vs multiplicity for each particle type
+ * - Yield vs multiplicity with linear fits and chi2/NDF information
+ * - Comprehensive comparison plots with literature data from multiple collision systems
+ * - Omega/Xi yield ratio from linear fits
+ * - Mean pT evolution vs multiplicity
+ * - Individual spectral fits for all multiplicity bins with data/fit ratio panels
+ * 
+ * The function handles multiple fit functions (Levy-Tsallis, Boltzmann, Blast-Wave) and
+ * uses the Levy-Tsallis as the default reference, calculating systematic uncertainties
+ * from the spread of alternative function results.
+ * 
+ * @note Requires properly formatted input files from RunYieldMean analysis
+ * @note Uses custom color palette and styling from CascadeUtils
+ * @note Automatically creates output directories if they don't exist
+ * @note Prints comprehensive summary tables to console with all final results
+ */
 void IntYieldsMeanPtCompare(
     TString inputSpectraFile = "/var/home/ishaan/Work/git/analysis/results/RandomVars/040625_SysUncertainty_Total_final_v2/040625_sysUncertainty_Total_final_v2.root", // Original spectra
     TString resultsFileName = "/var/home/ishaan/Work/git/analysis/results/RandomVars/IntYieldFinal/090625_IntYieldResults.root",                                       // File from RunYieldMean

@@ -1,7 +1,10 @@
 /**
  * @file EfficiencyEstimation.C
  * @author Ishaan Ahuja (ishaanahuja0@gmail.com)
- * @brief
+ * Thesis: Multi-strange particle production in p–Pb collisions at √sNN = 8.16 TeV
+ * DOI: https://doi.org/10.17181/cwcde-g1z94
+ * 
+ * @brief Macro to estimate efficiency from MC files. Read func def.
  * @version 1
  * @date 06-06-2025
  *

@@ -5,7 +5,7 @@
  * @brief Utils and functions for Cascade Analysis 
  *
  * Thesis: Multi-strange particle production in p–Pb collisions at √sNN = 8.16 TeV
- * DOI: https://doi.org/10.17181/g906v-7xe35 (02-11-2025: Prospective)
+ * DOI: https://doi.org/10.17181/cwcde-g1z94
  *
  * @version 1.0
  */

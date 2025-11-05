@@ -1,5 +1,27 @@
 #include <TString.h>
 
+/**
+ * @brief Adds the AliAnalysisTaskStrangeCascadesRun2 task to the AliAnalysisManager.
+ * 
+ * This function initializes and configures the AliAnalysisTaskStrangeCascadesRun2 task,
+ * which is used for analyzing strange particle cascades (Xi and Omega) in Run 2 data.
+ * The task is added to the AliAnalysisManager, and its input and output containers are set up.
+ * 
+ * @param Xi   Boolean flag to enable or disable Xi particle analysis. Default is true.
+ * @param Om   Boolean flag to enable or disable Omega particle analysis. Default is true.
+ * @param suffix   A TString suffix to append to the task name and output container names. Default is an empty string.
+ * 
+ * @return A pointer to the created AliAnalysisTaskStrangeCascadesRun2 task, or NULL if the task could not be created.
+ * 
+ * @note The output file name is hardcoded for specific Monte Carlo or real datasets.
+ *       Ensure that the AliAnalysisManager is properly initialized and has an input event handler before calling this function.
+ * 
+ * @example
+ * AliAnalysisTaskStrangeCascadesRun2 *task = AddTaskStrangeCascadesRun2(true, true, "test");
+ * if (task) {
+ *     // Task successfully added
+ * }
+ */
 AliAnalysisTaskStrangeCascadesRun2 *AddTaskStrangeCascadesRun2(bool Xi = true, bool Om = true, TString suffix = "")
 {
   // analysis manager
